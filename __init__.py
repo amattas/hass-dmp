@@ -126,26 +126,26 @@ class DMPPanel():
         reader, writer = await asyncio.open_connection(self._ipAddress, self._panelPort)
 
         # drop any existing connection
-        writer.write('@ 1003!V0\r'.encode())
+        writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
         await writer.drain()
         await asyncio.sleep(2)
         # send auth string
-        writer.write('@ 1003!V2{}\r'.format(self._remoteKey).encode())
+        writer.write('@ {}!V2{}\r'.format(self._accountNumber, self._remoteKey).encode())
         await writer.drain()
         await asyncio.sleep(0.2)
         # write single string to the receiver
-        writer.write('@ 1003{}\r'.format(sToSend).encode())
+        writer.write('@ {}{}\r'.format(self._accountNumber, sToSend).encode())
         await writer.drain()
         await asyncio.sleep(0.2)
         #disconnect
-        writer.write('@ 1003!V0\r'.encode())
+        writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
         await writer.drain()
         #close the socket
         writer.close()
         await writer.wait_closed()
 
         data = await reader.read(256)
-        _LOGGER.debug(data)
+        _LOGGER.debug("DMP: Received data after command: {}".format(data))
 class DMPListener():
     def __init__(self, hass, config):
         self._hass = hass
