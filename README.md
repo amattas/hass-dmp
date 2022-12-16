@@ -33,6 +33,7 @@ Modify and add the relevant config sections to your configuration.yaml:
 `
 dmp:
   listen_port: 2001
+  port: 2011
   panels:
     - account_number: 1234
       ip: 1.2.3.4
@@ -43,6 +44,10 @@ alarm_control_panel:
     area_number: "001"
     area_name: "Basement"
     area_accountnumber: 1234
+    # Optional Arm/Disarm Command Zone Mapping Override
+    area_disarm_zone: "010203"
+    area_home_zone: "01"
+    area_away_zone: "010203"
 `
 
 Note that the remote key should be space padded. THe account number of the area should match that of the DMP panel it is attached to. This is how the two objects get linked.

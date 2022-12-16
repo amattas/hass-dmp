@@ -13,11 +13,12 @@ from homeassistant.const import (
 )
 
 from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
+    SUPPORT_ALARM_ARM_HOME,
+    SUPPORT_ALARM_ARM_AWAY
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import DOMAIN, LISTENER, CONF_AREA_NAME, CONF_AREA_ACCTNUM, CONF_AREA_NUMBER
+from .const import DOMAIN, LISTENER, CONF_AREA_NAME, CONF_AREA_ACCTNUM, CONF_AREA_NUMBER, CONF_AREA_DISARM_ZONE, CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +27,9 @@ PLATFORM_SCHEMA = vol.Schema(
         vol.Required(CONF_AREA_NAME): cv.string,
         vol.Required(CONF_AREA_ACCTNUM): cv.string,           
         vol.Required(CONF_AREA_NUMBER): cv.string,
+        vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
+        vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
+        vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -43,6 +47,9 @@ class DMPArea(AlarmControlPanelEntity):
         self._account_number = config.get(CONF_AREA_ACCTNUM)
         self._number = config.get(CONF_AREA_NUMBER)
         self._panel = listener.getPanels()[str(self._account_number)]
+        self._disarm_zone = config.get(CONF_AREA_DISARM_ZONE) or self._number[1:]
+        self._home_zone = config.get(CONF_AREA_HOME_ZONE) or self._number[1:]
+        self._away_zone = config.get(CONF_AREA_AWAY_ZONE) or self._number[1:]
 
         areaObj = {"areaName": self._name, "areaNumber": str(self._number), "areaState": STATE_ALARM_DISARMED,}
         self._panel.updateArea(str(self._number), areaObj)
@@ -75,7 +82,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return SUPPORT_ALARM_ARM_AWAY
+        return [SUPPORT_ALARM_ARM_HOME, SUPPORT_ALARM_ARM_AWAY]
 
     @property
     def code_arm_required(self):
@@ -91,12 +98,12 @@ class DMPArea(AlarmControlPanelEntity):
     
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel.connectAndSend('!O{},'.format(self._number[1:]))
+        await self._panel.connectAndSend('!O{},'.format(self._disarm_zone))
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._number[1:]))
+        await self._panel.connectAndSend('!C{},YN'.format(self._away_zone))
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._number[1:]))
+        await self._panel.connectAndSend('!C{},YN'.format(self._home_zone))

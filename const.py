@@ -12,6 +12,10 @@ CONF_AREA_NUMBER = "area_number"
 CONF_AREA_NAME = "area_name"
 CONF_AREA_ACCTNUM = "area_accountnumber"
 
+CONF_AREA_DISARM_ZONE: "area_disarm_zone"
+CONF_AREA_HOME_ZONE: "area_home_zone"
+CONF_AREA_AWAY_ZONE: "area_away_zone"
+
 CONF_LOCK_NAME = "door_name"
 CONF_LOCK_NUMBER = "door_number"
 CONF_LOCK_ACCOUNT_NUMBER = "account_number"
