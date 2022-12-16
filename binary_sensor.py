@@ -40,9 +40,10 @@ class DMPZone(BinarySensorEntity):
         self._name = config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = config.get(CONF_ZONE_ACCTNUM)
+        self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
 
-        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF,}
+        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF}
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
@@ -71,9 +72,18 @@ class DMPZone(BinarySensorEntity):
         return state
 
     @property
+    def device_class(self):
+        """Return the class of the device"""
+        return self._device_class
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {
             "last_contact": self._panel.getContactTime(),
         }
     
+    @property
+    def unique_id(self):
+        """Return unique ID"""
+        return "dmp-%s-zone-%s" % (self._account_number, self._number)

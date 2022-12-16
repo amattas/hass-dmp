@@ -95,6 +95,11 @@ class DMPArea(AlarmControlPanelEntity):
         return {
             "last_contact": self._panel.getContactTime(),
         }
+
+    @property
+    def unique_id(self):
+        """Return unique ID"""
+        return "dmp-%s-area-%s" % (self._account_number, self._number)
     
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
