@@ -9,7 +9,7 @@ from homeassistant.components.alarm_control_panel import (
 )
 
 from homeassistant.const import (
-    STATE_ALARM_DISARMED
+    STATE_ALARM_DISARMED,
 )
 
 from homeassistant.components.alarm_control_panel.const import (
