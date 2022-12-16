@@ -146,6 +146,7 @@ class DMPPanel():
 
         data = await reader.read(256)
         _LOGGER.debug("DMP: Received data after command: {}".format(data))
+
 class DMPListener():
     def __init__(self, hass, config):
         self._hass = hass
@@ -230,12 +231,11 @@ class DMPListener():
         while connected:
                 data = await reader.read(2048)
                 data = data.decode("utf-8")
-
                 _LOGGER.debug('Raw Data: \'{}\''.format(data))
                 if data:
                     acctNum = data[7:12]
-                    eventCode = data[13:15]
                     _LOGGER.debug('\tAcct Num: \'{}\''.format(acctNum))
+                    eventCode = data[19:21]
                     _LOGGER.debug('\tEvent Code: \'{}\''.format(eventCode))
                     areaNumber = None
                     try:
