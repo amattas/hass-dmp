@@ -14,7 +14,7 @@ from homeassistant.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS
+from .const import DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS, CONF_ZONE_ACCTNUM
 
 _LOGGER = logging.getLogger(__name__)
 
