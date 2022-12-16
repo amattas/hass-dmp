@@ -123,7 +123,7 @@ class DMPPanel():
 
     def updateZone(self, zoneNum, eventObj):
         if (zoneNum in self._zones):
-            old_zone = self._[zoneNum]
+            old_zone = self._["zoneNum"]
             zone_name = old_zone["zoneName"];
             new_zone = {"zoneName": zone_name, "zoneNumber": eventObj["zoneNumber"], "zoneState": eventObj["zoneState}"]}
             self._zones[zoneNum] = new_zone
@@ -338,10 +338,10 @@ class DMPListener():
                         zoneNumber = self._getS3Segment('\\z ', data)[1:]
                         if (systemCode == "DO"):
                             #opening, or disarm
-                            zoneState = STATE_ON
+                            zoneState = STATE_OFF
                         elif (systemCode == "DC"):
                             #closing, or arm
-                            zoneState = STATE_OFF
+                            zoneState = STATE_ON
                         zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
                         panel.updateZone(zoneNumber, zoneObj)
                     elif (eventCode == 'Zl'):

@@ -43,7 +43,7 @@ class DMPZone(BinarySensorEntity):
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
 
-        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF}
+        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_ON}
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
