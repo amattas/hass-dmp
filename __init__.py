@@ -206,20 +206,6 @@ class DMPListener():
         #strip everything after and return it, as well as strip the letter and space
         return tempString[2:end]
 
-    def _getS3StatusSegment(self, charToFind, input):
-        #find the char we're looking for
-        start = input.find(charToFind)
-        #index -1 means not found, but plus one from above, so we're really looking for index 0 to mean none found
-        #returning None breaks it so we return empty string
-        if (start == -1):
-            return ""
-        #strip everything before it
-        tempString = input[start:]
-        #search substring till we find the \ delimeter (double \ so we don't escape the quote)
-        end = tempString.find('\\')
-        #strip everything after and return it, as well as strip the letter and space
-        return tempString[2:end]
-
     def _searchS3Segment(self, input):
         #example data to be passed to the function: 009"PULL STATION
         #find the single double quote that separates the number from name
@@ -349,9 +335,7 @@ class DMPListener():
                         #Device Status Message
                         systemCode = self._getS3Segment('\\t ', data)[1:]
                         codeName = self._event_types(systemCode)
-                        zoneNumber = self._getS3StatusSegment('\\z ', data)[1:]
-                        _LOGGER.debug("System Code: {}".format(systemCode))
-                        _LOGGER.debug("Zone Number: {}".format(zoneNumber))
+                        zoneNumber = self._getS3Segment('\\z ', data)
                         if (systemCode == "DO"):
                             #Door Open
                             zoneState = STATE_OFF

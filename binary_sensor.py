@@ -42,7 +42,7 @@ class DMPZone(BinarySensorEntity):
         self._account_number = config.get(CONF_ZONE_ACCTNUM)
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
-
+        self._state = None
         zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_ON}
         self._panel.updateZone(str(self._number), zoneObj)
 
@@ -68,8 +68,10 @@ class DMPZone(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        state = self._panel.getZone(self._number)["zoneState"]
-        return state
+        return self._state
+
+    def update(self):
+        self._state = self._panel.getZone(self._number)["zoneState"]
 
     @property
     def device_class(self):
@@ -82,6 +84,7 @@ class DMPZone(BinarySensorEntity):
         return {
             "last_contact": self._panel.getContactTime(),
         }
+
     
     @property
     def unique_id(self):
