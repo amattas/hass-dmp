@@ -39,7 +39,7 @@ class DMPZone(BinarySensorEntity):
         self._listener = listener
         self._name = config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
-        self._account_number = config.get(CONF_AREA_ACCTNUM)
+        self._account_number = config.get(CONF_ZONE_ACCTNUM)
         self._panel = listener.getPanels()[str(self._account_number)]
 
         zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF,}
