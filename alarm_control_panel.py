@@ -47,9 +47,9 @@ class DMPArea(AlarmControlPanelEntity):
         self._account_number = config.get(CONF_AREA_ACCTNUM)
         self._number = config.get(CONF_AREA_NUMBER)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._disarm_zone = config.get(CONF_AREA_DISARM_ZONE) or self._number[1:]
-        self._home_zone = config.get(CONF_AREA_HOME_ZONE) or self._number[1:]
-        self._away_zone = config.get(CONF_AREA_AWAY_ZONE) or self._number[1:]
+        self._disarm_zone = config.get(CONF_AREA_DISARM_ZONE) or self._number
+        self._home_zone = config.get(CONF_AREA_HOME_ZONE) or self._number
+        self._away_zone = config.get(CONF_AREA_AWAY_ZONE) or self._number
 
         areaObj = {"areaName": self._name, "areaNumber": str(self._number), "areaState": STATE_ALARM_DISARMED,}
         self._panel.updateArea(str(self._number), areaObj)
@@ -98,12 +98,12 @@ class DMPArea(AlarmControlPanelEntity):
     
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel.connectAndSend('!O{},'.format(self._disarm_zone))
+        await self._panel.connectAndSend('!O{},'.format(self._disarm_zone[1:]))
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._away_zone))
+        await self._panel.connectAndSend('!C{},YN'.format(self._away_zone[1:]))
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._home_zone))
+        await self._panel.connectAndSend('!C{},YN'.format(self._home_zone[1:]))
