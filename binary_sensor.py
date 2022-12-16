@@ -5,8 +5,7 @@ import logging
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
-    BinarySensorEntity,
-    SensorStateClass,
+    BinarySensorEntity
 )
 
 from homeassistant.cconst import (
