@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity
 )
 
-from homeassistant.cconst import (
+from homeassistant.const import (
     STATE_ON,
     STATE_OFF
 )
