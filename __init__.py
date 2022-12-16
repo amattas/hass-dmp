@@ -231,9 +231,12 @@ class DMPListener():
                 data = await reader.read(2048)
                 data = data.decode("utf-8")
 
+                _LOGGER.debug('Raw Data: \'{}\''.format(data))
                 if data:
                     acctNum = data[7:12]
                     eventCode = data[13:15]
+                    _LOGGER.debug('\tAcct Num: \'{}\''.format(acctNum))
+                    _LOGGER.debug('\tEvent Code: \'{}\''.format(eventCode))
                     areaNumber = None
                     try:
                         panel = self._panels[acctNum.strip()]
