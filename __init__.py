@@ -123,9 +123,9 @@ class DMPPanel():
 
     def updateZone(self, zoneNum, eventObj):
         if (zoneNum in self._zones):
-            old_zone = self._["zoneNum"]
-            zone_name = old_zone["zoneName"]
-            new_zone = {"zoneName": zone_name, "zoneNumber": eventObj["zoneNumber"], "zoneState": eventObj["zoneState}"]}
+            old_zone = self._zones[zoneNum]
+            zone_name = old_zone.get("zoneName")
+            new_zone = {"zoneName": zone_name, "zoneNumber": eventObj["zoneNumber"], "zoneState": eventObj["zoneState"]}
             self._zones[zoneNum] = new_zone
         else:
             self._zones[zoneNum] = eventObj
@@ -198,6 +198,20 @@ class DMPListener():
         #index -1 means not found, but plus one from above, so we're really looking for index 0 to mean none found
         #returning None breaks it so we return empty string
         if (start == 0):
+            return ""
+        #strip everything before it
+        tempString = input[start:]
+        #search substring till we find the \ delimeter (double \ so we don't escape the quote)
+        end = tempString.find('\\')
+        #strip everything after and return it, as well as strip the letter and space
+        return tempString[2:end]
+
+    def _getS3StatusSegment(self, charToFind, input):
+        #find the char we're looking for
+        start = input.find(charToFind)
+        #index -1 means not found, but plus one from above, so we're really looking for index 0 to mean none found
+        #returning None breaks it so we return empty string
+        if (start == -1):
             return ""
         #strip everything before it
         tempString = input[start:]
@@ -335,12 +349,14 @@ class DMPListener():
                         #Device Status Message
                         systemCode = self._getS3Segment('\\t ', data)[1:]
                         codeName = self._event_types(systemCode)
-                        zoneNumber = self._getS3Segment('\\z ', data)[1:]
+                        zoneNumber = self._getS3StatusSegment('\\z ', data)[1:]
+                        _LOGGER.debug("System Code: {}".format(systemCode))
+                        _LOGGER.debug("Zone Number: {}".format(zoneNumber))
                         if (systemCode == "DO"):
-                            #opening, or disarm
+                            #Door Open
                             zoneState = STATE_OFF
                         elif (systemCode == "DC"):
-                            #closing, or arm
+                            #Door Closed
                             zoneState = STATE_ON
                         zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
                         panel.updateZone(zoneNumber, zoneObj)
