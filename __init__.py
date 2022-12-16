@@ -113,7 +113,7 @@ class DMPPanel():
 
     def updateArea(self, areaNum, eventObj):
         self._areas[areaNum] = eventObj
-        _LOGGER.debug("Area %s has been updated", areaNum)
+        _LOGGER.debug("Area %s has been updated to %s", areaNum, eventObj['areaState'])
 
     def getArea(self, areaNumber):
         return self._areas[areaNumber]
@@ -123,7 +123,7 @@ class DMPPanel():
 
     def updateZone(self, zoneNum, eventObj):
         self._zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated", zoneNum)
+        _LOGGER.debug("Zone %s has been updated to %s", zoneNum, eventObj['zoneState'])
 
     def getZone(self, zoneNumber):
         return self._zones[zoneNumber]
