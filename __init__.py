@@ -335,7 +335,7 @@ class DMPListener():
                             zoneState = STATE_ON
                         elif (systemCode == "DC"):
                             #closing, or arm
-                            areaState = STATE_OFF
+                            zoneState = STATE_OFF
                         zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
                         panel.updateZone(zoneNumber, zoneObj)
                     elif (eventCode == 'Zl'):
