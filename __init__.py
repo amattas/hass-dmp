@@ -124,7 +124,7 @@ class DMPPanel():
     def updateZone(self, zoneNum, eventObj):
         if (zoneNum in self._zones):
             old_zone = self._["zoneNum"]
-            zone_name = old_zone["zoneName"];
+            zone_name = old_zone["zoneName"]
             new_zone = {"zoneName": zone_name, "zoneNumber": eventObj["zoneNumber"], "zoneState": eventObj["zoneState}"]}
             self._zones[zoneNum] = new_zone
         else:
