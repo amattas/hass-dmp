@@ -3,7 +3,7 @@
 import voluptuous as vol
 import logging
 
-from homeassistant.components.binarysensor import (
+from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     SensorStateClass,
