@@ -66,7 +66,7 @@ class DMPZone(BinarySensorEntity):
         return False
 
     @property
-    def state(self):
+    def is_on(self):
         """Return the state of the device."""
         state = self._panel.getZone(self._number)["zoneState"]
         return state
