@@ -43,7 +43,7 @@ class DMPZone(BinarySensorEntity):
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
         self._state = None
-        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_ON}
+        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF}
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
@@ -63,15 +63,12 @@ class DMPZone(BinarySensorEntity):
     @property
     def should_poll(self):
         """Return the polling state."""
-        return False
+        return True
 
     @property
     def is_on(self):
         """Return the state of the device."""
-        return self._state
-
-    def update(self):
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        return self._panel.getZone(self._number)["zoneState"]
 
     @property
     def device_class(self):
