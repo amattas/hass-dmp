@@ -122,7 +122,12 @@ class DMPPanel():
         return self._areas
 
     def updateZone(self, zoneNum, eventObj):
-        self._zones[zoneNum] = eventObj
+        if (zoneNum in self._zones):
+            old_zone = self._[zoneNum]
+            zone_name = old_zone["zoneName"];
+            new_zone = {"zoneName": zone_name, "zoneNumber": eventObj["zoneNumber"], "zoneState": eventObj["zoneState}"]}
+        else:
+            self._zones[zoneNum] = new_zone
         _LOGGER.debug("Zone %s has been updated to %s", zoneNum, eventObj['zoneState'])
 
     def getZone(self, zoneNumber):
