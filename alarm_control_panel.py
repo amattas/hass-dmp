@@ -82,7 +82,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return [SUPPORT_ALARM_ARM_HOME, SUPPORT_ALARM_ARM_AWAY]
+        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
 
     @property
     def code_arm_required(self):
