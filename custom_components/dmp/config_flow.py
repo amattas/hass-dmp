@@ -76,7 +76,7 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                user_input: Optional[Dict[str, Any]] = None):
         errors: Dict[str, str] = {}
         if user_input is not None:
-            self.data = user_input
+            self.data[CONF_AREAS].append(user_input)
             if user_input.get("add_another", False):
                 return await self.async_step_areas()
             return await self.async_step_zones()
@@ -87,7 +87,7 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                user_input: Optional[Dict[str, Any]] = None):
         errors: Dict[str, str] = {}
         if user_input is not None:
-            self.data = user_input
+            self.data[CONF_ZONES].append(user_input)
             if user_input.get("add_another", False):
                 return await self.async_step_zones()
             return self.async_create_entry(title="DMP Alarm System",

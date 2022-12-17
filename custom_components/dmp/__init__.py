@@ -66,6 +66,7 @@ async def async_setup_entry(hass, entry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = entry.data
     config = hass.data[DOMAIN][entry.entry_id]
+    _LOGGER.debug("Loaded config %s", config)
     if config is not None:
         hass.data[DOMAIN] = {}
         # create and start the listener
