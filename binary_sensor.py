@@ -63,12 +63,16 @@ class DMPZone(BinarySensorEntity):
     @property
     def should_poll(self):
         """Return the polling state."""
-        return True
+        return False
 
     @property
     def is_on(self):
         """Return the state of the device."""
-        return self._panel.getZone(self._number)["zoneState"]
+        return self._state
+
+    @property
+    def async_update(self):
+        self._state = self._panel.getZone(self._number)["zoneState"]
 
     @property
     def device_class(self):
@@ -81,7 +85,6 @@ class DMPZone(BinarySensorEntity):
         return {
             "last_contact": self._panel.getContactTime(),
         }
-
     
     @property
     def unique_id(self):
