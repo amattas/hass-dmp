@@ -84,8 +84,8 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self.data = user_input
             if user_input.get("add_another", False):
-                return await self.async_step_area()
-            return await self.async_step_zone()
+                return await self.async_step_areas()
+            return await self.async_step_zones()
         return self.async_show_form(step_id="areas", data_schema=AREA_SCHEMA,
                                     errors=errors)
 
@@ -95,7 +95,7 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self.data = user_input
             if user_input.get("add_another", False):
-                return await self.async_step_zone()
+                return await self.async_step_zones()
             return self.async_create_entry(title="DMP Alarm System",
                                            data=self.data)
         return self.async_show_form(step_id="zones", data_schema=ZONE_SCHEMA,
