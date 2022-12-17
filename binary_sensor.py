@@ -38,8 +38,8 @@ class DMPZone(BinarySensorEntity):
         self._account_number = config.get(CONF_ZONE_ACCTNUM)
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._state = None
-        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": False}
+        self._state = False
+        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": self._state}
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
@@ -53,6 +53,7 @@ class DMPZone(BinarySensorEntity):
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZone Callback Executed")
+        self._state = self._panel.getZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
     @property
@@ -68,13 +69,13 @@ class DMPZone(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Calling DMPZone.async_update")
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        _LOGGER.debug("Called DMPZone.is_on: {}".format(self._state))
         return self._state
 
     @property
     def device_class(self):
         """Return the class of the device"""
+        _LOGGER.debug("Called DMPZone.device_class: {}".format(self._device_class))
         return self._device_class
 
     @property
