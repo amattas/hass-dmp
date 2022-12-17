@@ -23,8 +23,8 @@ from .const import (CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
 from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
 
 ZONE_CLASSES = {
-    "door": ("Door", "door"),
-    "window": ("Window", "window")
+    "door": "Door",
+    "window": "Window"
 }
 
 PANEL_SCHEMA = vol.Schema(

@@ -18,9 +18,10 @@ from homeassistant.components.alarm_control_panel.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (DOMAIN, LISTENER, CONF_AREA_NAME, CONF_AREA_ACCTNUM,
-                    CONF_AREA_NUMBER, CONF_AREA_DISARM_ZONE,
-                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE, CONF_AREAS)
+from .const import (DOMAIN, LISTENER, CONF_AREA_NAME,
+                    CONF_PANEL_ACCOUNT_NUMBER, CONF_AREA_NUMBER,
+                    CONF_AREA_DISARM_ZONE, CONF_AREA_HOME_ZONE,
+                    CONF_AREA_AWAY_ZONE, CONF_AREAS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,30 +37,32 @@ _LOGGER = logging.getLogger(__name__)
 #     extra=vol.ALLOW_EXTRA,
 # )
 
-# async def async_setup_entry(hass, entry, async_add_entities,):
-#     """Setup sensors from a config entry created in the integrations UI."""
-#     config = hass.data[DOMAIN][entry.entry_id]
-#     # Update our config to include new repos and remove those that have
-#     # been removed.
-#     if config.options:
-#         config.update(config.options)
-#     listener = hass.data[DOMAIN][LISTENER]
-#     areas = [DMPArea(listener, config) for area in config[CONF_AREAS]]
-#     async_add_entities(areas, update_before_add=True)
 
-
-async def async_setup_platform(hass, config, async_add_entities,
-                               discovery_info=None):
+async def async_setup_entry(hass, entry, async_add_entities,):
+    """Setup sensors from a config entry created in the integrations UI."""
+    config = hass.data[DOMAIN][entry.entry_id]
+    # Update our config to include new repos and remove those that have
+    # been removed.
+    if config.options:
+        config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
-    area = [DMPArea(listener, config)]
-    async_add_entities(area)
+    areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
+             for area in config[CONF_AREAS]]
+    async_add_entities(areas, update_before_add=True)
+
+
+# async def async_setup_platform(hass, config, async_add_entities,
+#                                discovery_info=None):
+#     listener = hass.data[DOMAIN][LISTENER]
+#     area = [DMPArea(listener, config)]
+#     async_add_entities(area)
 
 
 class DMPArea(AlarmControlPanelEntity):
-    def __init__(self, listener, config):
+    def __init__(self, listener, config, accountNum):
         self._listener = listener
         self._name = config.get(CONF_AREA_NAME)
-        self._account_number = config.get(CONF_AREA_ACCTNUM)
+        self._account_number = accountNum
         self._number = config.get(CONF_AREA_NUMBER)
         self._panel = listener.getPanels()[str(self._account_number)]
         self._disarm_zone = (config.get(CONF_AREA_DISARM_ZONE)
