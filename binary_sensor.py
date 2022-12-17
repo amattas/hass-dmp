@@ -104,4 +104,5 @@ class DMPZoneOpenClose(BinarySensorEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-zone-%s" % (self._account_number, self._number)
+        return "dmp-%s-zone-%s-openclose" % (self._account_number,
+                                             self._number)
