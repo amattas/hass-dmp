@@ -64,7 +64,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+    hass.data = dict(entry.data)
     config = hass.data[DOMAIN][entry.entry_id]
     _LOGGER.debug("Loaded config %s", config)
     if config is not None:
