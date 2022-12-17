@@ -26,24 +26,25 @@ _LOGGER = logging.getLogger(__name__)
 # )
 
 
-async def async_setup_entry(hass, entry, async_add_entities,):
-    """Setup sensors from a config entry created in the integrations UI."""
-    config = hass.data[DOMAIN][entry.entry_id]
-    # Update our config to include new repos and remove those that have
-    # been removed.
-    if config.options:
-        config.update(config.options)
-    listener = hass.data[DOMAIN][LISTENER]
-    zones = [DMPZoneOpenClose(listener, config,
-                              config.get(CONF_PANEL_ACCOUNT_NUMBER))
-             for area in config[CONF_ZONES]]
-    async_add_entities(zones, update_before_add=True)
+# async def async_setup_entry(hass, entry, async_add_entities,):
+#     """Setup sensors from a config entry created in the integrations UI."""
 
-# async def async_setup_platform(hass, config, async_add_entities,
-#                                discovery_info=None):
+#     config = hass.data[DOMAIN][entry.entry_id]
+#     # Update our config to include new repos and remove those that have
+#     # been removed.
+#     if config.options:
+#         config.update(config.options)
 #     listener = hass.data[DOMAIN][LISTENER]
-#     zone = [DMPZoneOpenClose(listener, config)]
-#     async_add_entities(zone)
+#     zones = [DMPZoneOpenClose(listener, config,
+#                               config.get(CONF_PANEL_ACCOUNT_NUMBER))
+#              for area in config[CONF_ZONES]]
+#     async_add_entities(zones, update_before_add=True)
+
+async def async_setup_platform(hass, config, async_add_entities,
+                               discovery_info=None):
+    listener = hass.data[DOMAIN][LISTENER]
+    zone = [DMPZoneOpenClose(listener, config)]
+    async_add_entities(zone)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
