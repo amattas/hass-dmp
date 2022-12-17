@@ -47,10 +47,13 @@ class DMPZone(BinarySensorEntity):
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
+        _LOGGER.debug("Registering DMPZone Callback")
         self._listener.register_callback(self.process_zone_callback)
 
     async def async_will_remove_from_hass(self):
+        _LOGGER.debug("Removing DMPZone Callback")
         self._listener.remove_callback(self.process_zone_callback)
+
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZone Callback Executed")
