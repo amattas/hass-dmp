@@ -55,12 +55,12 @@ class DMPArea(AlarmControlPanelEntity):
         self._panel.updateArea(str(self._number), areaObj)
 
     async def async_added_to_hass(self):
-        self._listener.register_callback(self.process_callback)
+        self._listener.register_callback(self.process_area_callback)
 
     async def async_will_remove_from_hass(self):
-        self._listener.remove_callback(self.process_callback)
+        self._listener.remove_callback(self.process_area_callback)
 
-    async def process_callback(self):
+    async def process_area_callback(self):
         self.async_write_ha_state()
         _LOGGER.debug("DMPArea Callback Executed")
 
