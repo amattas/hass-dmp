@@ -10,7 +10,7 @@ CONF_PANEL_REMOTE_PORT = "port"
 
 CONF_AREA_NUMBER = "area_number"
 CONF_AREA_NAME = "area_name"
-CONF_AREA_ACCTNUM = "area_accountnumber"
+# CONF_AREA_ACCTNUM = "area_accountnumber"
 
 CONF_AREA_DISARM_ZONE = "area_disarm_zone"
 CONF_AREA_HOME_ZONE = "area_home_zone"
@@ -22,5 +22,11 @@ CONF_LOCK_ACCOUNT_NUMBER = "account_number"
 
 CONF_ZONE_NAME = "zone_name"
 CONF_ZONE_NUMBER = "zone_number"
-CONF_ZONE_CLASS = "zone_class" 
-CONF_ZONE_ACCTNUM = "zone_accountnumber"
+CONF_ZONE_CLASS = "zone_class"
+# CONF_ZONE_ACCTNUM = "zone_accountnumber"
+
+CONFIG_FLOW_PANEL = "panel"
+CONF_AREAS = "areas"
+CONF_ZONES = "zones"
+
+CONF_ADD_ANOTHER = "add_another"

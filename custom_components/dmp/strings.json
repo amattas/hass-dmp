@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "ip": "Panel IP Address",
+          "port": "Panel Port",
+          "listen_port": "Listener Port",
+          "account_number": "Account Number",
+          "remote_key": "Panel Key"
+        },
+        "description": "Enter your Panel information.",
+        "title": "DMP Panel Configuration"
+      },
+      "areas": {
+        "data": {
+          "area_number": "Area Number",
+          "area_name": "Area Name",
+          "area_away_zone": "Alternate Arm Away Zone",
+          "area_home_zone": "Alternate Arm Home Zone",
+          "area_disarm_zone": "Alternate Disarm Zone",
+          "add_another": "Add another area?"
+        },
+        "description": "Add an area to your DMP pane.",
+        "title": "DMP Area Configuration"
+      },
+      "zones": {
+        "data": {
+          "zone_name": "Zone Name",
+          "zone_number": "Zone Number",
+          "zone_class": "Zone Device Class",
+          "add_another": "Add another zone?"
+        },
+        "description": "Add a zone to your DMP panel.",
+        "title": "DMP Zone Configuration"
+      }
+    }
+  }
+}

@@ -1,9 +1,0 @@
-{
-    "domain": "dmp",
-    "name": "Digital Monitoring Products Alarm and Access",
-    "documentation": "https://example.com",
-    "dependencies": [],
-    "codeowners": ["@natalie"],
-    "requirements": [],
-    "version": "0.1"
-  }
