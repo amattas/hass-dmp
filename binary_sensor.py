@@ -72,11 +72,9 @@ class DMPZone(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        return self._state
-
-    @property
-    def async_update(self):
+        _LOGGER.debug("Calling DMPZone.async_update")
         self._state = self._panel.getZone(self._number)["zoneState"]
+        return self._state
 
     @property
     def device_class(self):
