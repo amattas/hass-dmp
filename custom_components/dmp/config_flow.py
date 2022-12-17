@@ -74,7 +74,7 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data = user_input
             self.data[CONF_AREAS] = []
             self.data[CONF_ZONES] = []
-            return await self.async_step_area()
+            return await self.async_step_areas()
         return self.async_show_form(step_id="user", data_schema=PANEL_SCHEMA,
                                     errors=errors)
 
