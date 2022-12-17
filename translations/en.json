@@ -5,7 +5,7 @@
       "invalid_path": "The path provided is not valid. Should be in the format `user/repo-name`."
     },
     "step": {
-      "panel": {
+      "user": {
         "data": {
           "ip": "Panel IP Address",
           "port": "Panel Port",
