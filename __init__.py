@@ -27,7 +27,7 @@ from homeassistant.const import (
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
+    STATE_ALARM_TRIGGERED
 )
 
 from .const import DOMAIN, LISTENER, CONF_LISTEN_PORT, CONF_PANELS, CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT
@@ -111,13 +111,28 @@ class DMPPanel():
 
     def updateArea(self, areaNum, eventObj):
         self._areas[areaNum] = eventObj
-        _LOGGER.debug("Area %s has been updated", areaNum)
+        _LOGGER.debug("Area %s has been updated to %s", areaNum, eventObj['areaState'])
 
     def getArea(self, areaNumber):
         return self._areas[areaNumber]
 
     def getAreas(self):
         return self._areas
+
+    def updateZone(self, zoneNum, eventObj):
+        if (zoneNum in self._zones):
+            zone = self._zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._zones[zoneNum] = zone
+        else:
+            self._zones[zoneNum] = eventObj
+        _LOGGER.debug("Zone %s has been updated to %s", zoneNum, eventObj['zoneState'])
+
+    def getZone(self, zoneNumber):
+        return self._zones[zoneNumber]
+
+    def getZones(self):
+        return self._zones
 
     def getAccountNumber(self):
         return self._accountNumber
@@ -238,6 +253,7 @@ class DMPListener():
                     eventCode = data[19:21]
                     _LOGGER.debug('\tEvent Code: \'{}\''.format(eventCode))
                     areaNumber = None
+                    zoneNumber = None
                     try:
                         panel = self._panels[acctNum.strip()]
                     except:
@@ -312,6 +328,19 @@ class DMPListener():
                             areaState = STATE_ALARM_ARMED_AWAY
                         areaObj = {"areaName": areaName, "areaNumber": areaNumber, "areaState": areaState,}
                         panel.updateArea(areaNumber, areaObj)
+                    elif (eventCode == 'Zc'):
+                        #Device Status Message
+                        systemCode = self._getS3Segment('\\t ', data)[1:]
+                        codeName = self._event_types(systemCode)
+                        zoneNumber = self._getS3Segment('\\z ', data)
+                        if (systemCode == "DO"):
+                            #Door Open
+                            zoneState = True
+                        elif (systemCode == "DC"):
+                            #Door Closed
+                            zoneState = False
+                        zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
+                        panel.updateZone(zoneNumber, zoneObj)
                     elif (eventCode == 'Zl'):
                         #schedule change
                         #generally used if someone extends closing time from the keypad
