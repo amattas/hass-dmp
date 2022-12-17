@@ -27,9 +27,7 @@ from homeassistant.const import (
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
-    STATE_ON,
-    STATE_OFF
+    STATE_ALARM_TRIGGERED
 )
 
 from .const import DOMAIN, LISTENER, CONF_LISTEN_PORT, CONF_PANELS, CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT
@@ -337,10 +335,10 @@ class DMPListener():
                         zoneNumber = self._getS3Segment('\\z ', data)
                         if (systemCode == "DO"):
                             #Door Open
-                            zoneState = STATE_OFF
+                            zoneState = False
                         elif (systemCode == "DC"):
                             #Door Closed
-                            zoneState = STATE_ON
+                            zoneState = True
                         zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
                         panel.updateZone(zoneNumber, zoneObj)
                     elif (eventCode == 'Zl'):

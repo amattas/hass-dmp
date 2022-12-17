@@ -8,10 +8,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity
 )
 
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF
-)
 import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS, CONF_ZONE_ACCTNUM
@@ -43,7 +39,7 @@ class DMPZone(BinarySensorEntity):
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
         self._state = None
-        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": STATE_OFF}
+        zoneObj = {"zoneName": self._name, "zoneNumber": str(self._number), "zoneState": False}
         self._panel.updateZone(str(self._number), zoneObj)
 
     async def async_added_to_hass(self):
