@@ -11,7 +11,7 @@ from homeassistant.components.binary_sensor import (
 import homeassistant.helpers.config_validation as cv
 
 from .const import (DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
-                    CONF_ZONE_CLASS, CONF_ZONE_ACCTNUM, CONF_ZONES)
+                    CONF_ZONE_CLASS, CONF_PANEL_ACCOUNT_NUMBER, CONF_ZONES)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,9 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     if config.options:
         config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
-    zones = [DMPZoneOpenClose(listener, config) for area in config[CONF_ZONES]]
+    zones = [DMPZoneOpenClose(listener, area,
+             config.get(CONF_PANEL_ACCOUNT_NUMBER))
+             for area in config[CONF_ZONES]]
     async_add_entities(zones, update_before_add=True)
 
 # async def async_setup_platform(hass, config, async_add_entities,
@@ -46,11 +48,11 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
-    def __init__(self, listener, config):
+    def __init__(self, listener, config, accountNum):
         self._listener = listener
         self._name = config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
-        self._account_number = config.get(CONF_ZONE_ACCTNUM)
+        self._account_number = accountNum
         self._device_class = config.get(CONF_ZONE_CLASS)
         self._panel = listener.getPanels()[str(self._account_number)]
         self._state = False
