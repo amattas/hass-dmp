@@ -64,21 +64,19 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data = dict(entry.data)
-    config = hass.data[DOMAIN][entry.entry_id]
+    config = dict(entry.data)
     _LOGGER.debug("Loaded config %s", config)
-    if config is not None:
-        hass.data[DOMAIN] = {}
-        # create and start the listener
-        listener = DMPListener(hass, config)
-        await listener.start()
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
-        hass.data[DOMAIN][LISTENER] = listener
-        panel = DMPPanel(hass, config)
-        _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
-        listener.addPanel(panel)
-        _LOGGER.debug("Panels attached to listener: %s",
-                      str(listener.getPanels()))
+    # create and start the listener
+    listener = DMPListener(hass, config)
+    await listener.start()
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
+    hass.data[DOMAIN][LISTENER] = listener
+    hass.data[DOMAIN][entry.entry_id] = config
+    panel = DMPPanel(hass, config)
+    _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
+    listener.addPanel(panel)
+    _LOGGER.debug("Panels attached to listener: %s",
+                  str(listener.getPanels()))
     # Forward the setup to the sensor platform.
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
