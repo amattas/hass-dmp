@@ -72,7 +72,7 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data[CONF_AREAS] = []
             self.data[CONF_ZONES] = []
             return await self.async_step_area()
-        return self.async_show_form(step_id="panel", data_schema=PANEL_SCHEMA,
+        return self.async_show_form(step_id="user", data_schema=PANEL_SCHEMA,
                                     errors=errors)
 
     async def async_step_area(self,
@@ -95,5 +95,5 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_zone()
             return self.async_create_entry(title="DMP Alarm System",
                                            data=self.data)
-        return self.async_show_form(step_id="areas", data_schema=AREA_SCHEMA,
+        return self.async_show_form(step_id="zones", data_schema=ZONE_SCHEMA,
                                     errors=errors)
