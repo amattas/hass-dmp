@@ -16,9 +16,9 @@
         "data": {
           "area_number": "Area Number",
           "area_name": "Area Name",
-          "arm_away_zone": "Alternate Arm Away Zone",
-          "arm_home_zone": "Alternate Arm Home Zone",
-          "arm_disarm_zone": "Alternate Disarm Zone",
+          "area_away_zone": "Alternate Arm Away Zone",
+          "area_home_zone": "Alternate Arm Home Zone",
+          "area_disarm_zone": "Alternate Disarm Zone",
           "add_another": "Add another area?"
         },
         "description": "Add an area to your DMP pane.",
