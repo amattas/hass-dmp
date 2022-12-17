@@ -15,15 +15,15 @@ from .const import (DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ZONE_NAME): cv.string,
-        vol.Required(CONF_ZONE_ACCTNUM): cv.string,
-        vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Required(CONF_ZONE_CLASS): cv.string,
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+# PLATFORM_SCHEMA = vol.Schema(
+#     {
+#         vol.Required(CONF_ZONE_NAME): cv.string,
+#         vol.Required(CONF_ZONE_ACCTNUM): cv.string,
+#         vol.Required(CONF_ZONE_NUMBER): cv.string,
+#         vol.Required(CONF_ZONE_CLASS): cv.string,
+#     },
+#     extra=vol.ALLOW_EXTRA,
+# )
 
 
 async def async_setup_entry(hass, entry, async_add_entities,):

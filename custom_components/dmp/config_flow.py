@@ -17,7 +17,8 @@ from .const import (CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
                     CONF_AREA_NAME, CONF_AREA_NUMBER, CONF_AREA_DISARM_ZONE,
-                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE, CONF_LISTEN_PORT)
+                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE, CONF_LISTEN_PORT,
+                    CONF_ADD_ANOTHER)
 
 from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
 
@@ -43,6 +44,7 @@ ZONE_SCHEMA = vol.Schema(
         vol.Required(CONF_ZONE_NUMBER): cv.string,
         vol.Required(CONF_ZONE_CLASS): (vol.All(cv.ensure_list,
                                         [vol.In(ZONE_CLASSES)])),
+        vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -54,6 +56,7 @@ AREA_SCHEMA = vol.Schema(
         vol.Optional(CONF_AREA_DISARM_ZONE, default='010203'): cv.string,
         vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
         vol.Optional(CONF_AREA_AWAY_ZONE, default='010203'): cv.string,
+        vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -75,8 +78,8 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="user", data_schema=PANEL_SCHEMA,
                                     errors=errors)
 
-    async def async_step_area(self,
-                              user_input: Optional[Dict[str, Any]] = None):
+    async def async_step_areas(self,
+                               user_input: Optional[Dict[str, Any]] = None):
         errors: Dict[str, str] = {}
         if user_input is not None:
             self.data = user_input
@@ -86,8 +89,8 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="areas", data_schema=AREA_SCHEMA,
                                     errors=errors)
 
-    async def async_step_zone(self,
-                              user_input: Optional[Dict[str, Any]] = None):
+    async def async_step_zones(self,
+                               user_input: Optional[Dict[str, Any]] = None):
         errors: Dict[str, str] = {}
         if user_input is not None:
             self.data = user_input

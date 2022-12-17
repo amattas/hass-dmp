@@ -24,17 +24,17 @@ from .const import (DOMAIN, LISTENER, CONF_AREA_NAME, CONF_AREA_ACCTNUM,
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_AREA_NAME): cv.string,
-        vol.Required(CONF_AREA_ACCTNUM): cv.string,
-        vol.Required(CONF_AREA_NUMBER): cv.string,
-        vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
-        vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
-        vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+# PLATFORM_SCHEMA = vol.Schema(
+#     {
+#         vol.Required(CONF_AREA_NAME): cv.string,
+#         vol.Required(CONF_AREA_ACCTNUM): cv.string,
+#         vol.Required(CONF_AREA_NUMBER): cv.string,
+#         vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
+#         vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
+#         vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
+#     },
+#     extra=vol.ALLOW_EXTRA,
+# )
 
 # async def async_setup_entry(hass, entry, async_add_entities,):
 #     """Setup sensors from a config entry created in the integrations UI."""

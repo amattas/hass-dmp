@@ -28,3 +28,5 @@ CONF_ZONE_CLASS = "zone_class"
 CONFIG_FLOW_PANEL = "panel"
 CONF_AREAS = "areas"
 CONF_ZONES = "zones"
+
+CONF_ADD_ANOTHER = "add_another"
