@@ -335,10 +335,10 @@ class DMPListener():
                         zoneNumber = self._getS3Segment('\\z ', data)
                         if (systemCode == "DO"):
                             #Door Open
-                            zoneState = False
+                            zoneState = True
                         elif (systemCode == "DC"):
                             #Door Closed
-                            zoneState = True
+                            zoneState = False
                         zoneObj = {"zoneNumber": zoneNumber, "zoneState": zoneState,}
                         panel.updateZone(zoneNumber, zoneObj)
                     elif (eventCode == 'Zl'):
