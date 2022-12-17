@@ -1,0 +1,59 @@
+{
+    "config": {
+      "error": {
+        "auth": "The auth token provided is not valid.",
+        "invalid_path": "The path provided is not valid. Should be in the format `user/repo-name`."
+      },
+      "step": {
+        "panel": {
+          "data": {
+            "ip": "Panel IP Address",
+            "port": "Panel Port",
+            "listen_port": "Listener Port",
+            "account_number": "Account Number",
+            "remote_key": "Panel Key"
+          },
+          "description": "Enter your Panel information.",
+          "title": "DMP Panel Configuration"
+        },
+        "areas": {
+          "data": {
+            "area_number": "Area Number",
+            "area_name": "Area Name",
+            "arm_away_zone": "Alternate Arm Away Zone",
+            "arm_home_zone": "Alternate Arm Home Zone",
+            "arm_disarm_zone": "Alternate Disarm Zone",
+            "add_another": "Add another area?"
+          },
+          "description": "Add an area to your DMP pane.",
+          "title": "DMP Area Configuration"
+        },
+        "zones": {
+        "data": {
+            "zone_name": "Zone Name",
+            "zone_mumber": "Zone Number",
+            "zone_class": "Zone Device Class",
+            "add_another": "Add another zone?"
+        },
+        "description": "Add a zone to your DMP panel.",
+        "title": "DMP Zone Configuration"
+        }
+      }
+    },
+    "options": {
+      "error": {
+        "invalid_path": "The path provided is not valid. Should be in the format `user/repo-name` and should be a valid github repository."
+      },
+      "step": {
+        "init": {
+          "title": "Manage Repos",
+          "data": {
+            "repos": "Existing Repos: Uncheck any repos you want to remove.",
+            "path": "New Repo: Path to the repository e.g. home-assistant/core",
+            "name": "New Repo: Name of the sensor."
+          },
+          "description": "Remove existing repos or add a new repo."
+        }
+      }
+    }
+  }
