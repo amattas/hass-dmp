@@ -3,13 +3,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from homeassistant import config_entries, core
-from homeassistant.const import (CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
-                                 CONF_PANEL_REMOTE_KEY,
-                                 CONF_PANEL_REMOTE_PORT, CONF_ZONE_NAME,
-                                 CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                                 CONF_AREA_NAME, CONF_AREA_NUMBER,
-                                 CONF_AREA_DISARM_ZONE, CONF_AREA_HOME_ZONE,
-                                 CONF_AREA_AWAY_ZONE, CONF_LISTEN_PORT)
+# from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -18,6 +12,12 @@ from homeassistant.helpers.entity_registry import (
     async_get_registry,
 )
 import voluptuous as vol
+
+from .const import (CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
+                    CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT,
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
+                    CONF_AREA_NAME, CONF_AREA_NUMBER, CONF_AREA_DISARM_ZONE,
+                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE, CONF_LISTEN_PORT)
 
 from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
 
