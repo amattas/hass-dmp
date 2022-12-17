@@ -90,22 +90,22 @@ async def async_setup_entry(hass, entry) -> bool:
     return True
 
 
-async def async_setup(hass, config):
-    """ Set up the DMP component """
-    if config.get(DOMAIN) is not None:
-        hass.data[DOMAIN] = {}
-        # create and start the listener
-        listener = DMPListener(hass, config[DOMAIN])
-        await listener.start()
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
-        hass.data[DOMAIN][LISTENER] = listener
-        for i in config[DOMAIN][CONF_PANELS]:
-            panel = DMPPanel(hass, i)
-        _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
-        listener.addPanel(panel)
-        _LOGGER.debug("Panels attached to listener: %s",
-                      str(listener.getPanels()))
-    return True
+# async def async_setup(hass, config):
+#     """ Set up the DMP component """
+#     if config.get(DOMAIN) is not None:
+#         hass.data[DOMAIN] = {}
+#         # create and start the listener
+#         listener = DMPListener(hass, config[DOMAIN])
+#         await listener.start()
+#         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
+#         hass.data[DOMAIN][LISTENER] = listener
+#         for i in config[DOMAIN][CONF_PANELS]:
+#             panel = DMPPanel(hass, i)
+#         _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
+#         listener.addPanel(panel)
+#         _LOGGER.debug("Panels attached to listener: %s",
+#                       str(listener.getPanels()))
+#     return True
 
 
 class DMPPanel():

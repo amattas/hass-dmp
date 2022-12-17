@@ -37,12 +37,11 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     zones = [DMPZoneOpenClose(listener, config) for area in config[CONF_ZONES]]
     async_add_entities(zones, update_before_add=True)
 
-
-async def async_setup_platform(hass, config, async_add_entities,
-                               discovery_info=None):
-    listener = hass.data[DOMAIN][LISTENER]
-    zone = [DMPZoneOpenClose(listener, config)]
-    async_add_entities(zone)
+# async def async_setup_platform(hass, config, async_add_entities,
+#                                discovery_info=None):
+#     listener = hass.data[DOMAIN][LISTENER]
+#     zone = [DMPZoneOpenClose(listener, config)]
+#     async_add_entities(zone)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):

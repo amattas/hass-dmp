@@ -36,17 +36,16 @@ PLATFORM_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-
-async def async_setup_entry(hass, entry, async_add_entities,):
-    """Setup sensors from a config entry created in the integrations UI."""
-    config = hass.data[DOMAIN][entry.entry_id]
-    # Update our config to include new repos and remove those that have
-    # been removed.
-    if config.options:
-        config.update(config.options)
-    listener = hass.data[DOMAIN][LISTENER]
-    areas = [DMPArea(listener, config) for area in config[CONF_AREAS]]
-    async_add_entities(areas, update_before_add=True)
+# async def async_setup_entry(hass, entry, async_add_entities,):
+#     """Setup sensors from a config entry created in the integrations UI."""
+#     config = hass.data[DOMAIN][entry.entry_id]
+#     # Update our config to include new repos and remove those that have
+#     # been removed.
+#     if config.options:
+#         config.update(config.options)
+#     listener = hass.data[DOMAIN][LISTENER]
+#     areas = [DMPArea(listener, config) for area in config[CONF_AREAS]]
+#     async_add_entities(areas, update_before_add=True)
 
 
 async def async_setup_platform(hass, config, async_add_entities,
