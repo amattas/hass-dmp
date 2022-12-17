@@ -21,15 +21,18 @@ from .const import (CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
 
 from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
 
+ZONE_CLASSES = {
+    "door": ("Door", "door"),
+    "window": ("Window", "window")
+}
 
 PANEL_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_PANEL_IP): cv.string,
-        vol.Optional(CONF_PANEL_REMOTE_PORT): cv.port,
-        vol.Optional(CONF_LISTEN_PORT): cv.port,
+        vol.Required(CONF_PANEL_IP, default='0.0.0.0'): cv.string,
+        vol.Optional(CONF_PANEL_REMOTE_PORT, default=8001): cv.port,
+        vol.Optional(CONF_LISTEN_PORT, default=8011): cv.port,
         vol.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
         vol.Optional(CONF_PANEL_REMOTE_KEY): cv.string,
-        vol.Optional(CONF_PANEL_REMOTE_PORT): cv.port,
     }
 )
 
@@ -38,7 +41,8 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Required(CONF_ZONE_CLASS): cv.string,
+        vol.Required(CONF_ZONE_CLASS): (vol.All(cv.ensure_list,
+                                        [vol.In(ZONE_CLASSES)])),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -47,9 +51,9 @@ AREA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_AREA_NAME): cv.string,
         vol.Required(CONF_AREA_NUMBER): cv.string,
-        vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
+        vol.Optional(CONF_AREA_DISARM_ZONE, default='010203'): cv.string,
         vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
-        vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
+        vol.Optional(CONF_AREA_AWAY_ZONE, default='010203'): cv.string,
     },
     extra=vol.ALLOW_EXTRA,
 )
