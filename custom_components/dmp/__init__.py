@@ -74,7 +74,7 @@ async def async_setup_entry(hass, entry) -> bool:
         await listener.start()
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
         hass.data[DOMAIN][LISTENER] = listener
-        panel = DMPPanel(hass, i)
+        panel = DMPPanel(hass, config)
         _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
         listener.addPanel(panel)
         _LOGGER.debug("Panels attached to listener: %s",
