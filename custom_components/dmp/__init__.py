@@ -91,7 +91,7 @@ async def async_setup_entry(hass, entry) -> bool:
     device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={
-            (DOMAIN, "dmp-%s-panel" % (config._account_number))
+            (DOMAIN, "dmp-%s-panel" % (config[CONF_PANEL_ACCOUNT_NUMBER]))
         },
         manufacturer="Digital Monitoring Products",
         name="XR Series Alarm Panel"
