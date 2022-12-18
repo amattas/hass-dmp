@@ -44,8 +44,8 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     config = hass.data[DOMAIN][entry.entry_id]
     # Update our config to include new repos and remove those that have
     # been removed.
-    if config.options:
-        config.update(config.options)
+    # if config.options:
+    #     config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
     areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
              for area in config[CONF_AREAS]]

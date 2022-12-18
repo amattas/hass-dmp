@@ -32,8 +32,8 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     config = hass.data[DOMAIN][entry.entry_id]
     # Update our config to include new repos and remove those that have
     # been removed.
-    if config.options:
-        config.update(config.options)
+    # if entry.options:
+    #    config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
     zones = [DMPZoneOpenClose(listener, area,
              config.get(CONF_PANEL_ACCOUNT_NUMBER))
