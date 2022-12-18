@@ -132,7 +132,10 @@ class DMPArea(AlarmControlPanelEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            id="dmp-%s-zone-%s" % (self._account_number, self._number),
+            identifiers={
+                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
+                                             self._number))
+            },
             name=self.name,
             manufacturer='Digital Monitoring Products',
             via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
