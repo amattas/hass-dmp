@@ -11,6 +11,7 @@ from homeassistant.helpers.event import (TrackTemplate,
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
+from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
@@ -84,6 +85,14 @@ async def async_setup_entry(hass, entry) -> bool:
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry,
                                                       "alarm_control_panel")
+    )
+    device_registry = dr.async_get(hass)
+
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        id=config.get(CONF_PANEL_ACCOUNT_NUMBER),
+        manufacturer="Digital Monitoring Products",
+        name=config.name,
     )
     return True
 

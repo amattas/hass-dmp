@@ -115,11 +115,8 @@ class DMPZoneOpenClose(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
-                                             self._number))
-            },
+            id="dmp-%s-zone-%s" % (self._account_number, self._number),
             name=self.name,
-            manufacturer='DMP',
+            manufacturer='Digital Monitoring Products',
             via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
         )
