@@ -3,7 +3,7 @@
     "name": "Digital Monitoring Products Alarm and Access",
     "documentation": "https://github.com/amattas/hass-dmp",
     "dependencies": [],
-    "codeowners": ["amattas"],
+    "codeowners": ["@amattas"],
     "requirements": [],
     "version": "0.3.1",
     "config_flow": true,
