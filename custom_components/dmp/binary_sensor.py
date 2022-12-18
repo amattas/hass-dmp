@@ -120,6 +120,6 @@ class DMPZoneOpenClose(BinarySensorEntity):
                                              self._number))
             },
             name=self.name,
-            manufacturer='DMP',
+            manufacturer='Digital Monitoring Products',
             via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
         )
