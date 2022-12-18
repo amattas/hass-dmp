@@ -92,7 +92,7 @@ async def async_setup_entry(hass, entry) -> bool:
         config_entry_id=entry.entry_id,
         id=config.get(CONF_PANEL_ACCOUNT_NUMBER),
         manufacturer="Digital Monitoring Products",
-        name=config.name,
+        name="XR Series Alarm Panel"
     )
     return True
 
