@@ -1,10 +1,11 @@
 {
     "domain": "dmp",
     "name": "Digital Monitoring Products Alarm and Access",
-    "documentation": "http://github.com/amattas/hass-dmp",
+    "documentation": "https://github.com/amattas/hass-dmp",
     "dependencies": [],
-    "codeowners": ["@natalie","amattas"],
+    "codeowners": ["@amattas"],
     "requirements": [],
-    "version": "0.3.0",
-    "config_flow": true
+    "version": "0.3.1",
+    "config_flow": true,
+    "integration_type": "hub"
   }
