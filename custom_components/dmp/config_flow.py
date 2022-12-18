@@ -25,8 +25,8 @@ from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
 PANEL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PANEL_IP, default='0.0.0.0'): cv.string,
-        vol.Optional(CONF_PANEL_REMOTE_PORT, default=8001): cv.port,
-        vol.Optional(CONF_LISTEN_PORT, default=8011): cv.port,
+        vol.Optional(CONF_PANEL_REMOTE_PORT, default=8011): cv.port,
+        vol.Optional(CONF_LISTEN_PORT, default=8001): cv.port,
         vol.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
         vol.Optional(CONF_PANEL_REMOTE_KEY): cv.string,
     }
