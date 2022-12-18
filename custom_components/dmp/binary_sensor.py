@@ -7,7 +7,9 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity
 )
-
+from homeassistant.helpers.entity import (
+    DeviceInfo
+)
 import homeassistant.helpers.config_validation as cv
 
 from .const import (DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
@@ -108,3 +110,16 @@ class DMPZoneOpenClose(BinarySensorEntity):
         """Return unique ID"""
         return "dmp-%s-zone-%s-openclose" % (self._account_number,
                                              self._number)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
+                                             self._number))
+            },
+            name=self.name,
+            manufacturer='DMP',
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+        )

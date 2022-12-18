@@ -7,7 +7,9 @@ from homeassistant.components.alarm_control_panel import (
     FORMAT_NUMBER,
     AlarmControlPanelEntity,
 )
-
+from homeassistant.helpers.entity import (
+    DeviceInfo
+)
 from homeassistant.const import (
     STATE_ALARM_DISARMED
 )
@@ -125,6 +127,19 @@ class DMPArea(AlarmControlPanelEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-area-%s" % (self._account_number, self._number)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, "dmp-%s-area-%s" % (self._account_number,
+                                             self._number))
+            },
+            name=self.name,
+            manufacturer='DMP',
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+        )
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
