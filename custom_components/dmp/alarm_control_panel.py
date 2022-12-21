@@ -35,7 +35,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    _LOGGER.debug("Alarm control panel config:\n\t%s" % config)
+    _LOGGER.debug("Alarm control panel config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
     area = DMPArea(listener, config)
     areas = []
