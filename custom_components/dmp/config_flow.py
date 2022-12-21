@@ -35,7 +35,7 @@ PANEL_SCHEMA = vol.Schema(
 
 AREA_SCHEMA = vol.Schema(
     {
-        vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
+        vol.Optional(CONF_AREA_HOME_ZONE, default='01'): cv.string,
         vol.Optional(CONF_AREA_AWAY_ZONE, default='010203'): cv.string,
     },
     extra=vol.ALLOW_EXTRA,
