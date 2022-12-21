@@ -152,6 +152,8 @@ class DMPListener():
     def __init__(self, hass, config):
         self._hass = hass
         self._domain = config
+        self._home_area = config[CONF_HOME_AREA]
+        self._away_area = config[CONF_AWAY_AREA]
         self._port = config.get(CONF_PANEL_LISTEN_PORT)
         self._server = None
         self._panels = {}
@@ -338,13 +340,13 @@ class DMPListener():
                                                        ._getS3Segment('\\u ',
                                                                       data)
                                                        .strip())
-                    _LOGGER.debug("Arming event received. systemCode: %s, codeName: %s, areaNumber: %s areaName: %s, userNumber: %s, userName: %s", (systemCode, codeName, areaNumber, areaName, userNumber, userName))
+                    _LOGGER.debug("Area Number %s, codeName: %s, areaNumber: %s areaName: %s, userNumber: %s, userName: %s") % (systemCode, codeName, areaNumber, areaName, userNumber, userName)
                     if (systemCode == "OP"):
                         # opening, or disarm
                         areaState = STATE_ALARM_DISARMED
                     elif (systemCode == "CL"):
                         # closing, or arm
-                        if (areaNumber[1:] == CONF_HOME_AREA):
+                        if (areaNumber[1:] == self._home_area):
                             areaState = STATE_ALARM_ARMED_HOME
                         else:
                             areaState = STATE_ALARM_ARMED_AWAY
