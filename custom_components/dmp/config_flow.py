@@ -19,7 +19,7 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
                     CONF_AREA_AWAY_ZONE, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
                     CONF_ZONE_CLASS, CONF_ADD_ANOTHER)
 
-from .const import CONF_PANELS, CONF_AREAS, CONF_ZONES, DOMAIN
+from .const import CONF_AREAS, CONF_ZONES, DOMAIN
 
 PANEL_SCHEMA = vol.Schema(
     {
