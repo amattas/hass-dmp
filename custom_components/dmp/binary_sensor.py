@@ -89,7 +89,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZoneOpenClose Callback Executed")
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        self._state = self._panel.getOpenCloseZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
     @property
@@ -168,7 +168,7 @@ class DMPZoneBattery(BinarySensorEntity):
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZoneBattery Callback Executed")
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        self._state = self._panel.getBatteryZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
     @property
@@ -249,7 +249,7 @@ class DMPZoneTrouble(BinarySensorEntity):
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZoneTrouble Callback Executed")
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        self._state = self._panel.getTroubleZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
     @property
@@ -330,7 +330,7 @@ class DMPZoneBypass(BinarySensorEntity):
 
     async def process_zone_callback(self):
         _LOGGER.debug("DMPZoneBypass Callback Executed")
-        self._state = self._panel.getZone(self._number)["zoneState"]
+        self._state = self._panel.getBypassZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
     @property
