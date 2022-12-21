@@ -85,6 +85,7 @@ class DMPPanel():
         self._battery_zones = {}
         self._trouble_zones = {}
         self._bypass_zones = {}
+        self._alarm_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -166,6 +167,22 @@ class DMPPanel():
         else:
             self._bypass_zones[zoneNum] = eventObj
         _LOGGER.debug("Bypass Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getAlarmZone(self, zoneNumber):
+        return self._alarm_zones[zoneNumber]
+
+    def getAlarmZones(self):
+        return self._alarm_zones
+
+    def updateAlarmZone(self, zoneNum, eventObj):
+        if (zoneNum in self._alarm_zones):
+            zone = self._alarm_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._alarm_zones[zoneNum] = zone
+        else:
+            self._alarm_zones[zoneNum] = eventObj
+        _LOGGER.debug("Alarm Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
     def getAccountNumber(self):
@@ -354,6 +371,7 @@ class DMPListener():
                     panel.updateTroubleZone(zoneNumber, zoneObj)
                     panel.updateBatteryZone(zoneNumber, zoneObj)
                     panel.updateBypassZone(zoneNumber, zoneObj)
+                    panel.updateAlarmZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Za' or eventCode == 'Zb'):  # Alarm
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
