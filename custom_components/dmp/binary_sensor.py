@@ -43,8 +43,24 @@ async def async_setup_entry(hass, entry, async_add_entities,):
             )
         for zone in config[CONF_ZONES]
         ]
+    troubleZones = [
+        DMPZoneTrouble(
+            listener, zone,
+            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+            )
+        for zone in config[CONF_ZONES]
+    ]
+    bypassZones = [
+        DMPZoneBypass(
+            listener, zone,
+            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+            )
+        for zone in config[CONF_ZONES]
+    ]
     async_add_entities(openCloseZones, update_before_add=True)
     async_add_entities(batteryZones, update_before_add=True)
+    async_add_entities(troubleZones, update_before_add=True)
+    async_add_entities(bypassZones, update_before_add=True)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
@@ -168,13 +184,13 @@ class DMPZoneBattery(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZone.is_on: {}".format(self._state))
+        _LOGGER.debug("Called DMPZoneBattery.is_on: {}".format(self._state))
         return self._state
 
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneOpenClose.device_class: {}"
+        _LOGGER.debug("Called DMPZoneBattery.device_class: {}"
                       .format(self._device_class))
         return self._device_class
 
@@ -189,6 +205,168 @@ class DMPZoneBattery(BinarySensorEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-battery" % (
+            self._account_number,
+            self._number
+            )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
+                                             self._number))
+            },
+            name=self.name,
+            manufacturer='Digital Monitoring Products',
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+        )
+
+
+class DMPZoneTrouble(BinarySensorEntity):
+    def __init__(self, listener, config, accountNum):
+        self._listener = listener
+        self._name = "%s Trouble" % config.get(CONF_ZONE_NAME)
+        self._number = config.get(CONF_ZONE_NUMBER)
+        self._account_number = accountNum
+        self._device_class = "problem"
+        self._panel = listener.getPanels()[str(self._account_number)]
+        self._state = False
+        zoneTroubleObj = {
+            "zoneName": self._name,
+            "zoneNumber": str(self._number),
+            "zoneState": self._state
+            }
+        self._panel.updateZone(str(self._number), zoneTroubleObj)
+
+    async def async_added_to_hass(self):
+        _LOGGER.debug("Registering DMPZoneTrouble Callback")
+        self._listener.register_callback(self.process_zone_callback)
+
+    async def async_will_remove_from_hass(self):
+        _LOGGER.debug("Removing DMPZoneTrouble Callback")
+        self._listener.remove_callback(self.process_zone_callback)
+
+    async def process_zone_callback(self):
+        _LOGGER.debug("DMPZoneTrouble Callback Executed")
+        self._state = self._panel.getZone(self._number)["zoneState"]
+        self.async_write_ha_state()
+
+    @property
+    def name(self):
+        """Return the name of the device."""
+        return self._name
+
+    @property
+    def should_poll(self):
+        """Return the polling state."""
+        return False
+
+    @property
+    def is_on(self):
+        """Return the state of the device."""
+        _LOGGER.debug("Called DMPTroubleZone.is_on: {}".format(self._state))
+        return self._state
+
+    @property
+    def device_class(self):
+        """Return the class of the device"""
+        _LOGGER.debug("Called DMPTrouble.device_class: {}"
+                      .format(self._device_class))
+        return self._device_class
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return {
+            "last_contact": self._panel.getContactTime(),
+        }
+
+    @property
+    def unique_id(self):
+        """Return unique ID"""
+        return "dmp-%s-zone-%s-trouble" % (
+            self._account_number,
+            self._number
+            )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
+                                             self._number))
+            },
+            name=self.name,
+            manufacturer='Digital Monitoring Products',
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+        )
+
+
+class DMPZoneBypass(BinarySensorEntity):
+    def __init__(self, listener, config, accountNum):
+        self._listener = listener
+        self._name = "%s Bypass" % config.get(CONF_ZONE_NAME)
+        self._number = config.get(CONF_ZONE_NUMBER)
+        self._account_number = accountNum
+        self._device_class = "problem"
+        self._panel = listener.getPanels()[str(self._account_number)]
+        self._state = False
+        zoneBypassObj = {
+            "zoneName": self._name,
+            "zoneNumber": str(self._number),
+            "zoneState": self._state
+            }
+        self._panel.updateZone(str(self._number), zoneBypassObj)
+
+    async def async_added_to_hass(self):
+        _LOGGER.debug("Registering DMPZoneBypass Callback")
+        self._listener.register_callback(self.process_zone_callback)
+
+    async def async_will_remove_from_hass(self):
+        _LOGGER.debug("Removing DMPZoneBypass Callback")
+        self._listener.remove_callback(self.process_zone_callback)
+
+    async def process_zone_callback(self):
+        _LOGGER.debug("DMPZoneBypass Callback Executed")
+        self._state = self._panel.getZone(self._number)["zoneState"]
+        self.async_write_ha_state()
+
+    @property
+    def name(self):
+        """Return the name of the device."""
+        return self._name
+
+    @property
+    def should_poll(self):
+        """Return the polling state."""
+        return False
+
+    @property
+    def is_on(self):
+        """Return the state of the device."""
+        _LOGGER.debug("Called DMPZoneBypass.is_on: {}".format(self._state))
+        return self._state
+
+    @property
+    def device_class(self):
+        """Return the class of the device"""
+        _LOGGER.debug("Called DMPZoneBypass.device_class: {}"
+                      .format(self._device_class))
+        return self._device_class
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return {
+            "last_contact": self._panel.getContactTime(),
+        }
+
+    @property
+    def unique_id(self):
+        """Return unique ID"""
+        return "dmp-%s-zone-%s-bypass" % (
             self._account_number,
             self._number
             )

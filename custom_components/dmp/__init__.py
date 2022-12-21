@@ -83,6 +83,8 @@ class DMPPanel():
         self._area = None
         self._open_close_zones = {}
         self._battery_zones = {}
+        self._trouble_zones = {}
+        self._bypass_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -112,6 +114,12 @@ class DMPPanel():
         _LOGGER.debug("Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
+    def getOpenCloseZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
+
+    def getOpenCloseZones(self):
+        return self._open_close_zones
+
     def getBatteryZone(self, zoneNumber):
         return self._open_close_zones[zoneNumber]
 
@@ -128,11 +136,37 @@ class DMPPanel():
         _LOGGER.debug("Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
-    def getOpenCloseZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
+    def getTroubleZone(self, zoneNumber):
+        return self._trouble_zones[zoneNumber]
 
-    def getOpenCloseZones(self):
-        return self._open_close_zones
+    def getTroubleZones(self):
+        return self._trouble_zones
+
+    def updateTroubleZone(self, zoneNum, eventObj):
+        if (zoneNum in self._trouble_zones):
+            zone = self._trouble_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._trouble_zones[zoneNum] = zone
+        else:
+            self._trouble_zones[zoneNum] = eventObj
+        _LOGGER.debug("Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getBypassZone(self, zoneNumber):
+        return self._bypass_zones[zoneNumber]
+
+    def getTroubleZones(self):
+        return self._bypass_zones
+
+    def updateTroubleZone(self, zoneNum, eventObj):
+        if (zoneNum in self._bypass_zones):
+            zone = self._bypass_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._bypass_zones[zoneNum] = zone
+        else:
+            self._bypass_zones[zoneNum] = eventObj
+        _LOGGER.debug("Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
 
     def getAccountNumber(self):
         return self._accountNumber
