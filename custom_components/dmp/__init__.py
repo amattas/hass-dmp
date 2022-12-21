@@ -205,7 +205,7 @@ class DMPListener():
             name = ""
         if number is None:
             number = ""
-        _LOGGER.debug("S3Search result Number: %s Name: %s" % (number, name))
+        _LOGGER.debug("S3Search result Number: %s Name: %s" % (type(number), type(name)))
         return (number, name)
 
     def _event_types(self, arg):
