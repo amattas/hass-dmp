@@ -52,7 +52,7 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Required(CONF_ZONE_CLASS): vol.All(
+        vol.Optional(CONF_ZONE_CLASS, default=[]): vol.All(
             cv.ensure_list, [vol.In(SENSOR_TYPES)]
             ),
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean
