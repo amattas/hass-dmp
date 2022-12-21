@@ -295,7 +295,7 @@ class DMPListener():
                                "areaState": STATE_ALARM_TRIGGERED}
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zr'):  # Zone Restore
-                    # We probably don't need this
+                    # We probably don't need thiss
                     pass
                     # zone restore - what do we even use this for?
                     # systemCode = self._getS3Segment('\\t', data)[1:]

@@ -113,7 +113,7 @@ class DMPArea(AlarmControlPanelEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                DOMAIN, "dmp-%s-panel" % self._account_number
+                (DOMAIN, "dmp-%s-panel" % self._account_number)
             },
             name=self._panel_name,
             manufacturer='Digital Monitoring Products'
