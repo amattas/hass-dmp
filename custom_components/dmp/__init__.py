@@ -154,7 +154,7 @@ class DMPListener():
     def __init__(self, hass, config):
         self._hass = hass
         self._domain = config
-        self._port = config.get(CONF_LISTEN_PORT)
+        self._port = config.get(CONF_PANEL_LISTEN_PORT)
         self._server = None
         self._panels = {}
         # callbacks to call when an event gets posted in
