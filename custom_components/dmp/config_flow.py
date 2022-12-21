@@ -36,12 +36,12 @@ SENSOR_TYPES = selector({
                     {
                         "label": "Wired - Door",
                         "value": "wired_door"
-                    }
+                    },
                     {
                         "label": "Wired - Window",
                         "value": "wired_door"
                     }
-                ]
+                ],
                 "mode": "dropdown",
                 "multiple": False
             }
