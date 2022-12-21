@@ -19,7 +19,7 @@ CONF_LOCK_ACCOUNT_NUMBER = "account_number"
 CONF_ZONE_NAME = "zone_name"
 CONF_ZONE_NUMBER = "zone_number"
 CONF_ZONE_CLASS = "zone_class"
-# CONF_ZONE_ACCTNUM = "zone_accountnumber"
+
 
 CONFIG_FLOW_PANEL = "panel"
 CONF_AREAS = "areas"

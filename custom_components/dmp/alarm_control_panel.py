@@ -109,19 +109,17 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-area-%s" % (self._account_number, self._number)
+        return "dmp-%s-panel" % self._account_number
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
-                                             self._number))
+                DOMAIN, "dmp-%s-panel" % self._account_number
             },
             name=self.name,
-            manufacturer='Digital Monitoring Products',
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+            manufacturer='Digital Monitoring Products'
         )
 
     async def async_alarm_disarm(self, code=None):
