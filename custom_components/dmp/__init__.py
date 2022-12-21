@@ -190,7 +190,7 @@ class DMPListener():
         # Search substring till we find the delimeter
         end = tempString.find('\\')
         # Strip the seatch string and any trailing or leadiner whitespace.
-        returnString = tempString[len(charToFind):end].strip()
+        returnString = tempString[len(charToFind)-1:end].strip()
         _LOGGER.debug("S3Segment result: %s" % returnString)
         return returnString
 
@@ -205,6 +205,7 @@ class DMPListener():
             name = ""
         if number is None:
             number = ""
+        _LOGGER.debug("S3Search result Number: %s Name: %s" % (number, name))
         return number, name
 
     def _event_types(self, arg):
