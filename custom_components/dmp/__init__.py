@@ -55,13 +55,15 @@ async def async_setup_entry(hass, entry) -> bool:
     listener.addPanel(panel)
     _LOGGER.debug("Panels attached to listener: %s",
                   str(listener.getPanels()))
-    # Forward the setup to the sensor platform.
+    # Forward the setup to the sensor platform. We want the alarm panel to load
+    # before the sesnsors otherwise we have a race condition and things won't
+    # link properly.
+    await hass.config_entries.async_forward_entry_setup(
+        entry,
+        "alarm_control_panel"
+        )
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
-    )
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry,
-                                                      "alarm_control_panel")
     )
     return True
 
