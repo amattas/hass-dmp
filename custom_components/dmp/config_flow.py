@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,
     async_get_registry,
 )
+from homeassistant.helpers.selector import selector
 import voluptuous as vol
 
 from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
@@ -21,10 +22,30 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
 
 from .const import CONF_ZONES, DOMAIN
 
-SENSOR_TYPES = {
-    "article_cache": ("Article Cache", "MB"),
-    "average_download_rate": ("Average Speed", "MB/s"),
-}
+SENSOR_TYPES = selector({
+            "select": {
+                "options": [
+                    {
+                        "label": "Battery - Door",
+                        "value": "battery_door"
+                    },
+                    {
+                        "label": "Battery - Window",
+                        "value": "battery_window"
+                    },
+                    {
+                        "label": "Wired - Door",
+                        "value": "wired_door"
+                    }
+                    {
+                        "label": "Wired - Window",
+                        "value": "wired_door"
+                    }
+                ]
+                "mode": "dropdown",
+                "multiple": False
+            }
+        })
 
 
 PANEL_SCHEMA = vol.Schema(
@@ -52,9 +73,7 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Optional(CONF_ZONE_CLASS, default=[]): vol.All(
-            cv.ensure_list, [vol.In(SENSOR_TYPES)]
-            ),
+        vol.Optional(CONF_ZONE_CLASS, default=[]): SENSOR_TYPES
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
