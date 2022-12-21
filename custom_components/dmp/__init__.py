@@ -315,20 +315,20 @@ class DMPListener():
                     # this and shouldn't see it on the integration port.
                     pass
                 elif (eventCode == 'Zs'):  # System Message
-                    systemCode = self._getS3Segment('\\t', data)
-                    codeName = self._event_types(systemCode)
-                    eventObj['eventType'] = codeName
+                    pass
                 elif (eventCode == 'Zd'):  # Battery
-                    codeName = self._event_types(systemCode)
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
                         }
                     panel.updateBatteryZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Zx'):  # Bypass
-                    codeName = self._event_types(systemCode)
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
@@ -340,8 +340,9 @@ class DMPListener():
                     or eventCode == 'Zt'
                     or eventCode == 'Zw'
                 ):
-                    codeName = self._event_types(systemCode)
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
@@ -351,8 +352,9 @@ class DMPListener():
                     eventCode == 'Zy'
                     or eventCode == 'Zr'
                 ):
-                    codeName = self._event_types(systemCode)
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": False
@@ -381,7 +383,6 @@ class DMPListener():
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
-                    codeName = self._event_types(systemCode)
                     out = self._searchS3Segment(
                         self._getS3Segment('\\a', data)
                         )
