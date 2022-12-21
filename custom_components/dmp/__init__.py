@@ -281,10 +281,16 @@ class DMPListener():
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
                     typeName = self._event_types(systemCode)
-                    zoneNumber, zoneName = self._searchS3Segment(
-                        self._getS3Segment('\\z', data))
-                    areaNumber, areaName = self._searchS3Segment(
-                        self._getS3Segment('\\a', data))
+                    out = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                        )
+                    zoneNumber = out[0]
+                    zoneName = out[1]
+                    out = self._searchS3Segment(
+                        self._getS3Segment('\\a', data)
+                        )
+                    areaNumber = out[0]
+                    areaName = out[1]
                     areaObj = {"areaName": areaName,
                                "areaState": STATE_ALARM_TRIGGERED}
                     panel.updateArea(areaObj)
@@ -302,12 +308,11 @@ class DMPListener():
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
-                    tup = self._searchS3Segment(self._getS3Segment('\\a', data))
-                    _LOGGER.debug("Val 1 %s" % tup[0])
-                    _LOGGER.debug("Val 2 %s" % tup[1])
-                    areaNumber, areaName = self._searchS3Segment(
-                        self._getS3Segment('\\a', data))
-                    _LOGGER.debug("Area Number %s") % areaNumber
+                    out = self._searchS3Segment(
+                        self._getS3Segment('\\a', data)
+                        )
+                    areaNumber = out[0]
+                    areaName = out[1]
                     if (systemCode == "OP"):  # Disarm
                         areaState = STATE_ALARM_DISARMED
                     elif (systemCode == "CL"):  # Arm
