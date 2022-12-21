@@ -317,14 +317,18 @@ class DMPListener():
                 elif (eventCode == 'Zs'):  # System Message
                     pass
                 elif (eventCode == 'Zd'):  # Battery
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
                         }
                     panel.updateBatteryZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Zx'):  # Bypass
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
@@ -336,7 +340,9 @@ class DMPListener():
                     or eventCode == 'Zt'
                     or eventCode == 'Zw'
                 ):
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": True
@@ -346,7 +352,9 @@ class DMPListener():
                     eventCode == 'Zy'
                     or eventCode == 'Zr'
                 ):
-                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneNumber = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                    )[0]
                     zoneObj = {
                         "zoneNumber": zoneNumber,
                         "zoneState": False
