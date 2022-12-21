@@ -43,7 +43,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, area_config, config):
         self._listener = listener
-        self._name = config.get(CONF_PANEL_NAME)
+        self._name = "%s Arming" % config.get(CONF_PANEL_NAME)
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = area_config.get(CONF_AREA_HOME_ZONE)
         self._panel = listener.getPanels()[str(self._account_number)]
@@ -103,7 +103,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-panel" % self._account_number
+        return "dmp-%s-panel-arming" % self._account_number
 
     @property
     def device_info(self) -> DeviceInfo:
