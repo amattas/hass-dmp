@@ -310,7 +310,8 @@ class DMPListener():
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
-                    _LOGGER.debug("Tuple %s" % self._searchS3Segment(self._getS3Segment('\\a', data)))
+                    returntuple = self._searchS3Segment(self._getS3Segment('\\a', data))
+                    _LOGGER.debug("Tuple %s" % returntuple)
                     areaNumber, areaName = self._searchS3Segment(
                         self._getS3Segment('\\a', data))
                     _LOGGER.debug("Area Number %s") % areaNumber
