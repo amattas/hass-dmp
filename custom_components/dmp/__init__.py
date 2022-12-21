@@ -81,7 +81,8 @@ class DMPPanel():
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
         self._area = None
-        self._zones = {}
+        self._open_close_zones = {}
+        self._battery_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -101,21 +102,37 @@ class DMPPanel():
     def getArea(self):
         return self._area
 
-    def updateZone(self, zoneNum, eventObj):
-        if (zoneNum in self._zones):
-            zone = self._zones[zoneNum]
+    def updateOpenCloseZone(self, zoneNum, eventObj):
+        if (zoneNum in self._open_close_zones):
+            zone = self._open_close_zones[zoneNum]
             zone.update({"zoneState": eventObj["zoneState"]})
-            self._zones[zoneNum] = zone
+            self._open_close_zones[zoneNum] = zone
         else:
-            self._zones[zoneNum] = eventObj
+            self._open_close_zones[zoneNum] = eventObj
         _LOGGER.debug("Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
-    def getZone(self, zoneNumber):
-        return self._zones[zoneNumber]
+    def getBatteryZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
 
-    def getZones(self):
-        return self._zones
+    def getBatteryZones(self):
+        return self._open_close_zones
+
+    def updateBatteryZone(self, zoneNum, eventObj):
+        if (zoneNum in self._battery_zones):
+            zone = self._battery_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._battery_zones[zoneNum] = zone
+        else:
+            self._battery_zones[zoneNum] = eventObj
+        _LOGGER.debug("Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getOpenCloseZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
+
+    def getOpenCloseZones(self):
+        return self._open_close_zones
 
     def getAccountNumber(self):
         return self._accountNumber
@@ -332,13 +349,24 @@ class DMPListener():
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
                     zoneNumber = self._getS3Segment('\\z', data)
-                    if (systemCode == "DO"):  # Door Open
+                    if (
+                        systemCode == "DO"
+                        or systemCode == "HO"
+                        or systemCode == "FO"
+                    ):  # Door Open
                         zoneState = True
+                        zoneObj = {
+                            "zoneNumber": zoneNumber,
+                            "zoneState": zoneState
+                            }
+                        panel.updateOpenCloseZone(zoneNumber, zoneObj)
                     elif (systemCode == "DC"):  # Door Closed
                         zoneState = False
-                    zoneObj = {"zoneNumber": zoneNumber,
-                               "zoneState": zoneState}
-                    panel.updateZone(zoneNumber, zoneObj)
+                        zoneObj = {
+                            "zoneNumber": zoneNumber,
+                            "zoneState": zoneState
+                            }
+                        panel.updateOpenCloseZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Zl'):  # Schedule Change
                     pass
                 else:
