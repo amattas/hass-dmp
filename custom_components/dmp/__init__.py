@@ -269,26 +269,22 @@ class DMPListener():
                     # we'll drop it on the floor
                     _LOGGER.info('{}: Received request for time update'
                                  .format(acctNum))
-
                 elif (eventCode == 'Zs'):
-                    systemCode = self._getS3Segment('\\t ', data)
+                    systemCode = self._getS3Segment('\\t', data)
                     codeName = self._event_types(systemCode)
                     eventObj['eventType'] = codeName
                 elif (eventCode == 'Zx' or eventCode == 'Zy'):
                     # bypass or reset
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
                     typeName = self._event_types(systemCode)
                     (zoneNumber,
-                     zoneName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\z ',
-                                                                      data)
-                                                       .strip())
+                     zoneName) = self._searchS3Segment(
+                        self._getS3Segment('\\z', data)
+                        )
                     (userNumber,
-                     userName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\u ',
-                                                                      data)
-                                                       .strip())
+                     userName) = self._searchS3Segment(
+                        self._getS3Segment('\\u', data))
                     eventObj['eventType'] = codeName + ': ' + typeName
                     eventObj['zoneName'] = zoneName
                     eventObj['zoneNumber'] = zoneNumber
@@ -296,51 +292,39 @@ class DMPListener():
                     eventObj['userNumber'] = userNumber
                 elif (eventCode == 'Za'):
                     # ALARM!
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
                     typeName = self._event_types(systemCode)
                     (zoneNumber,
-                     zoneName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\z ',
-                                                                      data)
-                                                       .strip())
+                     zoneName) = self._searchS3Segment(
+                        self._getS3Segment('\\z', data))
                     (areaNumber,
-                     areaName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\a ',
-                                                                      data)
-                                                       .strip())
+                     areaName) = self._searchS3Segment(
+                        self._getS3Segment('\\a', data))
                     areaObj = {"areaName": areaName,
                                "areaState": STATE_ALARM_TRIGGERED}
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zr'):
                     # zone restore - what do we even use this for?
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
                     typeName = self._event_types(systemCode)
                     (zoneNumber,
-                     zoneName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\z ',
-                                                                      data)
-                                                       .strip())
+                     zoneName) = self._searchS3Segment(
+                        self._getS3Segment('\\z', data))
                     (areaNumber,
-                     areaName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\a ',
-                                                                      data)
-                                                       .strip())
+                     areaName) = self._searchS3Segment(
+                        self._getS3Segment('\\a', data))
                 elif (eventCode == 'Zq'):
                     # armed/disarmed
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
                     (areaNumber,
-                     areaName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\a ',
-                                                                      data)
-                                                       .strip())
+                     areaName) = self._searchS3Segment(
+                        self._getS3Segment('\\a', data))
                     (userNumber,
-                     userName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\u ',
-                                                                      data)
-                                                       .strip())
+                     userName) = self._searchS3Segment(
+                        self._getS3Segment('\\u', data))
                     _LOGGER.debug("Area Number %s") % areaNumber
                     if (systemCode == "OP"):
                         # opening, or disarm
@@ -356,9 +340,9 @@ class DMPListener():
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zc'):
                     # Device Status Message
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
-                    zoneNumber = self._getS3Segment('\\z ', data)
+                    zoneNumber = self._getS3Segment('\\z', data)
                     if (systemCode == "DO"):
                         # Door Open
                         zoneState = True
@@ -372,7 +356,7 @@ class DMPListener():
                     # schedule change
                     # generally used if someone extends closing time from the
                     # keypad drop it on the floor, we don't care
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
+                    systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
                 else:
                     _LOGGER.warning('{}: Unknown event received - {}'
