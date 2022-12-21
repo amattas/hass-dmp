@@ -178,15 +178,12 @@ class DMPListener():
         return self._panels
 
     def _getS3Segment(self, charToFind, input):
-        _LOGGER.debug("S3Segment input: %s" % input)
         start = input.find(charToFind)
         if (start == -1):
             return ""
         tempString = input[start+len(charToFind):]
-        _LOGGER.debug("S3Segment tempString: %s" % tempString)
         end = tempString.find('\\')
         returnString = tempString[0:end].strip()
-        _LOGGER.debug("S3Segment result: %s" % returnString)
         return returnString
 
     def _searchS3Segment(self, input):
@@ -200,7 +197,7 @@ class DMPListener():
             name = ""
         if number is None:
             number = ""
-        _LOGGER.debug("S3Search result Number: %s Name: %s" % (type(number), type(name)))
+        _LOGGER.debug("S3Search result Number: %s Name: %s" % (number, name))
         return (number, name)
 
     def _event_types(self, arg):
@@ -305,8 +302,9 @@ class DMPListener():
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
-                    returntuple = self._searchS3Segment(self._getS3Segment('\\a', data))
-                    _LOGGER.debug("Tuple %s" % returntuple)
+                    tup = self._searchS3Segment(self._getS3Segment('\\a', data))
+                    _LOGGER.debug("Val 1 %s" % tup[0])
+                    _LOGGER.debug("Val 2 %s" % tup[1])
                     areaNumber, areaName = self._searchS3Segment(
                         self._getS3Segment('\\a', data))
                     _LOGGER.debug("Area Number %s") % areaNumber
