@@ -28,9 +28,12 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED
 )
-from .const import (DOMAIN, LISTENER, CONF_LISTEN_PORT, CONF_PANELS,
-                    CONF_PANEL_IP, CONF_PANEL_ACCOUNT_NUMBER,
-                    CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT)
+from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+                    CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
+                    CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
+                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE,
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
+                    CONF_ADD_ANOTHER, CONF_AREAS, DOMAIN, LISTENER)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
