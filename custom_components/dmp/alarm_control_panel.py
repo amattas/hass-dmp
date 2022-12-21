@@ -44,7 +44,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, config):
         self._listener = listener
-        self.panel_name = config.get(CONF_PANEL_NAME)
+        self._panel_name = config.get(CONF_PANEL_NAME)
         self._name = "%s Arming" % self.panel_name
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = config.get(CONF_HOME_AREA)
