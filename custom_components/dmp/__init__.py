@@ -25,6 +25,7 @@ from homeassistant.const import (
 )
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
+    STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED
 )
@@ -342,7 +343,10 @@ class DMPListener():
                         areaState = STATE_ALARM_DISARMED
                     elif (systemCode == "CL"):
                         # closing, or arm
-                        areaState = STATE_ALARM_ARMED_AWAY
+                        if (areaNumber[1:] == CONF_HOME_AREA):
+                            areaState = STATE_ALARM_ARMED_HOME
+                        else:
+                            areaState = STATE_ALARM_ARMED_AWAY
                     areaObj = {"areaName": areaName,
                                "areaState": areaState}
                     panel.updateArea(areaObj)
