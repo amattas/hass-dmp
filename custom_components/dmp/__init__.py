@@ -187,12 +187,11 @@ class DMPListener():
             return ""
         # strip everything before it
         tempString = input[start:]
-        # search substring till we find the \ delimeter (double \ so we don't
-        # escape the quote)
+        # Search substring till we find the delimeter
         end = tempString.find('\\')
         # Strip the seatch string and any trailing or leadiner whitespace.
         returnString = tempString[len(charToFind):end].strip()
-        _LOGGER.debug("S3Segment result: %" % returnString)
+        _LOGGER.debug("S3Segment result: %s" % returnString)
         return returnString
 
     def _searchS3Segment(self, input):
