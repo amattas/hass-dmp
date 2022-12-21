@@ -12,8 +12,12 @@ from homeassistant.helpers.entity import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
-                    CONF_ZONE_CLASS, CONF_PANEL_ACCOUNT_NUMBER, CONF_ZONES)
+from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+                    CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
+                    CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
+                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE,
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
+                    CONF_ADD_ANOTHER, CONF_ZONES)
 
 _LOGGER = logging.getLogger(__name__)
 

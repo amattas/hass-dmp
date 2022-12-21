@@ -20,10 +20,12 @@ from homeassistant.components.alarm_control_panel.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (DOMAIN, LISTENER, CONF_AREA_NAME,
-                    CONF_PANEL_ACCOUNT_NUMBER, CONF_AREA_NUMBER,
-                    CONF_AREA_DISARM_ZONE, CONF_AREA_HOME_ZONE,
-                    CONF_AREA_AWAY_ZONE, CONF_AREAS)
+from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+                    CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
+                    CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
+                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE,
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
+                    CONF_ADD_ANOTHER, CONF_AREAS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,12 +43,10 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, config, accountNum):
         self._listener = listener
-        self._name = config.get(CONF_AREA_NAME)
+        self._name = config.get(CONF_PANEL_NAME)
         self._account_number = accountNum
-        self._number = config.get(CONF_AREA_NUMBER)
+        self._number = config.get(CONF_AREA_HOME_ZONE)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._disarm_zone = (config.get(CONF_AREA_DISARM_ZONE)
-                             or self._number[1:])
         self._home_zone = (config.get(CONF_AREA_HOME_ZONE)
                            or self._number[1:])
         self._away_zone = (config.get(CONF_AREA_AWAY_ZONE)
@@ -120,7 +120,7 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel.connectAndSend('!O{},'.format(self._disarm_zone))
+        await self._panel.connectAndSend('!O{},'.format(self._away_zone))
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""

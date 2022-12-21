@@ -22,7 +22,7 @@ DMP_EVENTS = {
 }
 
 DMP_TYPES = {
-    #Zones
+    # Zones
     'BL': 'Blank',
     'FI': 'Fire',
     'BU': 'Burglary',
@@ -31,7 +31,7 @@ DMP_TYPES = {
     'EM': 'Emergency',
     'A1': 'Auxiliary 1',
     'A2': 'Auxiliary 2',
-    #Access
+    # Access
     'DA': 'Door Access Granted',
     'AA': 'Door Access Denied: Armed Area',
     'IA': 'Door Access Denied: Invalid Area',
@@ -39,7 +39,7 @@ DMP_TYPES = {
     'AP': 'Door Access Denied: Previous Access',
     'IC': 'Door Access Denied: Invalid Code',
     'IL': 'Door Access Denied: Invalid Level',
-    #Status
+    # Status
     'DO': 'Door Status: Open',
     'DC': 'Door Status: Closed',
     'HO': 'Door Status: Held Open',
@@ -48,21 +48,21 @@ DMP_TYPES = {
     'OF': 'Output Status: Off',
     'PL': 'Output Status: Pulse',
     'TP': 'Output Status: Temporal',
-    #Equipment
+    # Equipment
     'RP': 'Equipment: Repair',
     'RL': 'Equipment: Replace',
     'AD': 'Equipment: Add',
     'RM': 'Equipment: Remove',
     'AJ': 'Equipment: Adjust',
     'TS': 'Equipment: Test',
-    #Qualifier
+    # Qualifier
     'DT': 'Service',
     'AC': 'All Areas Armed',
-    #Arming
+    # Arming
     'OP': 'Area Disarmed',
     'CL': 'Area Armed',
     'LA': 'Area Late to Arm',
-    #Schedule
+    # Schedule
     'PE': 'Permanent Schedule',
     'TE': 'Temporary Schedule',
     'PR': 'Primary Schedule',
@@ -71,7 +71,7 @@ DMP_TYPES = {
     'S2': 'Shift 2',
     'S3': 'Shift 3',
     'S4': 'Shift 4',
-    #System Messages
+    # System Messages
     '000': 'AC Power Restored',
     '001': 'Standby Battery Restored',
     '002': 'Communications Line Restored',
@@ -99,7 +99,7 @@ DMP_TYPES = {
     '032': 'Supervised wireless Interference',
     '033': 'Early Morning Ambush',
     '034': 'Alarm Silenced',
-    '035': 'Alarm Bell Normal', #not implemented per dmp docs
+    '035': 'Alarm Bell Normal',  # not implemented per dmp docs
     '038': 'Bell Circuit Trouble',
     '039': 'Bell Circuit Restored',
     '040': 'Fire Alarm Message Overflow',
@@ -141,19 +141,19 @@ DMP_TYPES = {
     '102': 'Device Restored',
     '121': 'Excessive Cellular communication',
     '122': 'Cell Communication Suppressed: Excessive data',
-    #more for cell systems, i'm lazy
+    # more for cell systems, i'm lazy
 
-    #Holidays
+    # Holidays
     'HA': 'Holiday Schedule A',
     'HB': 'Holiday Schedule B',
     'HC': 'Holiday Schedule C',
 
-    #User Code
+    # User Code
     'AD': 'User Code Added',
     'CH': 'User Code Changed',
     'DE': 'User Code Deleted',
 
-    #Service User
+    # Service User
     'ST': 'Start Service User',
     'SP': 'Stop Service User',
 }
