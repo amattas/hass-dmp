@@ -14,15 +14,11 @@
       },
       "areas": {
         "data": {
-          "area_number": "Area Number",
-          "area_name": "Area Name",
-          "area_away_zone": "Alternate Arm Away Zone",
-          "area_home_zone": "Alternate Arm Home Zone",
-          "area_disarm_zone": "Alternate Disarm Zone",
-          "add_another": "Add another area?"
+          "away_zone": "Arm Away Zone",
+          "home_zone": "Arm Home Zone"
         },
-        "description": "Add an area to your DMP pane.",
-        "title": "DMP Area Configuration"
+        "description": "Select the enters to use for arming. Typicially on most panels you will use '01' for home/perimeter and '010203' for away which means all zones.",
+        "title": "DMP Arming Configuration"
       },
       "zones": {
         "data": {
