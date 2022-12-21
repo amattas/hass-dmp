@@ -31,7 +31,7 @@ from homeassistant.const import (
 from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_AREA_HOME_ZONE, CONF_AREA_AWAY_ZONE,
+                    CONF_HOME_AREA, CONF_AWAY_AREA,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
                     CONF_ADD_ANOTHER, CONF_AREAS, DOMAIN, LISTENER)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
@@ -60,8 +60,7 @@ async def async_setup_entry(hass, entry) -> bool:
     # link properly.
     await hass.config_entries.async_forward_entry_setup(
         entry,
-        "alarm_control_panel"
-        )
+        "alarm_control_panel")
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     )
@@ -80,9 +79,8 @@ class DMPPanel():
                            or "                ")
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
+        self._area = None
         self._zones = {}
-        self._areas = {}
-        self._doors = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -94,16 +92,13 @@ class DMPPanel():
     def getContactTime(self):
         return self._panel_last_contact
 
-    def updateArea(self, areaNum, eventObj):
-        self._areas[areaNum] = eventObj
-        _LOGGER.debug("Area %s has been updated to %s",
-                      areaNum, eventObj['areaState'])
+    def updateArea(self, eventObj):
+        self._area = eventObj
+        _LOGGER.debug("Area has been updated to %s",
+                      eventObj['areaState'])
 
-    def getArea(self, areaNumber):
-        return self._areas[areaNumber]
-
-    def getAreas(self):
-        return self._areas
+    def getArea(self):
+        return self._area
 
     def updateZone(self, zoneNum, eventObj):
         if (zoneNum in self._zones):
@@ -310,9 +305,9 @@ class DMPListener():
                                                        ._getS3Segment('\\a ',
                                                                       data)
                                                        .strip())
-                    areaObj = {"areaName": areaName, "areaNumber": areaNumber,
+                    areaObj = {"areaName": areaName,
                                "areaState": STATE_ALARM_TRIGGERED}
-                    panel.updateArea(areaNumber, areaObj)
+                    panel.updateArea(areaObj)
                 elif (eventCode == 'Zr'):
                     # zone restore - what do we even use this for?
                     systemCode = self._getS3Segment('\\t ', data)[1:]
@@ -328,25 +323,6 @@ class DMPListener():
                                                        ._getS3Segment('\\a ',
                                                                       data)
                                                        .strip())
-                elif (eventCode == 'Zj'):
-                    # door access
-                    systemCode = self._getS3Segment('\\t ', data)[1:]
-                    typeName = self._event_types(systemCode)
-                    (doorNumber,
-                     doorName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\v ',
-                                                                      data)
-                                                       .strip())
-                    (userNumber,
-                     userName) = self._searchS3Segment(self
-                                                       ._getS3Segment('\\u ',
-                                                                      data)
-                                                       .strip())
-                    eventObj['eventType'] = typeName
-                    eventObj['doorName'] = doorName
-                    eventObj['doorNumber'] = doorNumber
-                    eventObj['userName'] = userName
-                    eventObj['userNumber'] = userNumber
                 elif (eventCode == 'Zq'):
                     # armed/disarmed
                     systemCode = self._getS3Segment('\\t ', data)[1:]
@@ -367,9 +343,9 @@ class DMPListener():
                     elif (systemCode == "CL"):
                         # closing, or arm
                         areaState = STATE_ALARM_ARMED_AWAY
-                    areaObj = {"areaName": areaName, "areaNumber": areaNumber,
+                    areaObj = {"areaName": areaName,
                                "areaState": areaState}
-                    panel.updateArea(areaNumber, areaObj)
+                    panel.updateArea(areaObj)
                 elif (eventCode == 'Zc'):
                     # Device Status Message
                     systemCode = self._getS3Segment('\\t ', data)[1:]

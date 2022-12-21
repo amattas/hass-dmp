@@ -9,8 +9,8 @@ CONF_PANEL_REMOTE_PORT = "remote_port"
 CONF_PANEL_ACCOUNT_NUMBER = "account_number"
 CONF_PANEL_REMOTE_KEY = "remote_key"
 
-CONF_AREA_HOME_ZONE = "home_zone"
-CONF_AREA_AWAY_ZONE = "away_zone"
+CONF_HOME_AREA = "home_zone"
+CONF_AWAY_AREA = "away_zone"
 
 CONF_LOCK_NAME = "door_name"
 CONF_LOCK_NUMBER = "door_number"
