@@ -318,11 +318,9 @@ class DMPListener():
                     # armed/disarmed
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
-                    (areaNumber,
-                     areaName) = self._searchS3Segment(
+                    areaNumber, areaName = self._searchS3Segment(
                         self._getS3Segment('\\a', data))
-                    (userNumber,
-                     userName) = self._searchS3Segment(
+                    userNumber, userName = self._searchS3Segment(
                         self._getS3Segment('\\u', data))
                     _LOGGER.debug("Area Number %s") % areaNumber
                     if (systemCode == "OP"):
