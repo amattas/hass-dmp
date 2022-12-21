@@ -178,10 +178,12 @@ class DMPListener():
         return self._panels
 
     def _getS3Segment(self, charToFind, input):
+        _LOGGER.debug("S3Segment input: %s" % input)
         start = input.find(charToFind)
         if (start == -1):
             return ""
         tempString = input[start+len(charToFind)]
+        _LOGGER.debug("S3Segment tempString: %s" % tempString)
         end = tempString.find('\\')
         returnString = tempString[0:end].strip()
         _LOGGER.debug("S3Segment result: %s" % returnString)
