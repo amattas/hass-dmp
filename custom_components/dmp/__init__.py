@@ -155,10 +155,10 @@ class DMPPanel():
     def getBypassZone(self, zoneNumber):
         return self._bypass_zones[zoneNumber]
 
-    def getTroubleZones(self):
+    def getBypassZones(self):
         return self._bypass_zones
 
-    def updateTroubleZone(self, zoneNum, eventObj):
+    def updateBypassZone(self, zoneNum, eventObj):
         if (zoneNum in self._bypass_zones):
             zone = self._bypass_zones[zoneNum]
             zone.update({"zoneState": eventObj["zoneState"]})
