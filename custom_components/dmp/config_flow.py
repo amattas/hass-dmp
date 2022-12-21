@@ -21,6 +21,12 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
 
 from .const import CONF_ZONES, DOMAIN
 
+SENSOR_TYPES = {
+    "article_cache": ("Article Cache", "MB"),
+    "average_download_rate": ("Average Speed", "MB/s"),
+}
+
+
 PANEL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PANEL_NAME, default='DMP XR150'): cv.string,
@@ -46,7 +52,9 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Required(CONF_ZONE_CLASS): cv.string,
+        vol.Required(CONF_ZONE_CLASS): vol.All(
+            cv.ensure_list, [vol.In(SENSOR_TYPES)]
+            ),
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
