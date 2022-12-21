@@ -45,7 +45,7 @@ class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, config):
         self._listener = listener
         self._panel_name = config.get(CONF_PANEL_NAME)
-        self._name = "%s Arming" % self.panel_name
+        self._name = "%s Arming Control" % self._panel_name
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = config.get(CONF_HOME_AREA)
         self._panel = listener.getPanels()[str(self._account_number)]
