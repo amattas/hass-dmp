@@ -24,8 +24,10 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
+    _LOGGER.debug("Setting up binary sensors.")
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
+    _LOGGER.debug("Binary sensor config:\n\t%s" % config)
     listener = hass.data[DOMAIN][LISTENER]
     zones = [DMPZoneOpenClose(listener, area,
              config.get(CONF_PANEL_ACCOUNT_NUMBER))
