@@ -29,10 +29,22 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     config = hass.data[DOMAIN][entry.entry_id]
     _LOGGER.debug("Binary sensor config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
-    zones = [DMPZoneOpenClose(listener, area,
-             config.get(CONF_PANEL_ACCOUNT_NUMBER))
-             for area in config[CONF_ZONES]]
-    async_add_entities(zones, update_before_add=True)
+    openCloseZones = [
+        DMPZoneOpenClose(
+            listener, zone,
+            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+            )
+        for zone in config[CONF_ZONES]
+        ]
+    batteryZones = [
+        DMPZoneBattery(
+            listener, zone,
+            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+            )
+        for zone in config[CONF_ZONES]
+        ]
+    async_add_entities(openCloseZones, update_before_add=True)
+    async_add_entities(batteryZones, update_before_add=True)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
