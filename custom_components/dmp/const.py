@@ -1,3 +1,4 @@
+# Configuation Constants
 DOMAIN = "dmp"
 LISTENER = "dmp_listener"
 
@@ -26,3 +27,6 @@ CONF_AREAS = "areas"
 CONF_ZONES = "zones"
 
 CONF_ADD_ANOTHER = "add_another"
+
+# Other Constants
+PANEL_ALL_ZONES = "010203"
