@@ -340,7 +340,7 @@ class DMPListener():
                                                        ._getS3Segment('\\u ',
                                                                       data)
                                                        .strip())
-                    _LOGGER.debug("Area Number %s, codeName: %s, areaNumber: %s areaName: %s, userNumber: %s, userName: %s") % (systemCode, codeName, areaNumber, areaName, userNumber, userName)
+                    _LOGGER.debug("Area Number %s") % areaNumber
                     if (systemCode == "OP"):
                         # opening, or disarm
                         areaState = STATE_ALARM_DISARMED
