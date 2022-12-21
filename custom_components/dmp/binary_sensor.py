@@ -77,7 +77,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
             "zoneNumber": str(self._number),
             "zoneState": self._state
             }
-        self._panel.updateZone(str(self._number), zoneOpenCloseObj)
+        self._panel.updateOpenCloseZone(str(self._number), zoneOpenCloseObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneOpenClose Callback")
@@ -156,7 +156,7 @@ class DMPZoneBattery(BinarySensorEntity):
             "zoneNumber": str(self._number),
             "zoneState": self._state
             }
-        self._panel.updateZone(str(self._number), zoneBatteryObj)
+        self._panel.updateBatteryZone(str(self._number), zoneBatteryObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneBattery Callback")
@@ -237,7 +237,7 @@ class DMPZoneTrouble(BinarySensorEntity):
             "zoneNumber": str(self._number),
             "zoneState": self._state
             }
-        self._panel.updateZone(str(self._number), zoneTroubleObj)
+        self._panel.updateTroubleZone(str(self._number), zoneTroubleObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneTrouble Callback")
@@ -318,7 +318,7 @@ class DMPZoneBypass(BinarySensorEntity):
             "zoneNumber": str(self._number),
             "zoneState": self._state
             }
-        self._panel.updateZone(str(self._number), zoneBypassObj)
+        self._panel.updateBypassZone(str(self._number), zoneBypassObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneBypass Callback")
