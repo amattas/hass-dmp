@@ -31,7 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities,):
-    _LOGGER.info("Setting up alarm control panels")
+    _LOGGER.info("Setting up alarm control panels.")
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
@@ -83,7 +83,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        state = self._panel.getArea["areaState"]
+        state = self._panel.getArea()["areaState"]
         return state
 
     @property
