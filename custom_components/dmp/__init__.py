@@ -104,6 +104,12 @@ class DMPPanel():
     def getArea(self):
         return self._area
 
+    def getOpenCloseZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
+
+    def getOpenCloseZones(self):
+        return self._open_close_zones
+
     def updateOpenCloseZone(self, zoneNum, eventObj):
         if (zoneNum in self._open_close_zones):
             zone = self._open_close_zones[zoneNum]
@@ -111,14 +117,8 @@ class DMPPanel():
             self._open_close_zones[zoneNum] = zone
         else:
             self._open_close_zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated to %s",
+        _LOGGER.debug("Open Close Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
-
-    def getOpenCloseZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
-
-    def getOpenCloseZones(self):
-        return self._open_close_zones
 
     def getBatteryZone(self, zoneNumber):
         return self._open_close_zones[zoneNumber]
@@ -133,7 +133,7 @@ class DMPPanel():
             self._battery_zones[zoneNum] = zone
         else:
             self._battery_zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated to %s",
+        _LOGGER.debug("Battery Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
     def getTroubleZone(self, zoneNumber):
@@ -149,7 +149,7 @@ class DMPPanel():
             self._trouble_zones[zoneNum] = zone
         else:
             self._trouble_zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated to %s",
+        _LOGGER.debug("Trouble Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
     def getBypassZone(self, zoneNumber):
@@ -165,7 +165,7 @@ class DMPPanel():
             self._bypass_zones[zoneNum] = zone
         else:
             self._bypass_zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated to %s",
+        _LOGGER.debug("Bypass Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
     def getAccountNumber(self):
