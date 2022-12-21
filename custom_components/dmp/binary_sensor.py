@@ -12,12 +12,15 @@ from homeassistant.helpers.entity import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
-                    CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
-                    CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA,
+from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ADD_ANOTHER, CONF_ZONES)
+                    CONF_ZONES, DEV_TYPE_BATTERY_DOOR,
+                    DEV_TYPE_BATTERY_MOTION, DEV_TYPE_BATTERY_SIREN,
+                    DEV_TYPE_BATTERY_SMOKE, DEV_TYPE_BATTERY_WINDOW,
+                    DEV_TYPE_WIRED_DOOR, DEV_TYPE_WIRED_GLASSBREAK,
+                    DEV_TYPE_WIRED_MOTION, DEV_TYPE_WIRED_SIREN,
+                    DEV_TYPE_WIRED_SMOKE, DEV_TYPE_WIRED_WINDOW,
+                    DEV_TYPE_BATTERY_GLASSBREAK,)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,20 +32,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     config = hass.data[DOMAIN][entry.entry_id]
     _LOGGER.debug("Binary sensor config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
-    openCloseZones = [
-        DMPZoneOpenClose(
-            listener, zone,
-            config.get(CONF_PANEL_ACCOUNT_NUMBER)
-            )
-        for zone in config[CONF_ZONES]
-        ]
-    batteryZones = [
-        DMPZoneBattery(
-            listener, zone,
-            config.get(CONF_PANEL_ACCOUNT_NUMBER)
-            )
-        for zone in config[CONF_ZONES]
-        ]
+    # Add all zones to trouble zones
     troubleZones = [
         DMPZoneTrouble(
             listener, zone,
@@ -50,20 +40,52 @@ async def async_setup_entry(hass, entry, async_add_entities,):
             )
         for zone in config[CONF_ZONES]
     ]
-    bypassZones = [
-        DMPZoneBypass(
-            listener, zone,
-            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+    # Only Windows and doors for Open/Close zones.
+    openCloseZones = []
+    for zone in config[CONF_ZONES]:
+        if (
+            "window" in zone[CONF_ZONE_CLASS]
+            or "door" in zone[CONF_ZONE_CLASS]
+        ):
+            openCloseZones.append(
+                DMPZoneOpenClose(
+                    listener, zone,
+                    config.get(CONF_PANEL_ACCOUNT_NUMBER)
+                )
             )
-        for zone in config[CONF_ZONES]
-    ]
-    alarmZones = [
-        DMPZoneAlarm(
-            listener, zone,
-            config.get(CONF_PANEL_ACCOUNT_NUMBER)
+    # Only battery zones
+    batteryZones = []
+    for zone in config[CONF_ZONES]:
+        if ("battery" in zone[CONF_ZONE_CLASS]):
+            batteryZones.append(
+                DMPZoneBattery(
+                    listener, zone,
+                    config.get(CONF_PANEL_ACCOUNT_NUMBER)
+                )
             )
-        for zone in config[CONF_ZONES]
-    ]
+    # Bypass and Alarm Zones should be the same
+    bypassZones = []
+    alarmZones = []
+    for zone in config[CONF_ZONES]:
+        if (
+            "window" in zone[CONF_ZONE_CLASS]
+            or "door" in zone[CONF_ZONE_CLASS]
+            or "glassbreak" in zone[CONF_ZONE_CLASS]
+            or "motion" in zone[CONF_ZONE_CLASS]
+        ):
+            alarmZones.append(
+                DMPZoneAlarm(
+                    listener, zone,
+                    config.get(CONF_PANEL_ACCOUNT_NUMBER)
+                )
+            )
+            bypassZones.append(
+                DMPZoneBypass(
+                    listener, zone,
+                    config.get(CONF_PANEL_ACCOUNT_NUMBER)
+                )
+            )
+
     async_add_entities(openCloseZones, update_before_add=True)
     async_add_entities(batteryZones, update_before_add=True)
     async_add_entities(troubleZones, update_before_add=True)
@@ -77,7 +99,10 @@ class DMPZoneOpenClose(BinarySensorEntity):
         self._name = "%s Open/Close" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
-        self._device_class = config.get(CONF_ZONE_CLASS)
+        if "door" in config.get(CONF_ZONE_CLASS):
+            self._device_class = "door"
+        elif "window" in config.get(CONF_ZONE_CLASS):
+            self._device_class = "window"
         self._panel = listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneOpenCloseObj = {

@@ -18,7 +18,13 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
                     CONF_PANEL_REMOTE_PORT, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_PANEL_REMOTE_KEY, CONF_HOME_AREA,
                     CONF_AWAY_AREA, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
-                    CONF_ZONE_CLASS, CONF_ADD_ANOTHER)
+                    CONF_ZONE_CLASS, CONF_ADD_ANOTHER,
+                    DEV_TYPE_BATTERY_DOOR, DEV_TYPE_BATTERY_GLASSBREAK,
+                    DEV_TYPE_BATTERY_MOTION, DEV_TYPE_BATTERY_SIREN,
+                    DEV_TYPE_BATTERY_SMOKE, DEV_TYPE_BATTERY_WINDOW,
+                    DEV_TYPE_WIRED_DOOR, DEV_TYPE_WIRED_GLASSBREAK,
+                    DEV_TYPE_WIRED_MOTION, DEV_TYPE_WIRED_SIREN,
+                    DEV_TYPE_WIRED_SMOKE, DEV_TYPE_WIRED_WINDOW)
 
 from .const import CONF_ZONES, DOMAIN
 
@@ -27,20 +33,52 @@ SENSOR_TYPES = selector({
                 "options": [
                     {
                         "label": "Battery - Door",
-                        "value": "battery_door"
+                        "value": DEV_TYPE_BATTERY_DOOR
+                    },
+                    {
+                        "label": "Battery - Glass Break",
+                        "value": DEV_TYPE_BATTERY_GLASSBREAK
+                    },
+                    {
+                        "label": "Battery - Motion",
+                        "value": DEV_TYPE_BATTERY_MOTION
+                    },
+                    {
+                        "label": "Battery - Siren",
+                        "value": DEV_TYPE_BATTERY_SIREN
+                    },
+                    {
+                        "label": "Battery - Smoke",
+                        "value": DEV_TYPE_BATTERY_SMOKE
                     },
                     {
                         "label": "Battery - Window",
-                        "value": "battery_window"
+                        "value": DEV_TYPE_BATTERY_WINDOW
                     },
                     {
                         "label": "Wired - Door",
-                        "value": "wired_door"
+                        "value": DEV_TYPE_WIRED_DOOR
+                    },
+                    {
+                        "label": "Wired - Glass Break",
+                        "value": DEV_TYPE_WIRED_GLASSBREAK
+                    },
+                    {
+                        "label": "Wired - Motion",
+                        "value": DEV_TYPE_WIRED_MOTION
+                    },
+                    {
+                        "label": "Battery - Siren",
+                        "value": DEV_TYPE_WIRED_MOTION
+                    },
+                    {
+                        "label": "Battery - Smoke",
+                        "value": DEV_TYPE_WIRED_SMOKE
                     },
                     {
                         "label": "Wired - Window",
-                        "value": "wired_door"
-                    }
+                        "value": DEV_TYPE_WIRED_WINDOW
+                    },
                 ],
                 "mode": "dropdown",
                 "multiple": False

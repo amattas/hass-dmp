@@ -28,5 +28,21 @@ CONF_ZONES = "zones"
 
 CONF_ADD_ANOTHER = "add_another"
 
+
+# Device Types
+DEV_TYPE_BATTERY_DOOR = "battery_door"
+DEV_TYPE_BATTERY_GLASSBREAK = "battery_glassbreak"
+DEV_TYPE_BATTERY_MOTION = "battery_motion"
+DEV_TYPE_BATTERY_SIREN = "battery_siren"
+DEV_TYPE_BATTERY_SMOKE = "battery_smoke"
+DEV_TYPE_BATTERY_WINDOW = "battery_window"
+DEV_TYPE_WIRED_DOOR = "wired_door"
+DEV_TYPE_WIRED_GLASSBREAK = "wired_glassbreak"
+DEV_TYPE_WIRED_MOTION = "wired_motion"
+DEV_TYPE_WIRED_SIREN = "wired_siren"
+DEV_TYPE_WIRED_SMOKE = "wired_smoke"
+DEV_TYPE_WIRED_WINDOW = "wired_window"
+
+
 # Other Constants
 PANEL_ALL_ZONES = "010203"
