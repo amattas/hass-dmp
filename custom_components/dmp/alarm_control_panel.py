@@ -43,7 +43,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, area_config, config):
         self._listener = listener
-        self._name = area_config.get(CONF_PANEL_NAME)
+        self._name = config.get(CONF_PANEL_NAME)
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = area_config.get(CONF_AREA_HOME_ZONE)
         self._panel = listener.getPanels()[str(self._account_number)]

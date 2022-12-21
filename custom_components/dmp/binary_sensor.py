@@ -36,7 +36,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 class DMPZoneOpenClose(BinarySensorEntity):
     def __init__(self, listener, config, accountNum):
         self._listener = listener
-        self._name = config.get(CONF_ZONE_NAME)
+        self._name = "%s Open/Close" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
         self._device_class = config.get(CONF_ZONE_CLASS)
