@@ -182,7 +182,7 @@ class DMPListener():
         start = input.find(charToFind)
         if (start == -1):
             return ""
-        tempString = input[start+len(charToFind):end]
+        tempString = input[start+len(charToFind):]
         _LOGGER.debug("S3Segment tempString: %s" % tempString)
         end = tempString.find('\\')
         returnString = tempString[0:end].strip()
