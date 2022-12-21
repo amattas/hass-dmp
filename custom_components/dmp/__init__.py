@@ -35,32 +35,6 @@ from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 
-# PANEL_SCHEMA = vol.Schema(
-#     {
-#         vol.Required(CONF_PANEL_IP): cv.string,
-#         vol.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
-#         vol.Optional(CONF_PANEL_REMOTE_KEY): cv.string,
-#         vol.Optional(CONF_PANEL_REMOTE_PORT): cv.port,
-#     }
-# )
-
-# CONFIG_SCHEMA = vol.Schema(
-#     {
-#         DOMAIN: vol.Schema(
-#             {
-#                 vol.Required(CONF_LISTEN_PORT): cv.port,
-#                 vol.Optional(CONF_PANELS): vol.All(cv.ensure_list,
-#                                                    [PANEL_SCHEMA]),
-#             }
-#         )
-#     },
-#     extra=vol.ALLOW_EXTRA,
-# )
-#
-# PLATFORMS = [
-#     "alarm_control_panel",
-# ]
-
 
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
@@ -97,24 +71,6 @@ async def async_setup_entry(hass, entry) -> bool:
         name="XR Series Alarm Panel"
     )
     return True
-
-
-# async def async_setup(hass, config):
-#     """ Set up the DMP component """
-#     if config.get(DOMAIN) is not None:
-#         hass.data[DOMAIN] = {}
-#         # create and start the listener
-#         listener = DMPListener(hass, config[DOMAIN])
-#         await listener.start()
-#         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
-#         hass.data[DOMAIN][LISTENER] = listener
-#         for i in config[DOMAIN][CONF_PANELS]:
-#             panel = DMPPanel(hass, i)
-#         _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
-#         listener.addPanel(panel)
-#         _LOGGER.debug("Panels attached to listener: %s",
-#                       str(listener.getPanels()))
-#     return True
 
 
 class DMPPanel():

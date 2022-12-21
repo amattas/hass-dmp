@@ -27,38 +27,15 @@ from .const import (DOMAIN, LISTENER, CONF_AREA_NAME,
 
 _LOGGER = logging.getLogger(__name__)
 
-# PLATFORM_SCHEMA = vol.Schema(
-#     {
-#         vol.Required(CONF_AREA_NAME): cv.string,
-#         vol.Required(CONF_AREA_ACCTNUM): cv.string,
-#         vol.Required(CONF_AREA_NUMBER): cv.string,
-#         vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
-#         vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
-#         vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
-#     },
-#     extra=vol.ALLOW_EXTRA,
-# )
-
 
 async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    # Update our config to include new repos and remove those that have
-    # been removed.
-    # if config.options:
-    #     config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
     areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
              for area in config[CONF_AREAS]]
     async_add_entities(areas, update_before_add=True)
-
-
-# async def async_setup_platform(hass, config, async_add_entities,
-#                                discovery_info=None):
-#     listener = hass.data[DOMAIN][LISTENER]
-#     area = [DMPArea(listener, config)]
-#     async_add_entities(area)
 
 
 class DMPArea(AlarmControlPanelEntity):

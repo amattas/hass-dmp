@@ -17,36 +17,16 @@ from .const import (DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
 
 _LOGGER = logging.getLogger(__name__)
 
-# PLATFORM_SCHEMA = vol.Schema(
-#     {
-#         vol.Required(CONF_ZONE_NAME): cv.string,
-#         vol.Required(CONF_ZONE_ACCTNUM): cv.string,
-#         vol.Required(CONF_ZONE_NUMBER): cv.string,
-#         vol.Required(CONF_ZONE_CLASS): cv.string,
-#     },
-#     extra=vol.ALLOW_EXTRA,
-# )
-
 
 async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    # Update our config to include new repos and remove those that have
-    # been removed.
-    # if entry.options:
-    #    config.update(config.options)
     listener = hass.data[DOMAIN][LISTENER]
     zones = [DMPZoneOpenClose(listener, area,
              config.get(CONF_PANEL_ACCOUNT_NUMBER))
              for area in config[CONF_ZONES]]
     async_add_entities(zones, update_before_add=True)
-
-# async def async_setup_platform(hass, config, async_add_entities,
-#                                discovery_info=None):
-#     listener = hass.data[DOMAIN][LISTENER]
-#     zone = [DMPZoneOpenClose(listener, config)]
-#     async_add_entities(zone)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
