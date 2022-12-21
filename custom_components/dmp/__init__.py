@@ -311,23 +311,49 @@ class DMPListener():
                     systemCode = self._getS3Segment('\\t', data)
                     codeName = self._event_types(systemCode)
                     eventObj['eventType'] = codeName
-                elif (eventCode == 'Zx' or eventCode == 'Zy'):  # Bypass/Reset
-                    # This needs to be rewritten
-                    pass
-                    # bypass or reset
-                    # systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._events(eventCode)
-                    # typeName = self._event_types(systemCode)
-                    # zoneNumber, zoneName = self._searchS3Segment(
-                    #     self._getS3Segment('\\z', data)
-                    #     )
-                    # userNumber, userName = self._searchS3Segment(
-                    #     self._getS3Segment('\\u', data))
-                    # eventObj['eventType'] = codeName + ': ' + typeName
-                    # eventObj['zoneName'] = zoneName
-                    # eventObj['zoneNumber'] = zoneNumber
-                    # eventObj['userName'] = userName
-                    # eventObj['userNumber'] = userNumber
+                elif (eventCode == 'Zd'):  # Battery
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBatteryZone(zoneNumber, zoneObj)
+                elif (eventCode == 'Zx'):  # Bypass
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                elif (  # Trouble
+                    eventCode == 'Zf'
+                    or eventCode == 'Zh'
+                    or eventCode == 'Zt'
+                    or eventCode == 'Zw'
+                ):
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                elif (   # Restore & Reset
+                    eventCode == 'Zy'
+                    or eventCode - 'Zr'
+                ):
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": False
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                    panel.updateTroubleZone(zoneNumber, zoneObj)
+                    panel.updateBatteryZone(zoneNumber, zoneObj)
+                    panel.updateBypassZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Za' or eventCode == 'Zb'):  # Alarm
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
@@ -388,17 +414,15 @@ class DMPListener():
                         or systemCode == "HO"
                         or systemCode == "FO"
                     ):  # Door Open
-                        zoneState = True
                         zoneObj = {
                             "zoneNumber": zoneNumber,
-                            "zoneState": zoneState
+                            "zoneState": True
                             }
                         panel.updateOpenCloseZone(zoneNumber, zoneObj)
                     elif (systemCode == "DC"):  # Door Closed
-                        zoneState = False
                         zoneObj = {
                             "zoneNumber": zoneNumber,
-                            "zoneState": zoneState
+                            "zoneState": False
                             }
                         panel.updateOpenCloseZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Zl'):  # Schedule Change
