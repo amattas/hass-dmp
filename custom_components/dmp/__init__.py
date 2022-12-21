@@ -319,7 +319,7 @@ class DMPListener():
                         if (areaNumber[1:] == self._home_area):
                             # Make sure we're not already armed away
                             if (
-                                panel.getArea()[areaState] !=
+                                panel.getArea()["areaState"] !=
                                     STATE_ALARM_ARMED_AWAY):
                                 areaState = STATE_ALARM_ARMED_HOME
                         else:
