@@ -20,63 +20,43 @@ from homeassistant.components.alarm_control_panel.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (DOMAIN, LISTENER, CONF_AREA_NAME,
-                    CONF_PANEL_ACCOUNT_NUMBER, CONF_AREA_NUMBER,
-                    CONF_AREA_DISARM_ZONE, CONF_AREA_HOME_ZONE,
-                    CONF_AREA_AWAY_ZONE, CONF_AREAS)
+from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+                    CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
+                    CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
+                    CONF_HOME_AREA, CONF_AWAY_AREA,
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
+                    CONF_ADD_ANOTHER, CONF_AREAS, PANEL_ALL_ZONES)
 
 _LOGGER = logging.getLogger(__name__)
 
-# PLATFORM_SCHEMA = vol.Schema(
-#     {
-#         vol.Required(CONF_AREA_NAME): cv.string,
-#         vol.Required(CONF_AREA_ACCTNUM): cv.string,
-#         vol.Required(CONF_AREA_NUMBER): cv.string,
-#         vol.Optional(CONF_AREA_DISARM_ZONE): cv.string,
-#         vol.Optional(CONF_AREA_HOME_ZONE): cv.string,
-#         vol.Optional(CONF_AREA_AWAY_ZONE): cv.string,
-#     },
-#     extra=vol.ALLOW_EXTRA,
-# )
-
 
 async def async_setup_entry(hass, entry, async_add_entities,):
+    _LOGGER.info("Setting up alarm control panels.")
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    # Update our config to include new repos and remove those that have
-    # been removed.
-    # if config.options:
-    #     config.update(config.options)
+    _LOGGER.debug("Alarm control panel config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
-    areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
-             for area in config[CONF_AREAS]]
+    area = DMPArea(listener, config)
+    areas = []
+    areas.append(area)
     async_add_entities(areas, update_before_add=True)
 
 
-# async def async_setup_platform(hass, config, async_add_entities,
-#                                discovery_info=None):
-#     listener = hass.data[DOMAIN][LISTENER]
-#     area = [DMPArea(listener, config)]
-#     async_add_entities(area)
-
-
 class DMPArea(AlarmControlPanelEntity):
-    def __init__(self, listener, config, accountNum):
+    def __init__(self, listener, config):
         self._listener = listener
-        self._name = config.get(CONF_AREA_NAME)
-        self._account_number = accountNum
-        self._number = config.get(CONF_AREA_NUMBER)
+        self._panel_name = config.get(CONF_PANEL_NAME)
+        self._name = "%s Arming Control" % self._panel_name
+        self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
+        self._number = config.get(CONF_HOME_AREA)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._disarm_zone = (config.get(CONF_AREA_DISARM_ZONE)
-                             or self._number[1:])
-        self._home_zone = (config.get(CONF_AREA_HOME_ZONE)
+        self._home_zone = (config.get(CONF_HOME_AREA)
                            or self._number[1:])
-        self._away_zone = (config.get(CONF_AREA_AWAY_ZONE)
+        self._away_zone = (config.get(CONF_AWAY_AREA)
                            or self._number[1:])
-        areaObj = {"areaName": self._name, "areaNumber": str(self._number),
-                   "areaState": STATE_ALARM_DISARMED}
-        self._panel.updateArea(str(self._number), areaObj)
+        areaObj = {"areaName": self._name, "areaState": STATE_ALARM_DISARMED}
+        self._panel.updateArea(areaObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPArea Callback")
@@ -103,7 +83,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        state = self._panel.getArea(self._number)["areaState"]
+        state = self._panel.getArea()["areaState"]
         return state
 
     @property
@@ -126,28 +106,26 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-area-%s" % (self._account_number, self._number)
+        return "dmp-%s-panel-arming" % self._account_number
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                (DOMAIN, "dmp-%s-zone-%s" % (self._account_number,
-                                             self._number))
+                (DOMAIN, "dmp-%s-panel" % self._account_number)
             },
-            name=self.name,
-            manufacturer='Digital Monitoring Products',
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._account_number))
+            name=self._panel_name,
+            manufacturer='Digital Monitoring Products'
         )
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel.connectAndSend('!O{},'.format(self._disarm_zone))
+        await self._panel.connectAndSend('!O{},'.format(PANEL_ALL_ZONES))
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._away_zone))
+        await self._panel.connectAndSend('!C{},YN'.format(PANEL_ALL_ZONES))
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm away command."""

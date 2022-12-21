@@ -14,15 +14,11 @@
       },
       "areas": {
         "data": {
-          "area_number": "Area Number",
-          "area_name": "Area Name",
-          "area_away_zone": "Alternate Arm Away Zone",
-          "area_home_zone": "Alternate Arm Home Zone",
-          "area_disarm_zone": "Alternate Disarm Zone",
-          "add_another": "Add another area?"
+          "away_zone": "Away Zone",
+          "home_zone": "Home Zone"
         },
-        "description": "Add an area to your DMP pane.",
-        "title": "DMP Area Configuration"
+        "description": "Select the zones to monitor for arming status.\n\nOn most panels you will use '01' when arming home (perimeter zone) and '02' or '03' for away (interior zone).\n\nWhen you arm the panel home from Home Assistant we will arm the zone you specify below, however, when you diarm or arm away this will effect all zones.",
+        "title": "DMP Arming Configuration"
       },
       "zones": {
         "data": {
