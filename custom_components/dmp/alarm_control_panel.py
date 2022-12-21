@@ -35,21 +35,21 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
     listener = hass.data[DOMAIN][LISTENER]
-    areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
+    areas = [DMPArea(listener, area, config)
              for area in config[CONF_AREAS]]
     async_add_entities(areas, update_before_add=True)
 
 
 class DMPArea(AlarmControlPanelEntity):
-    def __init__(self, listener, config, accountNum):
+    def __init__(self, listener, area_config, config):
         self._listener = listener
-        self._name = config.get(CONF_PANEL_NAME)
-        self._account_number = accountNum
-        self._number = config.get(CONF_AREA_HOME_ZONE)
+        self._name = area_config.get(CONF_PANEL_NAME)
+        self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
+        self._number = area_config.get(CONF_AREA_HOME_ZONE)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._home_zone = (config.get(CONF_AREA_HOME_ZONE)
+        self._home_zone = (area_config.get(CONF_AREA_HOME_ZONE)
                            or self._number[1:])
-        self._away_zone = (config.get(CONF_AREA_AWAY_ZONE)
+        self._away_zone = (area_config.get(CONF_AREA_AWAY_ZONE)
                            or self._number[1:])
         areaObj = {"areaName": self._name, "areaNumber": str(self._number),
                    "areaState": STATE_ALARM_DISARMED}
