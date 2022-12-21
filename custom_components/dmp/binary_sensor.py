@@ -132,7 +132,7 @@ class DMPZoneBattery(BinarySensorEntity):
         self._name = "%s Battery" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
-        self._device_class = config.get(CONF_ZONE_CLASS)
+        self._device_class = "battery"
         self._panel = listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneBatteryObj = {
@@ -174,8 +174,8 @@ class DMPZoneBattery(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZone.device_class: {}"
-                      .format("battery"))
+        _LOGGER.debug("Called DMPZoneOpenClose.device_class: {}"
+                      .format(self._device_class))
         return self._device_class
 
     @property
