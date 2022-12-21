@@ -1,26 +1,15 @@
 """Platform for DMP Alarm Panel integration"""
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 import logging
 
-
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
     BinarySensorEntity
 )
-from homeassistant.helpers.entity import (
-    DeviceInfo
-)
-import homeassistant.helpers.config_validation as cv
-
 from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ZONES, DEV_TYPE_BATTERY_DOOR,
-                    DEV_TYPE_BATTERY_MOTION, DEV_TYPE_BATTERY_SIREN,
-                    DEV_TYPE_BATTERY_SMOKE, DEV_TYPE_BATTERY_WINDOW,
-                    DEV_TYPE_WIRED_DOOR, DEV_TYPE_WIRED_GLASSBREAK,
-                    DEV_TYPE_WIRED_MOTION, DEV_TYPE_WIRED_SIREN,
-                    DEV_TYPE_WIRED_SMOKE, DEV_TYPE_WIRED_WINDOW,
-                    DEV_TYPE_BATTERY_GLASSBREAK,)
+                    CONF_ZONES)
 
 _LOGGER = logging.getLogger(__name__)
 

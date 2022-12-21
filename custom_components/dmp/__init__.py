@@ -1,40 +1,30 @@
 """The DMP Integration Component"""
-
-import asyncio
-import logging
+import homeassistant.helpers.config_validation as cv
 from datetime import datetime
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
+import asyncio
+import logging
+
 from homeassistant.helpers.discovery import async_load_platform
-from homeassistant.helpers.event import (TrackTemplate,
-                                         async_track_template_result)
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
-from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STOP,
-    CONF_VALUE_TEMPLATE,
-    CONF_ATTRIBUTE,
-    CONF_ENTITY_ID,
-    STATE_ON,
-    STATE_OFF,
-    CONF_SERVICE,
-    CONF_SERVICE_DATA,
-)
+from homeassistant.helpers.event import (
+    TrackTemplate,
+    async_track_template_result
+    )
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA,
-                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ADD_ANOTHER, CONF_AREAS, DOMAIN, LISTENER)
+                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
