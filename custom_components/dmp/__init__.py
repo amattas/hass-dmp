@@ -245,7 +245,6 @@ class DMPListener():
                 _LOGGER.debug('\tAcct Num: \'{}\''.format(acctNum))
                 eventCode = data[19:21]
                 _LOGGER.debug('\tEvent Code: \'{}\''.format(eventCode))
-                areaNumber = None
                 zoneNumber = None
                 try:
                     panel = self._panels[acctNum.strip()]
