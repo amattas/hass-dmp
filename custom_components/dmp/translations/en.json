@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "data": {
-          "ip": "Panel IP Address",
+          "ip": "Panel Hostname/IP Address",
           "port": "Panel Port",
           "listen_port": "Listener Port",
           "account_number": "Account Number",
@@ -14,10 +14,10 @@
       },
       "areas": {
         "data": {
-          "away_zone": "Arm Away Zone",
-          "home_zone": "Arm Home Zone"
+          "away_zone": "Away Zone",
+          "home_zone": "Home Zone"
         },
-        "description": "Select the enters to use for arming. Typicially on most panels you will use '01' for home/perimeter and '010203' for away which means all zones.",
+        "description": "Select the zones to monitor for arming status.\n\nOn most panels you will use '01' when arming home (perimeter zone) and '02' or '03' for away (interior zone).\n\nWhen you arm the panel home from Home Assistant we will arm the zone you specify below, however, when you diarm or arm away this will effect all zones.",
         "title": "DMP Arming Configuration"
       },
       "zones": {

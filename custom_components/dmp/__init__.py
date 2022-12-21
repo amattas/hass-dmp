@@ -1,40 +1,30 @@
 """The DMP Integration Component"""
-
-import asyncio
-import logging
+import homeassistant.helpers.config_validation as cv
 from datetime import datetime
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
+import asyncio
+import logging
+
 from homeassistant.helpers.discovery import async_load_platform
-from homeassistant.helpers.event import (TrackTemplate,
-                                         async_track_template_result)
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
-from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STOP,
-    CONF_VALUE_TEMPLATE,
-    CONF_ATTRIBUTE,
-    CONF_ENTITY_ID,
-    STATE_ON,
-    STATE_OFF,
-    CONF_SERVICE,
-    CONF_SERVICE_DATA,
-)
+from homeassistant.helpers.event import (
+    TrackTemplate,
+    async_track_template_result
+    )
 from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_IP,
+from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA,
-                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ADD_ANOTHER, CONF_AREAS, DOMAIN, LISTENER)
+                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,7 +71,11 @@ class DMPPanel():
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
         self._area = None
-        self._zones = {}
+        self._open_close_zones = {}
+        self._battery_zones = {}
+        self._trouble_zones = {}
+        self._bypass_zones = {}
+        self._alarm_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -101,21 +95,85 @@ class DMPPanel():
     def getArea(self):
         return self._area
 
-    def updateZone(self, zoneNum, eventObj):
-        if (zoneNum in self._zones):
-            zone = self._zones[zoneNum]
+    def getOpenCloseZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
+
+    def getOpenCloseZones(self):
+        return self._open_close_zones
+
+    def updateOpenCloseZone(self, zoneNum, eventObj):
+        if (zoneNum in self._open_close_zones):
+            zone = self._open_close_zones[zoneNum]
             zone.update({"zoneState": eventObj["zoneState"]})
-            self._zones[zoneNum] = zone
+            self._open_close_zones[zoneNum] = zone
         else:
-            self._zones[zoneNum] = eventObj
-        _LOGGER.debug("Zone %s has been updated to %s",
+            self._open_close_zones[zoneNum] = eventObj
+        _LOGGER.debug("Open Close Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
-    def getZone(self, zoneNumber):
-        return self._zones[zoneNumber]
+    def getBatteryZone(self, zoneNumber):
+        return self._open_close_zones[zoneNumber]
 
-    def getZones(self):
-        return self._zones
+    def getBatteryZones(self):
+        return self._open_close_zones
+
+    def updateBatteryZone(self, zoneNum, eventObj):
+        if (zoneNum in self._battery_zones):
+            zone = self._battery_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._battery_zones[zoneNum] = zone
+        else:
+            self._battery_zones[zoneNum] = eventObj
+        _LOGGER.debug("Battery Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getTroubleZone(self, zoneNumber):
+        return self._trouble_zones[zoneNumber]
+
+    def getTroubleZones(self):
+        return self._trouble_zones
+
+    def updateTroubleZone(self, zoneNum, eventObj):
+        if (zoneNum in self._trouble_zones):
+            zone = self._trouble_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._trouble_zones[zoneNum] = zone
+        else:
+            self._trouble_zones[zoneNum] = eventObj
+        _LOGGER.debug("Trouble Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getBypassZone(self, zoneNumber):
+        return self._bypass_zones[zoneNumber]
+
+    def getBypassZones(self):
+        return self._bypass_zones
+
+    def updateBypassZone(self, zoneNum, eventObj):
+        if (zoneNum in self._bypass_zones):
+            zone = self._bypass_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._bypass_zones[zoneNum] = zone
+        else:
+            self._bypass_zones[zoneNum] = eventObj
+        _LOGGER.debug("Bypass Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getAlarmZone(self, zoneNumber):
+        return self._alarm_zones[zoneNumber]
+
+    def getAlarmZones(self):
+        return self._alarm_zones
+
+    def updateAlarmZone(self, zoneNum, eventObj):
+        if (zoneNum in self._alarm_zones):
+            zone = self._alarm_zones[zoneNum]
+            zone.update({"zoneState": eventObj["zoneState"]})
+            self._alarm_zones[zoneNum] = zone
+        else:
+            self._alarm_zones[zoneNum] = eventObj
+        _LOGGER.debug("Alarm Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
 
     def getAccountNumber(self):
         return self._accountNumber
@@ -260,23 +318,50 @@ class DMPListener():
                     systemCode = self._getS3Segment('\\t', data)
                     codeName = self._event_types(systemCode)
                     eventObj['eventType'] = codeName
-                elif (eventCode == 'Zx' or eventCode == 'Zy'):  # Bypass/Reset
-                    # This needs to be rewritten
-                    pass
-                    # bypass or reset
-                    # systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._events(eventCode)
-                    # typeName = self._event_types(systemCode)
-                    # zoneNumber, zoneName = self._searchS3Segment(
-                    #     self._getS3Segment('\\z', data)
-                    #     )
-                    # userNumber, userName = self._searchS3Segment(
-                    #     self._getS3Segment('\\u', data))
-                    # eventObj['eventType'] = codeName + ': ' + typeName
-                    # eventObj['zoneName'] = zoneName
-                    # eventObj['zoneNumber'] = zoneNumber
-                    # eventObj['userName'] = userName
-                    # eventObj['userNumber'] = userNumber
+                elif (eventCode == 'Zd'):  # Battery
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBatteryZone(zoneNumber, zoneObj)
+                elif (eventCode == 'Zx'):  # Bypass
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                elif (  # Trouble
+                    eventCode == 'Zf'
+                    or eventCode == 'Zh'
+                    or eventCode == 'Zt'
+                    or eventCode == 'Zw'
+                ):
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": True
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                elif (   # Restore & Reset
+                    eventCode == 'Zy'
+                    or eventCode == 'Zr'
+                ):
+                    codeName = self._event_types(systemCode)
+                    zoneNumber = self._getS3Segment('\\z', data)
+                    zoneObj = {
+                        "zoneNumber": zoneNumber,
+                        "zoneState": False
+                        }
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                    panel.updateTroubleZone(zoneNumber, zoneObj)
+                    panel.updateBatteryZone(zoneNumber, zoneObj)
+                    panel.updateBypassZone(zoneNumber, zoneObj)
+                    panel.updateAlarmZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Za' or eventCode == 'Zb'):  # Alarm
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._events(eventCode)
@@ -294,17 +379,6 @@ class DMPListener():
                     areaObj = {"areaName": areaName,
                                "areaState": STATE_ALARM_TRIGGERED}
                     panel.updateArea(areaObj)
-                elif (eventCode == 'Zr'):  # Zone Restore
-                    # We probably don't need thiss
-                    pass
-                    # zone restore - what do we even use this for?
-                    # systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._events(eventCode)
-                    # typeName = self._event_types(systemCode)
-                    # zoneNumber, zoneName = self._searchS3Segment(
-                    #     self._getS3Segment('\\z', data))
-                    # areaNumber, areaName = self._searchS3Segment(
-                    #     self._getS3Segment('\\a', data))
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
@@ -332,13 +406,22 @@ class DMPListener():
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
                     zoneNumber = self._getS3Segment('\\z', data)
-                    if (systemCode == "DO"):  # Door Open
-                        zoneState = True
+                    if (
+                        systemCode == "DO"
+                        or systemCode == "HO"
+                        or systemCode == "FO"
+                    ):  # Door Open
+                        zoneObj = {
+                            "zoneNumber": zoneNumber,
+                            "zoneState": True
+                            }
+                        panel.updateOpenCloseZone(zoneNumber, zoneObj)
                     elif (systemCode == "DC"):  # Door Closed
-                        zoneState = False
-                    zoneObj = {"zoneNumber": zoneNumber,
-                               "zoneState": zoneState}
-                    panel.updateZone(zoneNumber, zoneObj)
+                        zoneObj = {
+                            "zoneNumber": zoneNumber,
+                            "zoneState": False
+                            }
+                        panel.updateOpenCloseZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Zl'):  # Schedule Change
                     pass
                 else:

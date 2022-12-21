@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "data": {
-          "ip": "Panel IP Address",
+          "ip": "Panel Hostname/IP Address",
           "port": "Panel Port",
           "listen_port": "Listener Port",
           "account_number": "Account Number",
