@@ -342,7 +342,7 @@ class DMPListener():
                     panel.updateBypassZone(zoneNumber, zoneObj)
                 elif (   # Restore & Reset
                     eventCode == 'Zy'
-                    or eventCode - 'Zr'
+                    or eventCode == 'Zr'
                 ):
                     codeName = self._event_types(systemCode)
                     zoneNumber = self._getS3Segment('\\z', data)
@@ -371,17 +371,6 @@ class DMPListener():
                     areaObj = {"areaName": areaName,
                                "areaState": STATE_ALARM_TRIGGERED}
                     panel.updateArea(areaObj)
-                elif (eventCode == 'Zr'):  # Zone Restore
-                    # We probably don't need thiss
-                    pass
-                    # zone restore - what do we even use this for?
-                    # systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._events(eventCode)
-                    # typeName = self._event_types(systemCode)
-                    # zoneNumber, zoneName = self._searchS3Segment(
-                    #     self._getS3Segment('\\z', data))
-                    # areaNumber, areaName = self._searchS3Segment(
-                    #     self._getS3Segment('\\a', data))
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
                     codeName = self._event_types(systemCode)
