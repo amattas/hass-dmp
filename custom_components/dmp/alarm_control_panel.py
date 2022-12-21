@@ -37,6 +37,8 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     listener = hass.data[DOMAIN][LISTENER]
     areas = [DMPArea(listener, area, config.get(CONF_PANEL_ACCOUNT_NUMBER))
              for area in config[CONF_AREAS]]
+    # There should only ever be one panel per configuration instance.
+    assert (areas.count() == 1)
     async_add_entities(areas, update_before_add=True)
 
 

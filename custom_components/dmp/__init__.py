@@ -63,16 +63,6 @@ async def async_setup_entry(hass, entry) -> bool:
         hass.config_entries.async_forward_entry_setup(entry,
                                                       "alarm_control_panel")
     )
-    device_registry = dr.async_get(hass)
-
-    device_registry.async_get_or_create(
-        config_entry_id=entry.entry_id,
-        identifiers={
-            (DOMAIN, "dmp-%s-panel" % (config[CONF_PANEL_ACCOUNT_NUMBER]))
-        },
-        manufacturer="Digital Monitoring Products",
-        name="XR Series Alarm Panel"
-    )
     return True
 
 
