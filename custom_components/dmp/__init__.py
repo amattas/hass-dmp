@@ -178,19 +178,12 @@ class DMPListener():
         return self._panels
 
     def _getS3Segment(self, charToFind, input):
-        # find the char we're looking for
-        start = input.find(charToFind) + 1
-        # index -1 means not found, but plus one from above, so we're really
-        # looking for index 0 to mean none found returning None breaks it
-        # so we return empty string
-        if (start == 0):
+        start = input.find(charToFind)
+        if (start == -1):
             return ""
-        # strip everything before it
-        tempString = input[start:]
-        # Search substring till we find the delimeter
+        tempString = input[start+len(charToFind)]
         end = tempString.find('\\')
-        # Strip the seatch string and any trailing or leadiner whitespace.
-        returnString = tempString[len(charToFind)-1:end].strip()
+        returnString = tempString[0:end].strip()
         _LOGGER.debug("S3Segment result: %s" % returnString)
         return returnString
 
