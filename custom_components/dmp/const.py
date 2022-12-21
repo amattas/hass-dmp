@@ -7,10 +7,10 @@ CONF_PANEL_IP = "ip"
 CONF_PANEL_LISTEN_PORT = "listen_port"
 CONF_PANEL_REMOTE_PORT = "remote_port"
 CONF_PANEL_ACCOUNT_NUMBER = "account_number"
-CONF_PANEL_REMOTE_KEY = "key"
+CONF_PANEL_REMOTE_KEY = "remote_key"
 
-CONF_AREA_HOME_ZONE = "area_home_zone"
-CONF_AREA_AWAY_ZONE = "area_away_zone"
+CONF_AREA_HOME_ZONE = "home_zone"
+CONF_AREA_AWAY_ZONE = "away_zone"
 
 CONF_LOCK_NAME = "door_name"
 CONF_LOCK_NUMBER = "door_number"
