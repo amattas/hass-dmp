@@ -206,7 +206,7 @@ class DMPListener():
         if number is None:
             number = ""
         _LOGGER.debug("S3Search result Number: %s Name: %s" % (number, name))
-        return number, name
+        return (number, name)
 
     def _event_types(self, arg):
         return (DMP_TYPES.get(arg, "Unknown Type " + arg))
