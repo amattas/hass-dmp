@@ -23,7 +23,7 @@ from .const import CONF_ZONES, DOMAIN
 
 PANEL_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_PANEL_NAME, default='DMP XR 150'): cv.string,
+        vol.Required(CONF_PANEL_NAME, default='DMP XR150'): cv.string,
         vol.Required(CONF_PANEL_IP, default='0.0.0.0'): cv.string,
         vol.Optional(CONF_PANEL_REMOTE_PORT, default=8011): cv.port,
         vol.Optional(CONF_PANEL_LISTEN_PORT, default=8001): cv.port,

@@ -326,6 +326,7 @@ class DMPListener():
                             areaState = STATE_ALARM_ARMED_AWAY
                     areaObj = {"areaName": areaName,
                                "areaState": areaState}
+                    _LOGGER.debug("Updated area: %s" % areaObj)
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zc'):  # Device status
                     systemCode = self._getS3Segment('\\t', data)[1:]
