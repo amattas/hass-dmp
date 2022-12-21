@@ -113,7 +113,7 @@ class DMPArea(AlarmControlPanelEntity):
             identifiers={
                 DOMAIN, "dmp-%s-panel" % self._account_number
             },
-            name=self.config.get(self._panel_name),
+            name=self._panel_name,
             manufacturer='Digital Monitoring Products'
         )
 
