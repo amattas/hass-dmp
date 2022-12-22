@@ -69,7 +69,6 @@ async def async_unload_entry(hass, entry):
 
 async def options_update_listener(hass, entry):
     _LOGGER.debug("Options flow completed.")
-    device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
     config = dict(entry.data)
     options = dict(entry.options)
@@ -109,8 +108,9 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
-
         # Cleanup device registry
+        device_registry = dr.async_get(hass)
+        entity_registry = er.async_get(hass)
         device_registry.async_cleanup(hass, device_registry, entity_registry)
         await entry.async_reload(entry.entry_id)
 
