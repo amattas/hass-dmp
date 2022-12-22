@@ -10,6 +10,7 @@ from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
@@ -36,6 +37,7 @@ async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
+    device_registry = dr.async_get(hass)
     # Create Options Callback
     unsub_options_update_listener = (
         entry.add_update_listener(options_update_listener)
@@ -58,6 +60,7 @@ async def async_setup_entry(hass, entry) -> bool:
         entry,
         "alarm_control_panel")
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
+    await device_registry.async_purge_expired_orphaned_devices()
     return True
 
 
