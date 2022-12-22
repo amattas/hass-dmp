@@ -196,32 +196,33 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 if z[CONF_ZONE_NUMBER] not in user_input[CONF_ZONES]
                 ]
             _LOGGER.debug("Deleted Zones: %s" % deleted_zones)
-            # Get lis of deleted entity_id's
+            _LOGGER.debut("Entry Map %s" % entry_map)
+            # Get lisf of deleted entity_id's
             deleted_entries = []
             for d in deleted_zones:
                 deleted_entries.append(
-                    e.entity_id for e in dict(entry_map.values())
+                    e.entity_id for e in entry_map.values()
                     if e.unique_id.split('-')[2] == 'zones'
                     and e.unique_id.split('-')[3] == d
                 )
             _LOGGER.debug("Deleted entries: %s" % deleted_entries)
-            for entity_id in deleted_entries:
-                # entity_registry.async_remove(entity_id)
-                entry = entry_map[entity_id]
-                entry_unique_id = entry.unique_id
-                updated_zones = [
-                    e for e in updated_zones
-                    if e["entity_id"] != entity_id
-                    ]
+            # for entity_id in deleted_entries:
+            #     # entity_registry.async_remove(entity_id)
+            #     entry = entry_map[entity_id]
+            #     entry_unique_id = entry.unique_id
+            #     updated_zones = [
+            #         e for e in updated_zones
+            #         if e["entity_id"] != entity_id
+            #         ]
 
-            if not errors:
-                updated_zones.append(
-                    {
-                        CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
-                        CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
-                        CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
-                    }
-                )
+            # if not errors:
+            #     updated_zones.append(
+            #         {
+            #             CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+            #             CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+            #             CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+            #         }
+            #     )
 
             _LOGGER.debug("Updated zones %s" % updated_zones)
 
