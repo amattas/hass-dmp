@@ -87,17 +87,16 @@ async def options_update_listener(hass, entry):
         ]
         _LOGGER.debug("Zones found in options: %s" % active_zones)
         deleted_entries = []
-        for e in entry_map:
-            for emk in entry_map.keys():
-                if (
-                    entry_map[emk].unique_id.split('-')[2] == 'zone'
-                    and (
-                        entry_map[emk].unique_id.split('-')[3]
-                        not in active_zones
-                        )
-                ):
-                    deleted_entries.append(emk)
-        _LOGGER.debug("Zones to be deleted: %s" % deleted_entries)
+        for emk in entry_map.keys():
+            if (
+                entry_map[emk].unique_id.split('-')[2] == 'zone'
+                and (
+                    entry_map[emk].unique_id.split('-')[3]
+                    not in active_zones
+                    )
+            ):
+                deleted_entries.append(emk)
+        _LOGGER.debug("Zone entities to be deleted: %s" % deleted_entries)
         for de in deleted_entries:
             entity_registry.async_remove(de)
 
