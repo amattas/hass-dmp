@@ -37,7 +37,6 @@ async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
-    device_registry = dr.async_get(hass)
     # Create Options Callback
     unsub_options_update_listener = (
         entry.add_update_listener(options_update_listener)
@@ -60,7 +59,10 @@ async def async_setup_entry(hass, entry) -> bool:
         entry,
         "alarm_control_panel")
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
-    device_registry.async_purge_expired_orphaned_devices()
+    # Cleanup Device Registry
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    await dr.async_cleanup(hass, device_registry, entity_registry)
     return True
 
 
