@@ -9,6 +9,7 @@ from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
@@ -30,14 +31,23 @@ from .dmp_codes import DMP_EVENTS, DMP_TYPES
 _LOGGER = logging.getLogger(__name__)
 
 
+async def options_update_listener(hass, entry):
+    """Handle options update."""
+    await hass.emtry.async_reload(entry.entry_id)
+
+
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
+    # Create Options Callback
+    unsub_options_update_listener = (
+        entry.add_update_listener(options_update_listener)
+    )
     if entry.options:
         config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
-    # create and start the listener
+    # Create and start the DMP Listener
     listener = DMPListener(hass, config)
     await listener.start()
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)

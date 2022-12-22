@@ -196,7 +196,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ]
             _LOGGER.debug("Deleted Zones: %s" % deleted_zones)
             _LOGGER.debug("Entry Map %s" % entry_map)
-            # Get lisf of deleted entity_id's
+            
+            # Get lisf of deleted entity_id and remove from config
             deleted_entries = []
             for d in deleted_zones:
                 for emk in entry_map.keys():
@@ -210,9 +211,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     if e["zone_number"] != d
                     ]
 
-            _LOGGER.debug("Deleted entries: %s" % deleted_entries)
-            _LOGGER.debug("Updated zones config: %s" % updated_zones)
-
+            # Add new zones to config
             updated_zones.append(
                     {
                         CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
@@ -221,13 +220,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     }
                 )
 
-            _LOGGER.debug("Updated zones config: %s" % updated_zones)
-
-            # if not errors:
-            #     return self.async_create_entry(
-            #         title="",
-            #         data={CONF_ZONES: updated_zones},
-            #     )
+            if not errors:
+                for de in deleted_entries:
+                    entity_registry.async_remove(de)
+                return self.async_create_entry(
+                    title="",
+                    data={CONF_ZONES: updated_zones},
+                )
 
         options_schema = vol.Schema(
             {
