@@ -230,9 +230,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             {
                 vol.Optional(
                     CONF_ZONES, default=list(
-                        all_zones.keys())
+                        zones_dict.keys())
                     ): cv.multi_select(
-                    all_zones
+                    zones_dict
                     ),
                 vol.Required(CONF_ZONE_NAME): cv.string,
                 vol.Required(CONF_ZONE_NUMBER): cv.string,
