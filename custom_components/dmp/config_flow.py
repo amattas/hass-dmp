@@ -196,7 +196,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 if z[CONF_ZONE_NUMBER] not in user_input[CONF_ZONES]
                 ]
             _LOGGER.debug("Deleted Zones: %s" % deleted_zones)
-            _LOGGER.debut("Entry Map %s" % entry_map)
+            _LOGGER.debug("Entry Map %s" % entry_map)
             # Get lisf of deleted entity_id's
             deleted_entries = []
             for d in deleted_zones:
