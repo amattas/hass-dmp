@@ -28,6 +28,8 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
 
 from .const import CONF_ZONES, DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 SENSOR_TYPES = selector({
             "select": {
                 "options": [
@@ -179,13 +181,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
+        _LOGGER.debug("Entries: %s" % entries)
+        _LOGGER.debug("Config: %s" % self.config_entry)
         # Default value for our multi-select.
         all_zones = {
-            e.entity_id: e.original_name
+            e.device_id: e.original_name
             for e in entries
             if e.unique_id.split('-')[2] == 'zone'
             }
         zone_map = {e.entity_id: e for e in entries}
+        _LOGGER.debug("Map: %s" % zone_map)
 
         if user_input is not None:
             updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
