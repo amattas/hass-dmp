@@ -34,6 +34,8 @@ async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
+    if entry.options:
+        config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
     # create and start the listener
     listener = DMPListener(hass, config)

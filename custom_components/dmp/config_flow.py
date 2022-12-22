@@ -156,3 +156,76 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                            data=self.data)
         return self.async_show_form(step_id="zones", data_schema=ZONE_SCHEMA,
                                     errors=errors)
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handles options flow for the component."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Manage the options for the custom component."""
+        errors: Dict[str, str] = {}
+        entity_registry = await async_get_registry(self.hass)
+        entries = async_entries_for_config_entry(
+            entity_registry, self.config_entry.entry_id
+        )
+        # Default value for our multi-select.
+        all_zones = {e.entity_id: e.original_name for e in entries}
+        zone_map = {e.entity_id: e for e in entries}
+
+        if user_input is not None:
+            updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
+            removed_entities = [
+                entity_id
+                for entity_id in zone_map.keys()
+                if entity_id not in user_input[CONF_ZONES]
+            ]
+            for entity_id in removed_entities:
+                entity_registry.async_remove(entity_id)
+                entry = zone_map[entity_id]
+                entry_path = entry.unique_id
+                updated_zones = [
+                    e for e in updated_zones
+                    if e["path"] != entry_path
+                    ]
+
+                if not errors:
+                    updated_zones.append(
+                        {
+                            CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+                            CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+                            CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+                        }
+                    )
+
+            if not errors:
+                return self.async_create_entry(
+                    title="",
+                    data={CONF_ZONES: updated_zones},
+                )
+
+        options_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_ZONES, default=list(all_zones.keys())
+                    ): cv.multi_select(
+                    all_zones
+                    ),
+                vol.Required(CONF_ZONE_NAME): cv.string,
+                vol.Required(CONF_ZONE_NUMBER): cv.string,
+                vol.Optional(CONF_ZONE_CLASS, default=[]): SENSOR_TYPES,
+            }
+        )
+        return self.async_show_form(
+            step_id="init", data_schema=options_schema, errors=errors
+        )
