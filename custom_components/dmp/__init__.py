@@ -68,9 +68,13 @@ async def async_unload_entry(hass, entry):
 
 
 async def options_update_listener(hass, entry):
+    _LOGGER.debug("Options flow completed.")
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get_registry(hass)
-    if entry.options:
+    config = dict(entry.data)
+    options = dict(entry.options)
+    if options:
+        _LOGGER.debug("Updated options found: %s" % options)
         """Handle options update."""
         # Remove Entities
         entries = er.async_entries_for_config_entry(
@@ -81,6 +85,7 @@ async def options_update_listener(hass, entry):
             z[CONF_ZONE_NUMBER]
             for z in options[CONF_ZONES]
         ]
+        _LOGGER.debug("Zones found in options: %s" % active_zones)
         deleted_entries = []
         for e in entry_map:
             for emk in entry_map.keys():
@@ -92,12 +97,13 @@ async def options_update_listener(hass, entry):
                         )
                 ):
                     deleted_entries.append(emk)
+        _LOGGER.debug("Zones to be deleted: %s" % deleted_entries)
         for de in deleted_entries:
             entity_registry.async_remove(de)
 
         # Get and replace zones config
-        config = dict(entry.data)
-        options = dict(entry.options)
+        _LOGGER.debug("Current config zones: %s" % config[CONF_ZONES])
+        _LOGGER.debug("New config zones: %s" % config[CONF_ZONES])
         config[CONF_ZONES] = options[CONF_ZONES]
         await hass.config_entries.async_update_entry(
             entry,
