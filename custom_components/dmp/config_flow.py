@@ -184,15 +184,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         zones = dict(self.config_entry.data)[CONF_ZONES]
         _LOGGER.debug("Zones: %s" % zones)
         zones_dict = dict([
-            (zone_number, zone_name) for zone_number, zone_name
-            in zones.items()
+            (z.zone_number, z.zone_name) for z in zones
             ])
         _LOGGER.debug("Dictionary: %s" % zones_dict)
 
-        # if user_input is not None:
-        #     updated_zones = deepcopy(zones_dict)
-        #     _LOGGER("updated_zones %s" % updated_zones)
-        #     _LOGGER("user_input %s" % user_input[CONF_ZONES])
+        if user_input is not None:
+            updated_zones = deepcopy(zones_dict)
+            _LOGGER("updated_zones %s" % updated_zones)
+            _LOGGER("user_input %s" % user_input[CONF_ZONES])
 
         # # Default value for our multi-select.
         # all_zones = {
