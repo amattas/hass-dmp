@@ -201,7 +201,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             for d in deleted_zones:
                 for emk in entry_map.keys():
                     if (
-                     entry_map[emk].unique_id.split('-')[2] == 'zones'
+                     entry_map[emk].unique_id.split('-')[2] == 'zone'
                      and entry_map[emk].unique_id.split('-')[3] == d
                     ):
                         deleted_entries.append(emk.key())
