@@ -182,10 +182,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             entity_registry, self.config_entry.entry_id
         )
         zones = dict(self.config_entry.data)[CONF_ZONES]
+        _LOGGER.debug("Zones: %s" % zones)
         zones_dict = dict([
             (e.zone_number, e.zone_name) for e in zones
             ])
         _LOGGER.debug("Dictionary: %s" % zones_dict)
+
+        # if user_input is not None:
+        #     updated_zones = deepcopy(zones_dict)
+        #     _LOGGER("updated_zones %s" % updated_zones)
+        #     _LOGGER("user_input %s" % user_input[CONF_ZONES])
 
         # # Default value for our multi-select.
         # all_zones = {
