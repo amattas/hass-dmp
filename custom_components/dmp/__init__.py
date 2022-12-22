@@ -76,6 +76,7 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
+        dr.async_cleanup()
         await entry.async_reload(entry.entry_id)
 
 
