@@ -63,9 +63,9 @@ async def async_setup_entry(hass, entry) -> bool:
 async def options_update_listener(hass, entry):
     if entry.options:
         """Handle options update."""
-        config = entry.data.as_dict()
+        config = dict(entry.data)
         _LOGGER.debug("Option Update Listener Config %s" % config)
-        options = entry.options
+        options = dict(entry.options)
         _LOGGER.debug("Option Update Listener Options %s" % entry.options)
         config["zones"] = options["zones"]
         _LOGGER.debug("Option Update Listener Config %s" % config)
