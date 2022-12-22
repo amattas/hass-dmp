@@ -200,7 +200,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             deleted_entries = []
             for d in deleted_zones:
                 deleted_entries.append(
-                    e.entity_id for e in entry_map.values()
+                    e.entity_id for e in dict(entry_map.values())
                     if e.unique_id.split('-')[2] == 'zones'
                     and e.unique_id.split('-')[3] == d
                 )
