@@ -60,7 +60,7 @@ async def async_setup_entry(hass, entry) -> bool:
         entry,
         "alarm_control_panel")
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
-    await device_registry.async_purge_expired_orphaned_devices()
+    device_registry.async_purge_expired_orphaned_devices()
     return True
 
 
