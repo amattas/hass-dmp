@@ -216,14 +216,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ]
 
             # Add new zones to config
-            # if CONF_ZONE_CLASS != "default":
-            #     updated_zones.append(
-            #             {
-            #                 CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
-            #                 CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
-            #                 CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
-            #             }
-            #         )
+            if CONF_ZONE_CLASS != "default":
+                updated_zones.append(
+                        {
+                            CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+                            CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+                            CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+                        }
+                    )
 
             if not errors:
                 for de in deleted_entries:

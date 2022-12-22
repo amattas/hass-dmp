@@ -19,8 +19,8 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     _LOGGER.debug("Setting up binary sensors.")
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    if entry.options:
-        config.update(entry.options)
+    # if entry.options:
+    #     config.update(entry.options)
     _LOGGER.debug("Binary sensor config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
     # Add all zones to trouble zones

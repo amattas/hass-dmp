@@ -39,8 +39,8 @@ async def async_setup_entry(hass, entry) -> bool:
     unsub_options_update_listener = (
         entry.add_update_listener(options_update_listener)
     )
-    if entry.options:
-        config.update(entry.options)
+    # if entry.options:
+    #     config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
     # Create and start the DMP Listener
     listener = DMPListener(hass, config)
