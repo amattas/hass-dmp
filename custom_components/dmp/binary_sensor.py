@@ -22,11 +22,10 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     # if entry.options:
     #     config.update(entry.options)
     _LOGGER.debug("Binary sensor config: %s" % config)
-    listener = hass.data[DOMAIN][LISTENER]
     # Add all zones to trouble zones
     troubleZones = [
         DMPZoneTrouble(
-            listener, zone,
+            hass, zone,
             config.get(CONF_PANEL_ACCOUNT_NUMBER)
             )
         for zone in config[CONF_ZONES]
@@ -40,7 +39,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
         ):
             openCloseZones.append(
                 DMPZoneOpenClose(
-                    listener, zone,
+                    hass, zone,
                     config.get(CONF_PANEL_ACCOUNT_NUMBER)
                 )
             )
@@ -50,7 +49,7 @@ async def async_setup_entry(hass, entry, async_add_entities,):
         if ("battery" in zone[CONF_ZONE_CLASS]):
             batteryZones.append(
                 DMPZoneBattery(
-                    listener, zone,
+                    hass, zone,
                     config.get(CONF_PANEL_ACCOUNT_NUMBER)
                 )
             )
@@ -66,13 +65,13 @@ async def async_setup_entry(hass, entry, async_add_entities,):
         ):
             alarmZones.append(
                 DMPZoneAlarm(
-                    listener, zone,
+                    hass, zone,
                     config.get(CONF_PANEL_ACCOUNT_NUMBER)
                 )
             )
             bypassZones.append(
                 DMPZoneBypass(
-                    listener, zone,
+                    hass, zone,
                     config.get(CONF_PANEL_ACCOUNT_NUMBER)
                 )
             )
@@ -84,8 +83,9 @@ async def async_setup_entry(hass, entry, async_add_entities,):
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
-    def __init__(self, listener, config, accountNum):
-        self._listener = listener
+    def __init__(self, hass, config, accountNum):
+        self._hass = hass
+        self._listener = self._hass.data[DOMAIN][LISTENER]
         self._name = "%s Open/Close" % config.get(CONF_ZONE_NAME)
         self._device_name = config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
@@ -94,7 +94,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
             self._device_class = "door"
         elif "window" in config.get(CONF_ZONE_CLASS):
             self._device_class = "window"
-        self._panel = listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneOpenCloseObj = {
             "zoneName": self._device_name,
@@ -108,9 +108,10 @@ class DMPZoneOpenClose(BinarySensorEntity):
         self._listener.register_callback(self.process_zone_callback)
 
     async def async_will_remove_from_hass(self):
-        _LOGGER.debug("Removing DMPZoneOpenClose Callback")
         device_registry = dr.async_get(self._hass)
+        _LOGGER.debug("Device Registry %s" % device_registry)
         device_registry.async_remove_device(self.device_info)
+        _LOGGER.debug("Removing DMPZoneOpenClose Callback")
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
@@ -174,14 +175,15 @@ class DMPZoneOpenClose(BinarySensorEntity):
 
 
 class DMPZoneBattery(BinarySensorEntity):
-    def __init__(self, listener, config, accountNum):
-        self._listener = listener
+    def __init__(self, hass, config, accountNum):
+        self._hass = hass
+        self._listener = self._hass.data[DOMAIN][LISTENER]
         self._device_name = config.get(CONF_ZONE_NAME)
         self._name = "%s Battery" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
         self._device_class = "battery"
-        self._panel = listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneBatteryObj = {
             "zoneName": self._device_name,
@@ -261,14 +263,15 @@ class DMPZoneBattery(BinarySensorEntity):
 
 
 class DMPZoneTrouble(BinarySensorEntity):
-    def __init__(self, listener, config, accountNum):
-        self._listener = listener
+    def __init__(self, hass, config, accountNum):
+        self._hass = hass
+        self._listener = self._hass.data[DOMAIN][LISTENER]
         self._device_name = config.get(CONF_ZONE_NAME)
         self._name = "%s Trouble" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
         self._device_class = "problem"
-        self._panel = listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneTroubleObj = {
             "zoneName": self._device_name,
@@ -348,14 +351,15 @@ class DMPZoneTrouble(BinarySensorEntity):
 
 
 class DMPZoneBypass(BinarySensorEntity):
-    def __init__(self, listener, config, accountNum):
-        self._listener = listener
+    def __init__(self, hass, config, accountNum):
+        self._hass = hass
+        self._listener = self._hass.data[DOMAIN][LISTENER]
         self._device_name = config.get(CONF_ZONE_NAME)
         self._name = "%s Bypass" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
         self._device_class = "problem"
-        self._panel = listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneBypassObj = {
             "zoneName": self._device_name,
@@ -435,14 +439,15 @@ class DMPZoneBypass(BinarySensorEntity):
 
 
 class DMPZoneAlarm(BinarySensorEntity):
-    def __init__(self, listener, config, accountNum):
-        self._listener = listener
+    def __init__(self, hass, config, accountNum):
+        self._hass = hass
+        self._listener = self._hass.data[DOMAIN][LISTENER]
         self._device_name = config.get(CONF_ZONE_NAME)
         self._name = "%s Alarm" % config.get(CONF_ZONE_NAME)
         self._number = config.get(CONF_ZONE_NUMBER)
         self._account_number = accountNum
         self._device_class = "problem"
-        self._panel = listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._account_number)]
         self._state = False
         zoneAlarmObj = {
             "zoneName": self._device_name,
