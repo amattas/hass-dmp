@@ -184,7 +184,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         zones = dict(self.config_entry.data)[CONF_ZONES]
         _LOGGER.debug("Zones: %s" % zones)
         zones_dict = dict([
-            (e.zone_number, e.zone_name) for e in zones
+            (zone_number, zone_name) for zone_number, zone_name
+            in zones.items()
             ])
         _LOGGER.debug("Dictionary: %s" % zones_dict)
 
