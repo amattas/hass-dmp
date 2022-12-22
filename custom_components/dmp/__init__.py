@@ -25,7 +25,7 @@ from homeassistant.const import (
 from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN)
+                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,7 +67,10 @@ async def async_setup_entry(hass, entry) -> bool:
 
 async def options_update_listener(hass, entry):
     """Handle options update."""
-    await hass.emtry.async_reload(entry.entry_id)
+    for option in entry.options:
+        _LOGGER.debug("Option added %s" % option)
+        # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
+    await hass.entry.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass, entry):
@@ -81,7 +84,7 @@ async def async_unload_entry(hass, entry):
     )
     hass.data[DOMAIN][entry.entry_id]["unsub_options_update_listener"]()
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+        hass.data[DOMAIN][CONF_ZONES].pop(entry.entry_id)
     return unload_ok
 
 
