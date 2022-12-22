@@ -11,6 +11,7 @@ from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
     TrackTemplate,
@@ -76,7 +77,9 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
-        dr.async_cleanup()
+        device_registry = dr.async_get(hass)
+        entity_registry = er.async_get(hass)
+        dr.async_cleanup(hass, device_registry, entity_registry)
         await entry.async_reload(entry.entry_id)
 
 
