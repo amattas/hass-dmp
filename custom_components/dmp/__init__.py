@@ -60,6 +60,11 @@ async def async_setup_entry(hass, entry) -> bool:
     return True
 
 
+async def async_unload_entry(hass, entry):
+    listener = hass.data[DOMAIN][LISTENER]
+    listener.stop
+
+
 async def options_update_listener(hass, entry):
     if entry.options:
         """Handle options update."""
@@ -71,6 +76,7 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
+        await entry.async_reload(entry.entry_id)
 
 
 class DMPPanel():
