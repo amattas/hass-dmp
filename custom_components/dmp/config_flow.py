@@ -189,7 +189,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             }
         if user_input is not None:
             updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
-            all_entries = {e.entity_id: e.original_name for e in entries}
             entry_map = {e.entity_id: e for e in entries}
             deleted_zones = deleted_zones = [
                 z[CONF_ZONE_NUMBER] for z in zones
@@ -200,14 +199,32 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             # Get lisf of deleted entity_id's
             deleted_entries = []
             for d in deleted_zones:
-                deleted_entries.append(
-                    e.entity_id for e in entry_map.values()
-                    if e.unique_id.split('-')[2] == 'zones'
-                    and e.unique_id.split('-')[3] == d
-                )
+                for emk in entry_map.keys():
+                    if (
+                     entry_map[emk].unique_id.split('-')[2] == 'zones'
+                     and entry_map[emk].unique_id.split('-')[3] == d
+                    ):
+                        deleted_entries.append(e.key())
+                updated_zones = [
+                    e for e in updated_zones
+                    if e["zone_number"] != d
+                    ]
+
             _LOGGER.debug("Deleted entries: %s" % deleted_entries)
-            # for entity_id in deleted_entries:
-            #     # entity_registry.async_remove(entity_id)
+            _LOGGER.debug("Updated zones config: %s" % updated_zones)
+
+            updated_zones.append(
+                    {
+                        CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+                        CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+                        CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+                    }
+                )
+
+            _LOGGER.debug("Updated zones config: %s" % updated_zones)
+
+            #for entity_id in deleted_entries:
+                 # entity_registry.async_remove(entity_id)
             #     entry = entry_map[entity_id]
             #     entry_unique_id = entry.unique_id
             #     updated_zones = [
@@ -224,7 +241,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             #         }
             #     )
 
-            _LOGGER.debug("Updated zones %s" % updated_zones)
 
             # if not errors:
             #     return self.async_create_entry(
