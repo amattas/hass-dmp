@@ -64,7 +64,7 @@ async def options_update_listener(hass, entry):
     """Handle options update."""
     _LOGGER.debug("Option Update Listener Config %s" % entry.as_dict())
     _LOGGER.debug("Option Update Listener Options %s" % entry.options)
-    entry.data.zones = entry.options
+    entry.data["zones"] = entry.options
     entry.options = {}
     _LOGGER.debug("Option Update Listener Config %s" % entry.as_dict())
     _LOGGER.debug()
