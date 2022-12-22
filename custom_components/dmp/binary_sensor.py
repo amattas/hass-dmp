@@ -83,11 +83,6 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     async_add_entities(alarmZones, update_before_add=True)
 
 
-async def async_will_remove_from_hass(self):
-    device_registry = dr.async_get(self._hass)
-    device_registry.async_remove_device(self.device_info)
-
-
 class DMPZoneOpenClose(BinarySensorEntity):
     def __init__(self, listener, config, accountNum):
         self._listener = listener
@@ -114,6 +109,8 @@ class DMPZoneOpenClose(BinarySensorEntity):
 
     async def async_will_remove_from_hass(self):
         _LOGGER.debug("Removing DMPZoneOpenClose Callback")
+        device_registry = dr.async_get(self._hass)
+        device_registry.async_remove_device(self.device_info)
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):

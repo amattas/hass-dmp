@@ -107,6 +107,9 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
+    else:
+        # Options setup complete - need to reload.
+        pass
     # await entry.async_reload(entry.entry_id)
 
 
