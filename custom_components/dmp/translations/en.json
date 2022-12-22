@@ -31,5 +31,19 @@
         "title": "DMP Zone Configuration"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage Zones",
+        "data": {
+          "zones": "Existing Zones: Uncheck to remove.",
+          "zone_name": "Zone Name",
+          "zone_number": "Zone Number",
+          "zone_class": "Zone Device Class"
+        },
+        "description": "Remove existing zones or add a new zone."
+      }
+    }
   }
 }

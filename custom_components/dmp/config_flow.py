@@ -180,7 +180,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             entity_registry, self.config_entry.entry_id
         )
         # Default value for our multi-select.
-        all_zones = {e.entity_id: e.original_name for e in entries}
+        all_zones = {
+            e.entity_id: e.original_name
+            for e in entries
+            if e.unique_id.split('-')[2] == 'zone'
+            }
         zone_map = {e.entity_id: e for e in entries}
 
         if user_input is not None:
