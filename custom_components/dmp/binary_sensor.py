@@ -2,7 +2,7 @@
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 import logging
-
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity
@@ -76,12 +76,16 @@ async def async_setup_entry(hass, entry, async_add_entities,):
                     config.get(CONF_PANEL_ACCOUNT_NUMBER)
                 )
             )
-
     async_add_entities(openCloseZones, update_before_add=True)
     async_add_entities(batteryZones, update_before_add=True)
     async_add_entities(troubleZones, update_before_add=True)
     async_add_entities(bypassZones, update_before_add=True)
     async_add_entities(alarmZones, update_before_add=True)
+
+
+async def async_will_remove_from_hass(self):
+    device_registry = dr.async_get(self._hass)
+    device_registry.async_remove_device(self.device_info)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
