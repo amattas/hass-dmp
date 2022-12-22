@@ -181,40 +181,44 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
-        config = dict(self.config_entry.data)
-        _LOGGER.debug("Config: %s" % config)
-        # Default value for our multi-select.
-        all_zones = {
-            e.device_id: e.original_name
-            for e in entries
-            if e.unique_id.split('-')[2] == 'zone'
-            }
-        zone_map = {e.entity_id: e for e in entries}
+        zones = dict(self.config_entry.data)[CONF_ZONES]
+        zones_dict = dict([
+            (e.zone_number, e.zone_name) for e in zones
+            ])
+        _LOGGER.debug("Dictionary: %s" % zones_dict)
 
-        if user_input is not None:
-            updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
-            removed_entities = [
-                entity_id
-                for entity_id in zone_map.keys()
-                if entity_id not in user_input[CONF_ZONES]
-            ]
-            for entity_id in removed_entities:
-                # entity_registry.async_remove(entity_id)
-                entry = zone_map[entity_id]
-                entry_path = entry.unique_id
-                updated_zones = [
-                    e for e in updated_zones
-                    if e["path"] != entry_path
-                    ]
+        # # Default value for our multi-select.
+        # all_zones = {
+        #     e.device_id: e.original_name
+        #     for e in entries
+        #     if e.unique_id.split('-')[2] == 'zone'
+        #     }
+        # zone_map = {e.entity_id: e for e in entries}
 
-                if not errors:
-                    updated_zones.append(
-                        {
-                            CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
-                            CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
-                            CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
-                        }
-                    )
+        # if user_input is not None:
+        #     updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
+        #     removed_entities = [
+        #         entity_id
+        #         for entity_id in zone_map.keys()
+        #         if entity_id not in user_input[CONF_ZONES]
+        #     ]
+        #     for entity_id in removed_entities:
+        #         # entity_registry.async_remove(entity_id)
+        #         entry = zone_map[entity_id]
+        #         entry_path = entry.unique_id
+        #         updated_zones = [
+        #             e for e in updated_zones
+        #             if e["path"] != entry_path
+        #             ]
+
+        #         if not errors:
+        #             updated_zones.append(
+        #                 {
+        #                     CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+        #                     CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+        #                     CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+        #                 }
+        #             )
 
             # if not errors:
             #     return self.async_create_entry(
@@ -225,7 +229,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         options_schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_ZONES, default=list(all_zones.keys())
+                    CONF_ZONES, default=list(
+                        all_zones.keys())
                     ): cv.multi_select(
                     all_zones
                     ),
