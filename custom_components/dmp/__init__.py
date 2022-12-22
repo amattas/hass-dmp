@@ -70,7 +70,7 @@ async def options_update_listener(hass, entry):
     for option in entry.options:
         _LOGGER.debug("Option added %s" % option)
         # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
-    await hass.entry.async_reload(entry.entry_id)
+    await entry.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass, entry):
