@@ -181,50 +181,49 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
+        # Get a list of zones for the UI since each zone has multiple 
+        # sensors.
         zones = dict(self.config_entry.data)[CONF_ZONES]
-        _LOGGER.debug("Zones: %s" % zones)
         zones_dict = {
             z[CONF_ZONE_NUMBER]: z[CONF_ZONE_NAME] for z in zones
             }
-        _LOGGER.debug("Dictionary: %s" % zones_dict)
-
         if user_input is not None:
-            updated_zones = deepcopy(zones_dict)
-            _LOGGER.debug("updated_zones %s" % updated_zones)
-            _LOGGER.debug("user_input %s" % user_input[CONF_ZONES])
+            updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
+            all_entries = {e.entity_id: e.original_name for e in entries}
+            entry_map = {e.entity_id: e for e in entries}
+            deleted_zones = deleted_zones = [
+                z[CONF_ZONE_NUMBER] for z in zones
+                if z[CONF_ZONE_NUMBER] not in user_input[CONF_ZONES]
+                ]
+            _LOGGER.debug("Deleted Zones: %s" % deleted_zones)
+            # Get lis of deleted entity_id's
+            deleted_entries = []
+            for d in deleted_zones:
+                deleted_entries.append(
+                    e.entity_id for e in entry_map.values()
+                    if e.unique_id.split('-')[2] == 'zones'
+                    and e.unique_id.split('-')[3] == d
+                )
+            _LOGGER.debug("Deleted entries: %s" % deleted_entries)
+            for entity_id in deleted_entries:
+                # entity_registry.async_remove(entity_id)
+                entry = entry_map[entity_id]
+                entry_unique_id = entry.unique_id
+                updated_zones = [
+                    e for e in updated_zones
+                    if e["entity_id"] != entity_id
+                    ]
 
-        # # Default value for our multi-select.
-        # all_zones = {
-        #     e.device_id: e.original_name
-        #     for e in entries
-        #     if e.unique_id.split('-')[2] == 'zone'
-        #     }
-        # zone_map = {e.entity_id: e for e in entries}
+            if not errors:
+                updated_zones.append(
+                    {
+                        CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+                        CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+                        CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+                    }
+                )
 
-        # if user_input is not None:
-        #     updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
-        #     removed_entities = [
-        #         entity_id
-        #         for entity_id in zone_map.keys()
-        #         if entity_id not in user_input[CONF_ZONES]
-        #     ]
-        #     for entity_id in removed_entities:
-        #         # entity_registry.async_remove(entity_id)
-        #         entry = zone_map[entity_id]
-        #         entry_path = entry.unique_id
-        #         updated_zones = [
-        #             e for e in updated_zones
-        #             if e["path"] != entry_path
-        #             ]
-
-        #         if not errors:
-        #             updated_zones.append(
-        #                 {
-        #                     CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
-        #                     CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
-        #                     CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
-        #                 }
-        #             )
+            _LOGGER.debug("Updated zones %s" % updated_zones)
 
             # if not errors:
             #     return self.async_create_entry(
@@ -240,8 +239,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): cv.multi_select(
                     zones_dict
                     ),
-                vol.Required(CONF_ZONE_NAME): cv.string,
-                vol.Required(CONF_ZONE_NUMBER): cv.string,
+                vol.Optional(CONF_ZONE_NAME): cv.string,
+                vol.Optional(CONF_ZONE_NUMBER): cv.string,
                 vol.Optional(CONF_ZONE_CLASS, default=[]): SENSOR_TYPES,
             }
         )
