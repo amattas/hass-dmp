@@ -42,44 +42,44 @@ SENSOR_TYPES = selector({
                         "value": DEV_TYPE_BATTERY_DOOR
                     },
                     {
-                        "label": "Glass Break Detector (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_GLASSBREAK
-                    },
-                    {
-                        "label": "Motion Detector (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_MOTION
-                    },
-                    {
-                        "label": "Siren (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_SIREN
-                    },
-                    {
-                        "label": "Smoke Detector (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_SMOKE
-                    },
-                    {
-                        "label": "Window (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_WINDOW
-                    },
-                    {
                         "label": "Door (Wired)",
                         "value": DEV_TYPE_WIRED_DOOR
+                    },
+                    {
+                        "label": "Glass Break Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_GLASSBREAK
                     },
                     {
                         "label": "Glass Break Detector (Wired)",
                         "value": DEV_TYPE_WIRED_GLASSBREAK
                     },
                     {
+                        "label": "Motion Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_MOTION
+                    },
+                    {
                         "label": "Motion Detector (Wired)",
                         "value": DEV_TYPE_WIRED_MOTION
+                    },
+                    {
+                        "label": "Siren (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_SIREN
                     },
                     {
                         "label": "Siren (Wired)",
                         "value": DEV_TYPE_WIRED_MOTION
                     },
                     {
+                        "label": "Smoke Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_SMOKE
+                    },
+                    {
                         "label": "Smoke Detector (Wired)",
                         "value": DEV_TYPE_WIRED_SMOKE
+                    },
+                    {
+                        "label": "Window (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_WINDOW
                     },
                     {
                         "label": "Window (Wired)",
