@@ -31,11 +31,6 @@ from .dmp_codes import DMP_EVENTS, DMP_TYPES
 _LOGGER = logging.getLogger(__name__)
 
 
-async def options_update_listener(hass, entry):
-    """Handle options update."""
-    await hass.emtry.async_reload(entry.entry_id)
-
-
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
@@ -68,6 +63,26 @@ async def async_setup_entry(hass, entry) -> bool:
         hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     )
     return True
+
+
+async def options_update_listener(hass, entry):
+    """Handle options update."""
+    await hass.emtry.async_reload(entry.entry_id)
+
+
+async def async_unload_entry(hass, entry):
+    """Unload a config entry."""
+    unload_ok = all(
+        await asyncio.gather(
+            *[hass.config_entries.async_forward_entry_unload(
+                entry, "binary_sensor"
+                )]
+        )
+    )
+    hass.data[DOMAIN][entry.entry_id]["unsub_options_update_listener"]()
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 
 class DMPPanel():
