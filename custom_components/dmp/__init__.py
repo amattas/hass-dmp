@@ -69,7 +69,11 @@ async def options_update_listener(hass, entry):
         _LOGGER.debug("Option Update Listener Options %s" % entry.options)
         config["zones"] = options["zones"]
         _LOGGER.debug("Option Update Listener Config %s" % config)
-        output = await async_update_entry(entry, data=config, options={})
+        output = await hass.config_entries.async_update_entry(
+            entry, 
+            data=config, 
+            options={}
+            )
         _LOGGER.debug("New Config %s" % output)
         _LOGGER.debug("New Config %s" % config)
 #        for option in entry.options:
