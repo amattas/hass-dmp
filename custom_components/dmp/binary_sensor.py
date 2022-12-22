@@ -284,12 +284,12 @@ class DMPZoneTrouble(BinarySensorEntity):
     async def async_will_remove_from_hass(self):
         # Remove associated device. Every device has a trouble zone so this
         # is a natural place to do it.
-        _LOGGER.debug("Removing Binary Sensor Device")
+        _LOGGER.debug("Removing BinarySensor Devices")
         device_registry = dr.async_get(self._hass)
-        _LOGGER.debug("Device Registry %s" % device_registry)
         device_identities = self.device_info["identifiers"]
-        _LOGGER.debug("Device Identities %s" % device_identities)
-        device_registry.async_remove_device(device_identities[0][1])
+        for d in device_identities:
+            _LOGGER.debug("Removing Device %s" % d)
+            device_registry.async_remove_device(d[1])
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
         self._listener.remove_callback(self.process_zone_callback)
 
