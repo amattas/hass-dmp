@@ -103,16 +103,16 @@ async def options_update_listener(hass, entry):
         _LOGGER.debug("Current config zones: %s" % config[CONF_ZONES])
         _LOGGER.debug("New config zones: %s" % config[CONF_ZONES])
         config[CONF_ZONES] = options[CONF_ZONES]
-        await hass.config_entries.async_update_entry(
+        hass.config_entries.async_update_entry(
             entry,
             data=config,
             options={}
             )
-        # Cleanup device registry
-        device_registry = dr.async_get(hass)
-        entity_registry = er.async_get(hass)
-        device_registry.async_cleanup(hass, device_registry, entity_registry)
-        await entry.async_reload(entry.entry_id)
+    # Cleanup device registry
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    device_registry.async_cleanup(hass, device_registry, entity_registry)
+    await entry.async_reload(entry.entry_id)
 
 
 class DMPPanel():
