@@ -9,10 +9,7 @@ from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
-from homeassistant.config_entries import (
-    ConfigEntry,
-    async_update_entry
-)
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
