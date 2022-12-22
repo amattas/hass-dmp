@@ -61,17 +61,19 @@ async def async_setup_entry(hass, entry) -> bool:
 
 
 async def options_update_listener(hass, entry):
-    """Handle options update."""
-    _LOGGER.debug("Option Update Listener Config %s" % entry.as_dict())
-    _LOGGER.debug("Option Update Listener Options %s" % entry.options)
-    entry.data["zones"] = entry.options
-    entry.options = {}
-    _LOGGER.debug("Option Update Listener Config %s" % entry.as_dict())
-    _LOGGER.debug()
-    for option in entry.options:
-        _LOGGER.debug("Option added %s" % option)
-        # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
-    # await entry.async_reload(entry.entry_id)
+    if entry.options:
+        """Handle options update."""
+        config = entry.data.as_dict()
+        _LOGGER.debug("Option Update Listener Config %s" % config)
+        options = entry.options
+        _LOGGER.debug("Option Update Listener Options %s" % entry.options)
+        config["zones"] = options["zones"]
+        _LOGGER.debug("Option Update Listener Config %s" % config)
+
+#        for option in entry.options:
+#            _LOGGER.debug("Option added %s" % option)
+            # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
+        # await entry.async_reload(entry.entry_id)
 
 
 # async def async_unload_entry(hass, entry):
