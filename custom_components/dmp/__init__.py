@@ -78,9 +78,9 @@ async def options_update_listener(hass, entry):
             options={}
             )
         device_registry = dr.async_get(hass)
-        _LOGGER.debug("Device Registry %s:" % _device_registry)
+        _LOGGER.debug("Device Registry %s:" % device_registry)
         entity_registry = er.async_get_registry(hass)
-        _LOGGER.debug("Entity Registry %s:" % _entity_registry)
+        _LOGGER.debug("Entity Registry %s:" % entity_registry)
         device_registry.async_cleanup(hass, device_registry, entity_registry)
         await entry.async_reload(entry.entry_id)
 
