@@ -62,7 +62,7 @@ async def async_setup_entry(hass, entry) -> bool:
     # Cleanup Device Registry
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
-    await dr.async_cleanup(hass, device_registry, entity_registry)
+    dr.async_cleanup(hass, device_registry, entity_registry)
     return True
 
 
