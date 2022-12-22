@@ -181,7 +181,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
-        _LOGGER.debug("Config: %s" % self.config_entry[CONF_ZONES])
+        config = dict(self.config_entry.data)
+        _LOGGER.debug("Config: %s" % config)
         # Default value for our multi-select.
         all_zones = {
             e.device_id: e.original_name
