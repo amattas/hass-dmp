@@ -216,7 +216,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ]
 
             # Add new zones to config
-            if CONF_ZONE_CLASS != "default":
+            if user_input[CONF_ZONE_CLASS] != "default":
                 updated_zones.append(
                         {
                             CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
