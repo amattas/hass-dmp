@@ -94,7 +94,7 @@ async def options_update_listener(hass, entry):
                     )
             ):
                 deleted_entries.append(emk)
-        _LOGGER.debug("Zone entities to be deleted: {0}".format(deleted_entries))
+        _LOGGER.debug("Zone entities to be deleted: " % deleted_entries)
         for de in deleted_entries:
             entity_registry.async_remove(de)
 
