@@ -110,7 +110,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
     async def async_will_remove_from_hass(self):
         device_registry = dr.async_get(self._hass)
         _LOGGER.debug("Device Registry %s" % device_registry)
-        device_registry.async_remove_device(self.device_info)
+        device_registry.async_remove_device(self.device_info.identifiers[0])
         _LOGGER.debug("Removing DMPZoneOpenClose Callback")
         self._listener.remove_callback(self.process_zone_callback)
 
