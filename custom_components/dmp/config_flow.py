@@ -185,7 +185,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
-        # Get a list of zones for the UI since each zone has multiple 
+        # Get a list of zones for the UI since each zone has multiple
         # sensors.
         zones = dict(self.config_entry.data)[CONF_ZONES]
         zones_dict = {
@@ -198,16 +198,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 z[CONF_ZONE_NUMBER] for z in zones
                 if z[CONF_ZONE_NUMBER] not in user_input[CONF_ZONES]
                 ]
-            
+
             # Get lisf of deleted entity_id and remove from config
-            deleted_entries = []
             for d in deleted_zones:
-                for emk in entry_map.keys():
-                    if (
-                     entry_map[emk].unique_id.split('-')[2] == 'zone'
-                     and entry_map[emk].unique_id.split('-')[3] == d
-                    ):
-                        deleted_entries.append(emk)
                 updated_zones = [
                     e for e in updated_zones
                     if e["zone_number"] != d
@@ -224,8 +217,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
             if not errors:
-                for de in deleted_entries:
-                    entity_registry.async_remove(de)
                 return self.async_create_entry(
                     title="",
                     data={CONF_ZONES: updated_zones},
@@ -242,7 +233,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_ZONE_NAME): cv.string,
                 vol.Optional(CONF_ZONE_NUMBER): cv.string,
                 vol.Optional(
-                    CONF_ZONE_CLASS, 
+                    CONF_ZONE_CLASS,
                     default=["default"]
                     ): SENSOR_TYPES,
             }

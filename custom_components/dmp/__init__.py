@@ -26,7 +26,8 @@ from homeassistant.const import (
 from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES)
+                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES,
+                    CONF_ZONE_NUMBER)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,20 +68,44 @@ async def async_unload_entry(hass, entry):
 
 
 async def options_update_listener(hass, entry):
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get_registry(hass)
     if entry.options:
         """Handle options update."""
+        # Remove Entities
+        entries = er.async_entries_for_config_entry(
+            entity_registry, entry.entry_id
+        )
+        entry_map = {e.entity_id: e for e in entries}
+        active_zones = [
+            z[CONF_ZONE_NUMBER]
+            for z in options[CONF_ZONES]
+        ]
+        deleted_entries = []
+        for e in entry_map:
+            for emk in entry_map.keys():
+                if (
+                    entry_map[emk].unique_id.split('-')[2] == 'zone'
+                    and (
+                        entry_map[emk].unique_id.split('-')[3]
+                        not in active_zones
+                        )
+                ):
+                    deleted_entries.append(emk)
+        for de in deleted_entries:
+            entity_registry.async_remove(de)
+
+        # Get and replace zones config
         config = dict(entry.data)
         options = dict(entry.options)
-        config["zones"] = options["zones"]
+        config[CONF_ZONES] = options[CONF_ZONES]
         await hass.config_entries.async_update_entry(
             entry,
             data=config,
             options={}
             )
-        device_registry = dr.async_get(hass)
-        _LOGGER.debug("Device Registry %s:" % device_registry)
-        entity_registry = er.async_get_registry(hass)
-        _LOGGER.debug("Entity Registry %s:" % entity_registry)
+
+        # Cleanup device registry
         device_registry.async_cleanup(hass, device_registry, entity_registry)
         await entry.async_reload(entry.entry_id)
 
