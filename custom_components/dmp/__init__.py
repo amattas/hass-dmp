@@ -63,6 +63,8 @@ async def async_setup_entry(hass, entry) -> bool:
 async def options_update_listener(hass, entry):
     """Handle options update."""
     _LOGGER.debug("Option Update Listener Config %s" % entry.as_dict())
+    _LOGGER.debug("Option Update Listener Options %s" % entry.options.as_dict())
+    _LOGGER.debug()
     for option in entry.options:
         _LOGGER.debug("Option added %s" % option)
         # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
