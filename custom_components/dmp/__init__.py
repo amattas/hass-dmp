@@ -9,7 +9,10 @@ from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.script import Script
 from homeassistant.core import callback, Context
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import (
+    ConfigEntry,
+    async_update_entry
+)
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
@@ -69,7 +72,9 @@ async def options_update_listener(hass, entry):
         _LOGGER.debug("Option Update Listener Options %s" % entry.options)
         config["zones"] = options["zones"]
         _LOGGER.debug("Option Update Listener Config %s" % config)
-
+        output = await async_update_entry(entry, data=config, options={})
+        _LOGGER.debug("New Config %s" % output)
+        _LOGGER.debug("New Config %s" % config)
 #        for option in entry.options:
 #            _LOGGER.debug("Option added %s" % option)
             # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
