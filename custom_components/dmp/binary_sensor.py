@@ -285,7 +285,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         # Remove associated device. Every device has a trouble zone so this
         # is a natural place to do it.       
         _LOGGER.debug("Removing Binary Sensor Device")
-        device_registry = dict(dr.async_get(self._hass))
+        device_registry = dr.async_get(self._hass)
         _LOGGER.debug("Device Registry %s" % device_registry)
         device_identities = self.device_info["identifiers"]
         _LOGGER.debug("Device Identities %s" % device_identities)
