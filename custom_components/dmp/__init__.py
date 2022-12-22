@@ -70,7 +70,7 @@ async def async_unload_entry(hass, entry):
 async def options_update_listener(hass, entry):
     _LOGGER.debug("Options flow completed.")
     device_registry = dr.async_get(hass)
-    entity_registry = er.async_get_registry(hass)
+    entity_registry = er.async_gety(hass)
     config = dict(entry.data)
     options = dict(entry.options)
     if options:
