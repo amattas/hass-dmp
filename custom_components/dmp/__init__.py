@@ -70,22 +70,22 @@ async def options_update_listener(hass, entry):
     for option in entry.options:
         _LOGGER.debug("Option added %s" % option)
         # hass.data[DOMAIN][CONF_ZONES].insert(entry_id)
-    await entry.async_reload(entry.entry_id)
+    # await entry.async_reload(entry.entry_id)
 
 
-async def async_unload_entry(hass, entry):
-    """Unload a config entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[hass.config_entries.async_forward_entry_unload(
-                entry, "binary_sensor"
-                )]
-        )
-    )
-    hass.data[DOMAIN][entry.entry_id]["unsub_options_update_listener"]()
-    if unload_ok:
-        hass.data[DOMAIN][CONF_ZONES].pop(entry.entry_id)
-    return unload_ok
+# async def async_unload_entry(hass, entry):
+#     """Unload a config entry."""
+#     unload_ok = all(
+#         await asyncio.gather(
+#             *[hass.config_entries.async_forward_entry_unload(
+#                 entry, "binary_sensor"
+#                 )]
+#         )
+#     )
+#     hass.data[DOMAIN][entry.entry_id]["unsub_options_update_listener"]()
+#     if unload_ok:
+#         hass.data[DOMAIN][CONF_ZONES].pop(entry.entry_id)
+#     return unload_ok
 
 
 class DMPPanel():
