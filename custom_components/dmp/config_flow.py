@@ -204,7 +204,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                      entry_map[emk].unique_id.split('-')[2] == 'zones'
                      and entry_map[emk].unique_id.split('-')[3] == d
                     ):
-                        deleted_entries.append(e.key())
+                        deleted_entries.append(emk.key())
                 updated_zones = [
                     e for e in updated_zones
                     if e["zone_number"] != d
@@ -222,25 +222,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             _LOGGER.debug("Updated zones config: %s" % updated_zones)
-
-            #for entity_id in deleted_entries:
-                 # entity_registry.async_remove(entity_id)
-            #     entry = entry_map[entity_id]
-            #     entry_unique_id = entry.unique_id
-            #     updated_zones = [
-            #         e for e in updated_zones
-            #         if e["entity_id"] != entity_id
-            #         ]
-
-            # if not errors:
-            #     updated_zones.append(
-            #         {
-            #             CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
-            #             CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
-            #             CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
-            #         }
-            #     )
-
 
             # if not errors:
             #     return self.async_create_entry(
