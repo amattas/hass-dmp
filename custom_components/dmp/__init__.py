@@ -4,6 +4,7 @@ from datetime import datetime
 import asyncio
 import logging
 
+from copy import deepcopy
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
@@ -173,7 +174,7 @@ class DMPPanel():
             return None
 
     def getBatteryZones(self):
-        return self._open_close_zones
+        return self._battery_zones
 
     def updateBatteryZone(self, zoneNum, eventObj):
         if (zoneNum in self._battery_zones):
@@ -253,7 +254,7 @@ class DMPPanel():
         return self._status_zones
 
     def updateStatusZone(self, zoneNum, eventObj):
-        statusObj = eventObj
+        statusObj = deepcopy(eventObj)
         zone_state = 'Ready'
         if (self.getAlarmZone(zoneNum)
            and self.getAlarmZone(zoneNum)['zoneState']):
@@ -279,7 +280,7 @@ class DMPPanel():
             self._status_zones[zoneNum] = statusObj
 
         _LOGGER.debug("Status Zone %s has been updated to %s",
-                      zoneNum, statusObj['zoneState'])
+                      zoneNum, zone_state)
 
     def getAccountNumber(self):
         return self._accountNumber
