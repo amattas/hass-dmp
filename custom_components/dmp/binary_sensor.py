@@ -289,6 +289,10 @@ class DMPZoneTrouble(BinarySensorEntity):
             device_registry,
             self._config_entry.entry_id
             )
+        for e in entity_devices:
+            for i in e.identifiers:
+                if i in device_identifiers:
+                    device_registry.async_remove_device(e.id)
         _LOGGER.debug("Entity Devices identifier {0}".format(entity_devices))
         for i in device_identifiers:
             _LOGGER.debug("Found identifier {0}:{1}".format(i[0], i[1]))
