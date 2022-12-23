@@ -40,12 +40,8 @@ class DMPZoneStatus(BinarySensorEntity):
         self._name = "%s Status" % entity_config.get(CONF_ZONE_NAME)
         self._device_name = entity_config.get(CONF_ZONE_NAME)
         self._number = entity_config.get(CONF_ZONE_NUMBER)
-        if "door" in entity_config.get(CONF_ZONE_CLASS):
-            self._device_class = "door"
-        elif "window" in entity_config.get(CONF_ZONE_CLASS):
-            self._device_class = "window"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
-        self._state = False
+        self._state = 'Unknown'
         zoneStatusObj = {
             "zoneName": self._device_name,
             "zoneNumber": str(self._number),
@@ -105,13 +101,6 @@ class DMPZoneStatus(BinarySensorEntity):
         """Return the state of the device."""
         _LOGGER.debug("Called DMPZoneStatus.is_on: {}".format(self._state))
         return self._state
-
-    @property
-    def device_class(self):
-        """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneStatus.device_class: {}"
-                      .format(self._device_class))
-        return self._device_class
 
     @property
     def extra_state_attributes(self):

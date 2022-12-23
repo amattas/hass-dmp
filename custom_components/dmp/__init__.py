@@ -242,9 +242,13 @@ class DMPPanel():
             state = 'Bypass'
         elif self.getOpenCloseZone(zoneNum)['zoneState']:
             state = 'Open'
-        zone = self._status_zones[zoneNum]
-        zone.update({"zoneState": zone_state})
-        self._status_zones[zoneNum] = zone
+        if (zoneNum in self._alarm_zones):
+            zone = self._status_zones[zoneNum]
+            zone.update({"zoneState": zone_state})
+            self._status_zones[zoneNum] = zone
+        else:
+            eventObj.update({"zoneState": zone_state})
+            self._alarm_zones[zoneNum] = eventObj
 
         _LOGGER.debug("Status Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
