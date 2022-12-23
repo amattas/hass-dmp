@@ -5,7 +5,6 @@ import asyncio
 import logging
 
 from homeassistant.core import callback
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
@@ -33,9 +32,7 @@ async def async_setup_entry(hass, entry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
     # Create Options Callback
-    unsub_options_update_listener = (
-        entry.add_update_listener(options_update_listener)
-    )
+    entry.add_update_listener(options_update_listener)
     # if entry.options:
     #     config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
@@ -52,11 +49,9 @@ async def async_setup_entry(hass, entry) -> bool:
                   str(listener.getPanels()))
     await hass.config_entries.async_forward_entry_setup(
         entry,
-        "alarm_control_panel")
+        "alarm_control_panel"
+        )
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
-    # Cleanup Device Registry
-    device_registry = dr.async_get(hass)
-    dr.async_setup_cleanup(hass, device_registry)
     return True
 
 

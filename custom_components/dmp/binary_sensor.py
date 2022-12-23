@@ -282,19 +282,6 @@ class DMPZoneTrouble(BinarySensorEntity):
         self._listener.register_callback(self.process_zone_callback)
 
     async def async_will_remove_from_hass(self):
-        # Remove associated device. Every device has a trouble zone so this
-        # is a natural place to do it.
-        _LOGGER.debug("Removing BinarySensor Devices")
-        # device_registry = dr.async_get(self._hass)
-        # device_registry_entries = device_registry.async_entries_for_config_entry(registry: homeassistant.helpers.device_registry.DeviceRegistry, config_entry_id: str)
-        # device_identities = self.device_info["identifiers"]
-        # _LOGGER.debug("Device Identities %s" % device_identities)
-        # for d in list(device_identities):
-        #     _LOGGER.debug("Removing Device {0}".format(d))
-        #     device_entry = device_registry.async_get_device(d)
-        #     _LOGGER.debug("Device found {0}".format(device_entry))
-        #     device_id = device_entry.id
-        #     device_registry.async_remove_device(device_id)
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
         self._listener.remove_callback(self.process_zone_callback)
 
