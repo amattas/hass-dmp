@@ -65,7 +65,7 @@ async def async_unload_entry(hass, entry):
     listener = hass.data[DOMAIN][LISTENER]
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS
-        ) and await listener.stop
+        ) and await listener.stop()
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
