@@ -127,7 +127,7 @@ class DMPPanel():
                            or "                ")
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
-        self._area = STATE_ALARM_DISARMED
+        self._area = STATE_ALARM_DISARMED  # Default Value
         self._open_close_zones = {}
         self._battery_zones = {}
         self._trouble_zones = {}
