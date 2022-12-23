@@ -287,7 +287,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         device_identifiers = list(self.device_info["identifiers"])
         entity_devices = dr.async_entries_for_config_entry(
             device_registry,
-            self._hass.data[DOMAIN][self._config_entry.entry_id]
+            self._config_entry.entry_id
             )
         _LOGGER.debug("Entity Devices identifier {0}".format(entity_devices))
         for i in device_identifiers:
