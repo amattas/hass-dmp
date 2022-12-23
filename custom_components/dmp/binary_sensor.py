@@ -286,6 +286,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         device_registry_items = dr.DeviceRegistryItems()
         device_identifiers = list(self.device_info["identifiers"])
         for i in device_identifiers:
+            _LOGGER.debug("Found identifier %s:%s" % i[0], i[1])
             items = device_registry_items.get_entry(i.id, None)
             _LOGGER.debug("Found item %s" % items)
         self._listener.remove_callback(self.process_zone_callback)
