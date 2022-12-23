@@ -388,15 +388,16 @@ class DMPListener():
         """ Start TCP server listening on configured port """
         server = await asyncio.start_server(self.handle_connection, "0.0.0.0",
                                             self._port)
-        self._server = server
         addr = server.sockets[0].getsockname()
         _LOGGER.info(f"Listening on {addr}:{self._port}")
         server.serve_forever()
+        self._server = server
 
     async def stop(self, other_arg):
         """ Stop TCP server """
         _LOGGER.info("Stop called. Closing server")
         self._server.close()
+        self._server.wait_closed()
 
     async def handle_connection(self, reader, writer):
         """ Parse packets from DMP panel """
