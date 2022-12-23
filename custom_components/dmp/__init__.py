@@ -250,7 +250,7 @@ class DMPPanel():
             self._status_zones[zoneNum] = zone
         else:
             eventObj.update({"zoneState": zone_state})
-            self._alarm_zones[zoneNum] = eventObj
+            self._status_zones[zoneNum] = eventObj
 
         _LOGGER.debug("Status Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
