@@ -153,7 +153,7 @@ class DMPZoneStatus(SensorEntity):
                 (DOMAIN, "dmp-%s-zone-%s" % (self._accountNum,
                                              self._number))
             },
-            name=self.name,
+            name=self.device_name,
             manufacturer='Digital Monitoring Products',
             via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum))
         )
