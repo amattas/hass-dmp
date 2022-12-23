@@ -41,6 +41,13 @@ class DMPZoneStatus(SensorEntity):
         self._device_name = entity_config.get(CONF_ZONE_NAME)
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._panel = self._listener.getPanels()[str(self._accountNum)]
+        self._number = entity_config.get(CONF_ZONE_NUMBER)
+        if "door" in entity_config.get(CONF_ZONE_CLASS):
+            self._device_class = "door"
+        elif "window" in entity_config.get(CONF_ZONE_CLASS):
+            self._device_class = "window"
+        else:
+            self._device_class = "default"
         self._state = 'Ready'
         zoneStatusObj = {
             "zoneName": self._device_name,
@@ -113,6 +120,7 @@ class DMPZoneStatus(SensorEntity):
     def icon(self):
         """Icon to show for status"""
         state = self.state
+        device_class = self._device_class
         if state == 'Alarm':
             return 'mdi:alarm-bell'
         elif state == 'Trouble':
@@ -120,9 +128,12 @@ class DMPZoneStatus(SensorEntity):
         elif state == 'Bypass':
             return 'mdi:alert'
         elif state == 'Low Battery':
-            return 'mdi:battery-remove-outline'
+            return 'mdi:battery-alert-variant-outline'
         elif state == 'Open':
-            return 'mdi:window-open-variant'
+            if device_class == "window":
+                return 'mdi:window-open'
+            else:
+                return 'mdi:door-open'
         elif state == 'Ready':
             return 'mdi:check'
 

@@ -136,6 +136,22 @@ class DMPZoneOpenClose(BinarySensorEntity):
         return self._state
 
     @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.is_on
+        device_class = self._device_class
+        if state:
+            if device_class == "window":
+                return 'mdi:window-open'
+            else:
+                return 'mdi:door-open'
+        else:
+            if device_class == "window":
+                return 'mdi:window-closed'
+            else:
+                return 'mdi:door-closed'
+
+    @property
     def device_class(self):
         """Return the class of the device"""
         _LOGGER.debug("Called DMPZoneOpenClose.device_class: {}"
@@ -222,6 +238,15 @@ class DMPZoneBattery(BinarySensorEntity):
         """Return the state of the device."""
         _LOGGER.debug("Called DMPZoneBattery.is_on: {}".format(self._state))
         return self._state
+
+    @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.is_on
+        if state:
+            return 'mdi:battery-alert-variant-outline'
+        else:
+            return 'mdi:battery'
 
     @property
     def device_class(self):
@@ -314,6 +339,15 @@ class DMPZoneTrouble(BinarySensorEntity):
         return self._state
 
     @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.is_on
+        if state:
+            return 'mdi:alert-outline'
+        else:
+            return 'mdi:check'
+
+    @property
     def device_class(self):
         """Return the class of the device"""
         _LOGGER.debug("Called DMPTrouble.device_class: {}"
@@ -404,6 +438,15 @@ class DMPZoneBypass(BinarySensorEntity):
         return self._state
 
     @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.is_on
+        if state:
+            return 'mdi:alert-outline'
+        else:
+            return 'mdi:check'
+
+    @property
     def device_class(self):
         """Return the class of the device"""
         _LOGGER.debug("Called DMPZoneBypass.device_class: {}"
@@ -492,6 +535,15 @@ class DMPZoneAlarm(BinarySensorEntity):
         """Return the state of the device."""
         _LOGGER.debug("Called DMPZoneAlarm.is_on: {}".format(self._state))
         return self._state
+
+    @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.is_on
+        if state:
+            return 'mdi:alarm-bell'
+        else:
+            return 'mdi:check'
 
     @property
     def device_class(self):
