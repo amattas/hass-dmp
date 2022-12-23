@@ -112,7 +112,7 @@ class DMPZoneStatus(BinarySensorEntity):
     @property
     def icon(self):
         """Icon to show for status"""
-        state = self.state()
+        state = self.state
         if state == 'Alarm':
             return 'mdi:alarm-bell'
         elif state == 'Trouble':
