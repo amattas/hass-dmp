@@ -4,8 +4,8 @@ import voluptuous as vol
 import logging
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.components.binary_sensor import (
-    BinarySensorEntity
+from homeassistant.components.sensor import (
+    SensorEntity
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
@@ -16,10 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
-    _LOGGER.debug("Setting up binary sensors.")
+    _LOGGER.debug("Setting up sensors.")
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][config_entry.entry_id]
-    _LOGGER.debug("Binary sensor config: %s" % config)
+    _LOGGER.debug("Sensor config: %s" % config)
     # Add all zones to trouble zones
     statusZones = [
         DMPZoneStatus(
@@ -29,7 +29,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
     async_add_entities(statusZones, update_before_add=True)
 
 
-class DMPZoneStatus(BinarySensorEntity):
+class DMPZoneStatus(SensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
         self._config_entry = config_entry
