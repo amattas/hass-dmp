@@ -78,6 +78,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
 class DMPZoneOpenClose(BinarySensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
+        self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         _LOGGER.debug("Config is: %s" % entity_config)
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
@@ -169,6 +170,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
 class DMPZoneBattery(BinarySensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
+        self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
@@ -258,6 +260,7 @@ class DMPZoneBattery(BinarySensorEntity):
 class DMPZoneTrouble(BinarySensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
+        self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
@@ -282,7 +285,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
         device_registry = dr.async_get(self._hass)
         device_identifiers = list(self.device_info["identifiers"])
-        entity_devices = dr.async_entries_for_config_entry(self._hass.data[DOMAIN][config_entry.entry_id])
+        entity_devices = dr.async_entries_for_config_entry(self._hass.data[DOMAIN][self._config_entry.entry_id])
         _LOGGER.debug("Entity Devices identifier {0}".format(entity_devices))
         for i in device_identifiers:
             _LOGGER.debug("Found identifier {0}:{1}".format(i[0], i[1]))
@@ -355,6 +358,7 @@ class DMPZoneTrouble(BinarySensorEntity):
 class DMPZoneBypass(BinarySensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
+        self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
@@ -444,6 +448,7 @@ class DMPZoneBypass(BinarySensorEntity):
 class DMPZoneAlarm(BinarySensorEntity):
     def __init__(self, hass, config_entry, entity_config):
         self._hass = hass
+        self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
