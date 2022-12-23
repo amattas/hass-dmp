@@ -6,6 +6,8 @@ from homeassistant import config_entries, core
 # from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,

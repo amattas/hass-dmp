@@ -283,6 +283,11 @@ class DMPZoneTrouble(BinarySensorEntity):
 
     async def async_will_remove_from_hass(self):
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
+        device_registry_items = dr.DeviceRegistryItems()
+        device_identifiers = list(self.device_info.identifiers)
+        for i in device_identifiers:
+            device_registry_items.get_entry(i)
+            _LOGGER.debug("Found item %s" % i)
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
