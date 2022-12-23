@@ -34,7 +34,7 @@ SENSOR_TYPES = selector({
             "select": {
                 "options": [
                     {
-                        "label": "--Select a Device Type--",
+                        "label": "-Select a Device Type-",
                         "value": "default"
                     },
                     {
@@ -117,7 +117,7 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Optional(CONF_ZONE_CLASS, default=[]): SENSOR_TYPES,
+        vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
@@ -234,7 +234,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_ZONE_NUMBER): cv.string,
                 vol.Optional(
                     CONF_ZONE_CLASS,
-                    default=["default"]
+                    default="default"
                     ): SENSOR_TYPES,
             }
         )
