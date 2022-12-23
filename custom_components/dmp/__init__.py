@@ -227,7 +227,7 @@ class DMPPanel():
         self.updateStatusZone(zoneNum, eventObj)
 
     def getAlarmZone(self, zoneNumber):
-        if zoneNumber in self.alarm_zones:
+        if zoneNumber in self._alarm_zones:
             return self._alarm_zones[zoneNumber]
         else:
             return None
