@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import (
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
                     CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ZONES)
+                    CONF_ZONES, BATTERY_LEVEL)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -557,6 +557,10 @@ class DMPZoneAlarm(BinarySensorEntity):
         """Return the state attributes."""
         return {
             "last_contact": self._panel.getContactTime(),
+            # Add Battery Level for HomeKit
+            BATTERY_LEVEL: (
+                10 if self._panel.getStatusZone(self._number) else 90
+            )
         }
 
     @property
