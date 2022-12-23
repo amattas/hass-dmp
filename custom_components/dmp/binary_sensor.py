@@ -79,7 +79,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
     def __init__(self, hass, config_entry):
         self._hass = hass
         self._config = hass.data[DOMAIN][config_entry.entry_id]
-        _LOGGER.debug("Config is: %" % self._config)
+        _LOGGER.debug("Config is: %s" % self._config)
         self._accountNum = self._config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
         self._name = "%s Open/Close" % self._config.get(CONF_ZONE_NAME)
