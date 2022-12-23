@@ -234,13 +234,13 @@ class DMPPanel():
 
     def updateStatusZone(self, zoneNum, eventObj):
         zone_state = 'Ready'
-        if self.getAlarmZone(zoneNum).is_on:
+        if self.getAlarmZone(zoneNum)['zoneState']:
             state = 'Alarm'
-        elif self.getTroubleZone(zoneNum).is_on:
+        elif self.getTroubleZone(zoneNum)['zoneState']:
             state = 'Trouble'
-        elif self.getBypassZone(zoneNum).is_on:
+        elif self.getBypassZone(zoneNum)['zoneState']:
             state = 'Bypass'
-        elif self.getOpenCloseZone(zoneNum).is_on:
+        elif self.getOpenCloseZone(zoneNum)['zoneState']:
             state = 'Open'
         zone = self._status_zones[zoneNum]
         zone.update({"zoneState": zone_state})
