@@ -88,7 +88,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
             self._device_class = "door"
         elif "window" in self._config.get(CONF_ZONE_CLASS):
             self._device_class = "window"
-        self._panel = self._listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneOpenCloseObj = {
             "zoneName": self._device_name,
@@ -175,7 +175,7 @@ class DMPZoneBattery(BinarySensorEntity):
         self._name = "%s Battery" % self._config.get(CONF_ZONE_NAME)
         self._number = self._config.get(CONF_ZONE_NUMBER)
         self._device_class = "battery"
-        self._panel = self._listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneBatteryObj = {
             "zoneName": self._device_name,
@@ -236,7 +236,7 @@ class DMPZoneBattery(BinarySensorEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-battery" % (
-            self._account_number,
+            self._accountNum,
             self._number
             )
 
@@ -264,7 +264,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         self._name = "%s Trouble" % self._config.get(CONF_ZONE_NAME)
         self._number = self._config.get(CONF_ZONE_NUMBER)
         self._device_class = "problem"
-        self._panel = self._listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneTroubleObj = {
             "zoneName": self._device_name,
@@ -331,7 +331,7 @@ class DMPZoneTrouble(BinarySensorEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-trouble" % (
-            self._account_number,
+            self._accountNum,
             self._number
             )
 
@@ -359,7 +359,7 @@ class DMPZoneBypass(BinarySensorEntity):
         self._name = "%s Bypass" % self._config.get(CONF_ZONE_NAME)
         self._number = self._config.get(CONF_ZONE_NUMBER)
         self._device_class = "problem"
-        self._panel = self._listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneBypassObj = {
             "zoneName": self._device_name,
@@ -420,7 +420,7 @@ class DMPZoneBypass(BinarySensorEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-bypass" % (
-            self._account_number,
+            self._accountNum,
             self._number
             )
 
@@ -448,7 +448,7 @@ class DMPZoneAlarm(BinarySensorEntity):
         self._name = "%s Alarm" % self._config.get(CONF_ZONE_NAME)
         self._number = self._config.get(CONF_ZONE_NUMBER)
         self._device_class = "problem"
-        self._panel = self._listener.getPanels()[str(self._account_number)]
+        self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneAlarmObj = {
             "zoneName": self._device_name,
@@ -509,7 +509,7 @@ class DMPZoneAlarm(BinarySensorEntity):
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-alarm" % (
-            self._account_number,
+            self._accountNum,
             self._number
             )
 
