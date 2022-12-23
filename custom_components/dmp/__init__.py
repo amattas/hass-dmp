@@ -312,6 +312,8 @@ class DMPPanel():
         writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
         await writer.drain()
         # close the socket
+        writer.close()
+        await writer.wait_closed()
         data = await reader.read(256)
         _LOGGER.debug("DMP: Received data after command: {}".format(data))
 
