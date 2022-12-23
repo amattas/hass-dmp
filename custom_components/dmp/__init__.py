@@ -112,7 +112,7 @@ async def options_update_listener(hass, entry):
             data=config,
             options={}
             )
-        await entry.async_reload(entry.entry_id)
+        await hass.config_entries.async_reload(entry.entry_id)
 
 
 class DMPPanel():
