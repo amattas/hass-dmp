@@ -147,7 +147,10 @@ class DMPPanel():
         return self._area
 
     def getOpenCloseZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
+        if zoneNumber in self._open_close_zones:
+            return self._open_close_zones[zoneNumber]
+        else:
+            return None
 
     def getOpenCloseZones(self):
         return self._open_close_zones
@@ -164,7 +167,10 @@ class DMPPanel():
         self.updateStatusZone(zoneNum, eventObj)
 
     def getBatteryZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
+        if zoneNumber in self._battery_zones:
+            return self._battery_zones[zoneNumber]
+        else:
+            return None
 
     def getBatteryZones(self):
         return self._open_close_zones
@@ -181,7 +187,10 @@ class DMPPanel():
         self.updateStatusZone(zoneNum, eventObj)
 
     def getTroubleZone(self, zoneNumber):
-        return self._trouble_zones[zoneNumber]
+        if zoneNumber in self._trouble_zones:
+            return self._trouble_zones[zoneNumber]
+        else:
+            return None
 
     def getTroubleZones(self):
         return self._trouble_zones
@@ -198,7 +207,10 @@ class DMPPanel():
         self.updateStatusZone(zoneNum, eventObj)
 
     def getBypassZone(self, zoneNumber):
-        return self._bypass_zones[zoneNumber]
+        if zoneNumber in self._bypass_zones:
+            return self._bypass_zones[zoneNumber]
+        else:
+            return None
 
     def getBypassZones(self):
         return self._bypass_zones
@@ -215,7 +227,10 @@ class DMPPanel():
         self.updateStatusZone(zoneNum, eventObj)
 
     def getAlarmZone(self, zoneNumber):
-        return self._alarm_zones[zoneNumber]
+        if zoneNumber in self.alarm_zones:
+            return self._alarm_zones[zoneNumber]
+        else:
+            return None
 
     def getAlarmZones(self):
         return self._alarm_zones
