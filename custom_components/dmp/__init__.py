@@ -63,10 +63,9 @@ async def async_setup_entry(hass, entry) -> bool:
 async def async_unload_entry(hass, entry):
     _LOGGER.debug("Unloading entry.")
     listener = hass.data[DOMAIN][LISTENER]
-    listener.stop
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS
-        )
+        ) and await listener.stop
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
@@ -316,9 +315,6 @@ class DMPPanel():
         writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
         await writer.drain()
         # close the socket
-        writer.close()
-        await writer.wait_closed()
-
         data = await reader.read(256)
         _LOGGER.debug("DMP: Received data after command: {}".format(data))
 
@@ -396,8 +392,8 @@ class DMPListener():
     async def stop(self, other_arg):
         """ Stop TCP server """
         _LOGGER.info("Stop called. Closing server")
-        self._server.close()
         # Make sure sever is closed before reloading
+        self._server.close()
         await self._server.wait_closed()
 
     async def handle_connection(self, reader, writer):
