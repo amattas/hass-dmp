@@ -68,11 +68,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
                     hass, config_entry, zone
                 )
             )
-    async_add_entities(openCloseZones, update_before_add=True)
-    async_add_entities(batteryZones, update_before_add=True)
-    async_add_entities(troubleZones, update_before_add=True)
-    async_add_entities(bypassZones, update_before_add=True)
-    async_add_entities(alarmZones, update_before_add=True)
+    # Don't update before add or you have a race condition with the
+    # status zone.
+    async_add_entities(openCloseZones, update_before_add=False)
+    async_add_entities(batteryZones, update_before_add=False)
+    async_add_entities(troubleZones, update_before_add=False)
+    async_add_entities(bypassZones, update_before_add=False)
+    async_add_entities(alarmZones, update_before_add=False)
 
 
 class DMPZoneOpenClose(BinarySensorEntity):
