@@ -397,7 +397,8 @@ class DMPListener():
         """ Stop TCP server """
         _LOGGER.info("Stop called. Closing server")
         self._server.close()
-        self._server.wait_closed()
+        # Make sure sever is closed before reloading
+        await self._server.wait_closed()
 
     async def handle_connection(self, reader, writer):
         """ Parse packets from DMP panel """
