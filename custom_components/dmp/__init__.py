@@ -61,6 +61,7 @@ async def async_setup_entry(hass, entry) -> bool:
 
 
 async def async_unload_entry(hass, entry):
+    _LOGGER.debug("Unloading entry.")
     listener = hass.data[DOMAIN][LISTENER]
     listener.stop
     unload_ok = await hass.config_entries.async_unload_platforms(
