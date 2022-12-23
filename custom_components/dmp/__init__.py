@@ -1,15 +1,10 @@
 """The DMP Integration Component"""
 import homeassistant.helpers.config_validation as cv
 from datetime import datetime
-import voluptuous as vol
 import asyncio
 import logging
 
-from homeassistant.helpers.discovery import async_load_platform
-from homeassistant.helpers.template import Template
-from homeassistant.helpers.script import Script
-from homeassistant.core import callback, Context
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
@@ -61,8 +56,7 @@ async def async_setup_entry(hass, entry) -> bool:
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     # Cleanup Device Registry
     device_registry = dr.async_get(hass)
-    entity_registry = er.async_get(hass)
-    dr.async_cleanup(hass, device_registry, entity_registry)
+    dr.async_setup_cleanup(hass, device_registry)
     return True
 
 
