@@ -23,7 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
     # Add all zones to trouble zones
     troubleZones = [
         DMPZoneTrouble(
-            hass, zone,
+            hass, config_entry
             )
         for zone in config[CONF_ZONES]
     ]
@@ -36,7 +36,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
         ):
             openCloseZones.append(
                 DMPZoneOpenClose(
-                    hass, zone
+                    hass, config_entry
                 )
             )
     # Only battery zones
@@ -45,7 +45,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
         if ("battery" in zone[CONF_ZONE_CLASS]):
             batteryZones.append(
                 DMPZoneBattery(
-                    hass, zone
+                    hass, config_entry
                 )
             )
     # Bypass and Alarm Zones should be the same
@@ -60,12 +60,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
         ):
             alarmZones.append(
                 DMPZoneAlarm(
-                    hass, zone
+                    hass, config_entry
                 )
             )
             bypassZones.append(
                 DMPZoneBypass(
-                    hass, zone
+                    hass, config_entry
                 )
             )
     async_add_entities(openCloseZones, update_before_add=True)
