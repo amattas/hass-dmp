@@ -85,7 +85,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
         _LOGGER.debug("Config is: %s" % entity_config)
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
-        self._name = "%s Open/Close" % entity_config.get(CONF_ZONE_NAME)
+        self._name = entity_config.get(CONF_ZONE_NAME)
         self._device_name = entity_config.get(CONF_ZONE_NAME)
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         if "door" in entity_config.get(CONF_ZONE_CLASS):
