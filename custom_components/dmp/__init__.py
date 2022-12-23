@@ -389,7 +389,7 @@ class DMPListener():
         server.serve_forever()
         self._server = server
 
-    async def stop(self, other_arg) -> bool:
+    async def stop(self):
         """ Stop TCP server """
         _LOGGER.info("Stop called. Closing server")
         # Make sure sever is closed before reloading
