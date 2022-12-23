@@ -279,7 +279,7 @@ class DMPPanel():
             self._status_zones[zoneNum] = statusObj
 
         _LOGGER.debug("Status Zone %s has been updated to %s",
-                      zoneNum, eventObj['zoneState'])
+                      zoneNum, statusObj['zoneState'])
 
     def getAccountNumber(self):
         return self._accountNumber
