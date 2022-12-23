@@ -125,6 +125,7 @@ class DMPPanel():
         self._trouble_zones = {}
         self._bypass_zones = {}
         self._alarm_zones = {}
+        self._status_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -222,6 +223,29 @@ class DMPPanel():
         else:
             self._alarm_zones[zoneNum] = eventObj
         _LOGGER.debug("Alarm Zone %s has been updated to %s",
+                      zoneNum, eventObj['zoneState'])
+
+    def getStatusZone(self, zoneNumber):
+        return self._status_zones[zoneNumber]
+
+    def getStatusZones(self):
+        return self._status_zones
+
+    def updateStatusZone(self, zoneNum, eventObj):
+        zone_state = 'Ready'
+        if self.getAlarmZone(zoneNum).is_on:
+            state = 'Alarm'
+        elif self.getTroubleZone(zoneNum).is_on:
+            state = 'Trouble'
+        elif self.getBypassZone(zoneNum).is_on:
+            state = 'Bypass'
+        elif self.getOpenCloseZone(zoneNum).is_on:
+            state = 'Open'
+        zone = self._status_zones[zoneNum]
+        zone.update({"zoneState": zone_state})
+        self._status_zones[zoneNum] = zone
+
+        _LOGGER.debug("Status Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
 
     def getAccountNumber(self):
