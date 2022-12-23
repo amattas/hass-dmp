@@ -291,6 +291,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         for d in list(device_identities):
             _LOGGER.debug("Removing Device {0}".format(d))
             device_entry = device_registry.async_get_device(d)
+            _LOGGER.debut("Device found {0}".format(device_entry))
             device_id = device_entry.id
             device_registry.async_remove_device(device_id)
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
