@@ -16,7 +16,8 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED
+    STATE_ALARM_TRIGGERED,
+    Platform
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
@@ -26,6 +27,8 @@ from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
+
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
 async def async_setup_entry(hass, entry) -> bool:
@@ -60,6 +63,12 @@ async def async_setup_entry(hass, entry) -> bool:
 async def async_unload_entry(hass, entry):
     listener = hass.data[DOMAIN][LISTENER]
     listener.stop
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+        )
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 
 async def options_update_listener(hass, entry):
