@@ -41,7 +41,7 @@ class DMPZoneStatus(BinarySensorEntity):
         self._device_name = entity_config.get(CONF_ZONE_NAME)
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._panel = self._listener.getPanels()[str(self._accountNum)]
-        self._state = 'Unknown'
+        self._state = 'Ready'
         zoneStatusObj = {
             "zoneName": self._device_name,
             "zoneNumber": str(self._number),
