@@ -240,6 +240,8 @@ class DMPPanel():
             state = 'Trouble'
         elif self.getBypassZone(zoneNum)['zoneState']:
             state = 'Bypass'
+        elif self.getBatteryZone(zoneNum)['zoneState']:
+            state = 'Bypass'
         elif self.getOpenCloseZone(zoneNum)['zoneState']:
             state = 'Open'
         if (zoneNum in self._status_zones):

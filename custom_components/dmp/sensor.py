@@ -110,6 +110,23 @@ class DMPZoneStatus(BinarySensorEntity):
         }
 
     @property
+    def icon(self):
+        """Icon to show for status"""
+        state = self.state()
+        if state == 'Alarm':
+            return 'mdi:alarm-bell'
+        elif state == 'Trouble':
+            return 'mdi:alert'
+        elif state == 'Bypass':
+            return 'mdi:alert'
+        elif state == 'Low Battery':
+            return 'mdi:battery-remove-outline'
+        elif state == 'Open':
+            return 'mdi:window-open-variant'
+        elif state == 'Ready':
+            return 'mdi:check'
+
+    @property
     def unique_id(self):
         """Return unique ID"""
         return "dmp-%s-zone-%s-status" % (
