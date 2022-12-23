@@ -127,7 +127,7 @@ class DMPPanel():
                            or "                ")
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
-        self._area = None
+        self._area = STATE_ALARM_DISARMED
         self._open_close_zones = {}
         self._battery_zones = {}
         self._trouble_zones = {}
@@ -507,8 +507,7 @@ class DMPListener():
                         if (areaNumber[1:] == self._home_area):
                             # Make sure we're not already armed away
                             if (
-                                panel.getArea() is None
-                                or panel.getArea()["areaState"] !=
+                                panel.getArea()["areaState"] !=
                                     STATE_ALARM_ARMED_AWAY):
                                 areaState = STATE_ALARM_ARMED_HOME
                         else:
