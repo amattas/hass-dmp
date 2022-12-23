@@ -161,6 +161,7 @@ class DMPPanel():
             self._open_close_zones[zoneNum] = eventObj
         _LOGGER.debug("Open Close Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getBatteryZone(self, zoneNumber):
         return self._open_close_zones[zoneNumber]
@@ -177,6 +178,7 @@ class DMPPanel():
             self._battery_zones[zoneNum] = eventObj
         _LOGGER.debug("Battery Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getTroubleZone(self, zoneNumber):
         return self._trouble_zones[zoneNumber]
@@ -193,6 +195,7 @@ class DMPPanel():
             self._trouble_zones[zoneNum] = eventObj
         _LOGGER.debug("Trouble Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getBypassZone(self, zoneNumber):
         return self._bypass_zones[zoneNumber]
@@ -209,6 +212,7 @@ class DMPPanel():
             self._bypass_zones[zoneNum] = eventObj
         _LOGGER.debug("Bypass Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getAlarmZone(self, zoneNumber):
         return self._alarm_zones[zoneNumber]
@@ -225,6 +229,7 @@ class DMPPanel():
             self._alarm_zones[zoneNum] = eventObj
         _LOGGER.debug("Alarm Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getStatusZone(self, zoneNumber):
         return self._status_zones[zoneNumber]
