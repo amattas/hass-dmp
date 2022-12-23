@@ -285,14 +285,14 @@ class DMPZoneTrouble(BinarySensorEntity):
         # Remove associated device. Every device has a trouble zone so this
         # is a natural place to do it.
         _LOGGER.debug("Removing BinarySensor Devices")
-        # device_registry = dr.async_get(self._hass)
-        # dr.async_entries_for_config_entry(device_registry, self._config)
-        # _LOGGER.debug("Device Registry {0}".format(device_registry))
-        # device_identities = self.device_info["identifiers"]
-        # _LOGGER.debug("Device Identities %s" % device_identities)
-        # for d in list(device_identities):
-        #     _LOGGER.debug("Removing Device {0}".format(d))
-        #    device_registry.async_remove_device(d[1])
+        device_registry = dr.async_get(self._hass)
+        device_identities = self.device_info["identifiers"]
+        _LOGGER.debug("Device Identities %s" % device_identities)
+        for d in list(device_identities):
+            _LOGGER.debug("Removing Device {0}".format(d))
+            device_entry = dr.async_get_device(d)
+            device_id = device_entry.id
+            device_registry.async_remove_device(device_id)
         _LOGGER.debug("Removing DMPZoneTrouble Callback")
         self._listener.remove_callback(self.process_zone_callback)
 
