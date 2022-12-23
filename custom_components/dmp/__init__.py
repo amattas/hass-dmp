@@ -429,6 +429,8 @@ class DMPListener():
                     pass
                 elif (eventCode == 'Zs'):  # System Message
                     pass
+                elif (eventCode == 'Zj'):  # Door / Panel Access
+                    pass
                 elif (eventCode == 'Zd'):  # Battery
                     zoneNumber = self._searchS3Segment(
                         self._getS3Segment('\\z', data)
