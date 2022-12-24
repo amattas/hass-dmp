@@ -28,6 +28,7 @@ Additionally the integration provides a consolidated status sensor that provides
 This integration implements a Home Assistant configuration flow to simplify setup. To install, simply checkout this repo and copy `<REPO>/custom_components/dmp` to `<HASS INSTALL>/config/custom_components/dmp` and restart Home Assistant. Once installed the integration can be added from the control panel by searching for DMP.
 
 ## Planned Updates
+* Additional zone type support
 * Custom bypass arming
 * Bypassing individual zones
 * Validate configuration inputs
