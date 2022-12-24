@@ -64,14 +64,6 @@ SENSOR_TYPES = selector({
                         "value": DEV_TYPE_WIRED_MOTION
                     },
                     {
-                        "label": "Siren (Battery Powered)",
-                        "value": DEV_TYPE_BATTERY_SIREN
-                    },
-                    {
-                        "label": "Siren (Wired)",
-                        "value": DEV_TYPE_WIRED_MOTION
-                    },
-                    {
                         "label": "Smoke Detector (Battery Powered)",
                         "value": DEV_TYPE_BATTERY_SMOKE
                     },
