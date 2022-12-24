@@ -6,6 +6,8 @@ from homeassistant import config_entries, core
 # from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,
@@ -28,55 +30,61 @@ from .const import (CONF_PANEL_NAME, CONF_PANEL_IP, CONF_PANEL_LISTEN_PORT,
 
 from .const import CONF_ZONES, DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 SENSOR_TYPES = selector({
             "select": {
                 "options": [
                     {
-                        "label": "Battery - Door",
+                        "label": "-Select a Device Type-",
+                        "value": "default"
+                    },
+                    {
+                        "label": "Door (Battery Powered)",
                         "value": DEV_TYPE_BATTERY_DOOR
                     },
                     {
-                        "label": "Battery - Glass Break",
-                        "value": DEV_TYPE_BATTERY_GLASSBREAK
-                    },
-                    {
-                        "label": "Battery - Motion",
-                        "value": DEV_TYPE_BATTERY_MOTION
-                    },
-                    {
-                        "label": "Battery - Siren",
-                        "value": DEV_TYPE_BATTERY_SIREN
-                    },
-                    {
-                        "label": "Battery - Smoke",
-                        "value": DEV_TYPE_BATTERY_SMOKE
-                    },
-                    {
-                        "label": "Battery - Window",
-                        "value": DEV_TYPE_BATTERY_WINDOW
-                    },
-                    {
-                        "label": "Wired - Door",
+                        "label": "Door (Wired)",
                         "value": DEV_TYPE_WIRED_DOOR
                     },
                     {
-                        "label": "Wired - Glass Break",
+                        "label": "Glass Break Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_GLASSBREAK
+                    },
+                    {
+                        "label": "Glass Break Detector (Wired)",
                         "value": DEV_TYPE_WIRED_GLASSBREAK
                     },
                     {
-                        "label": "Wired - Motion",
+                        "label": "Motion Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_MOTION
+                    },
+                    {
+                        "label": "Motion Detector (Wired)",
                         "value": DEV_TYPE_WIRED_MOTION
                     },
                     {
-                        "label": "Battery - Siren",
+                        "label": "Siren (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_SIREN
+                    },
+                    {
+                        "label": "Siren (Wired)",
                         "value": DEV_TYPE_WIRED_MOTION
                     },
                     {
-                        "label": "Battery - Smoke",
+                        "label": "Smoke Detector (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_SMOKE
+                    },
+                    {
+                        "label": "Smoke Detector (Wired)",
                         "value": DEV_TYPE_WIRED_SMOKE
                     },
                     {
-                        "label": "Wired - Window",
+                        "label": "Window (Battery Powered)",
+                        "value": DEV_TYPE_BATTERY_WINDOW
+                    },
+                    {
+                        "label": "Window (Wired)",
                         "value": DEV_TYPE_WIRED_WINDOW
                     },
                 ],
@@ -111,7 +119,7 @@ ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
         vol.Required(CONF_ZONE_NUMBER): cv.string,
-        vol.Optional(CONF_ZONE_CLASS, default=[]): SENSOR_TYPES,
+        vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean
     },
     extra=vol.ALLOW_EXTRA,
@@ -156,3 +164,82 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                            data=self.data)
         return self.async_show_form(step_id="zones", data_schema=ZONE_SCHEMA,
                                     errors=errors)
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handles options flow for the component."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Manage the options for the custom component."""
+        errors: Dict[str, str] = {}
+        entity_registry = await async_get_registry(self.hass)
+        entries = async_entries_for_config_entry(
+            entity_registry, self.config_entry.entry_id
+        )
+        # Get a list of zones for the UI since each zone has multiple
+        # sensors.
+        zones = dict(self.config_entry.data)[CONF_ZONES]
+        zones_dict = {
+            z[CONF_ZONE_NUMBER]: z[CONF_ZONE_NAME] for z in zones
+            }
+        if user_input is not None:
+            updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
+            entry_map = {e.entity_id: e for e in entries}
+            deleted_zones = deleted_zones = [
+                z[CONF_ZONE_NUMBER] for z in zones
+                if z[CONF_ZONE_NUMBER] not in user_input[CONF_ZONES]
+                ]
+
+            # Get lisf of deleted entity_id and remove from config
+            for d in deleted_zones:
+                updated_zones = [
+                    e for e in updated_zones
+                    if e["zone_number"] != d
+                    ]
+
+            # Add new zones to config
+            if user_input[CONF_ZONE_CLASS] != "default":
+                updated_zones.append(
+                        {
+                            CONF_ZONE_NAME: user_input[CONF_ZONE_NAME],
+                            CONF_ZONE_NUMBER: user_input[CONF_ZONE_NUMBER],
+                            CONF_ZONE_CLASS: user_input[CONF_ZONE_CLASS]
+                        }
+                    )
+
+            if not errors:
+                return self.async_create_entry(
+                    title="",
+                    data={CONF_ZONES: updated_zones},
+                )
+
+        options_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_ZONES, default=list(
+                        zones_dict.keys())
+                    ): cv.multi_select(
+                    zones_dict
+                    ),
+                vol.Optional(CONF_ZONE_NAME): cv.string,
+                vol.Optional(CONF_ZONE_NUMBER): cv.string,
+                vol.Optional(
+                    CONF_ZONE_CLASS,
+                    default="default"
+                    ): SENSOR_TYPES,
+            }
+        )
+        return self.async_show_form(
+            step_id="init", data_schema=options_schema, errors=errors
+        )

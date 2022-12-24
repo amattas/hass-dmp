@@ -43,6 +43,9 @@ DEV_TYPE_WIRED_SIREN = "wired_siren"
 DEV_TYPE_WIRED_SMOKE = "wired_smoke"
 DEV_TYPE_WIRED_WINDOW = "wired_window"
 
+# Attribute Namees
+BATTERY_LEVEL = "BatteryLevel"
+
 
 # Other Constants
 PANEL_ALL_ZONES = "010203"

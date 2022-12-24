@@ -1,56 +1,40 @@
-# hass-dmp-alarm-panel
+# DMP Integration for Home Assistant
 
-Basic integration for DMP alarm panels and HomeAssistant.
+Integrate your DMP XR series alarn panel with Home Assistant. This integration provides arming control along with zone monitoring for doors and windows. 
 
 ## Important Info
-This integration is currently in BETA. This means things may break or become unreliable. Additionally, this integration is not a replacement for proper, UL-listed alarm monitoring. This product is not UL listed and should not be used in a production setting as it is still experimental and likely to break.
-### Currently Supported Features
-* Area status monitoring
-* Area arming and disarming
-* Door lock/unlock/access
-    * Status of the door (open, shut) is not implemented
-* Last contact time
-    * The panel will check in on a regular basis (set in the settings). If the panel falls offline or the communications are severed, the contact time will not update, and you can alert off of that.
+This integration is currently is in BETA. This means things may break or become unreliable. **Please Note: This integration is not designed to replace monitoring of your DMP panel by a UL certified monitoring center, and is solely designed to increase the ease of integrating the supervised sensors with other platforms**
 
-### Unsupported but Planned Features
-* Home/Sleep/Away arming
-    * DMP implements HSA arming as area arming - so area 1 is perimeter, area 2 is interior, and area 3 is bedrooms. You can sort of get away with HSA arming by setting up 3 areas and arming them depending on if you want H, S, or A; but proper HSA arming is planned
-* Trouble Sensor
-    * Eventually we'd like to get system troubles monitored on their own Home Assistant sensor entity so that system troubles can be reported to HASS.
-* Door/lock Status
-    * Currently, all doors are listed as locked all the time regardless of the status of the door. This will eventually be sorted out, but due to the nature of access control doors being locked 99.9% of the time, it just hasn't been implemented due to time.
+## Currently Supported Features
 
-## Setup
-### DMP Alarm
-To set up the integration on the alarm side, you need to have your installer (or you if you have the lockout code) perform these steps:
-1. In Communication options in the programmer (6653 CMD), create a new communication path with type "NET". Point it to the IP address of your HASS instance. Leave it at port 2001 (unless you've changed it in the config). Test frequency and check in can be however often you fancy. Fail time can be again however long you fancy. Enable all reports (alarm, supv, door access, etc).
-2. In Remote Options in the programmer, set a remote key (up to 16 digits). This is not necessary but urged for security sake, as anybody can connect to your panel remotely and disarm it if the remote key is not set. Set Allow Network Remote to Yes and Port to 2001 (or other port as specified in the config).
-3. Stop (save the program) and exit.
+### Arming and Disarming
+This integration implements a simplified arming/disarming model from the panel's area model to a simple Arm Home/Arm Away model. This aligns better to how these panels are typically deployed in residential settings and also helps integrate better with Home Assistants model. It also facilitiates surfacing the alarm panel to other integrations like HomeKit. There are future plans to support arming with custom bypass.
 
-### HomeAssistant
-Modify and add the relevant config sections to your configuration.yaml:
+### Zone Monitoring
+This integration provides multiple binary sensors for each zone provided by the panel. These sensors include:
 
-`
-dmp:
-  listen_port: 2001
-  port: 2011
-  panels:
-    - account_number: 1234
-      ip: 1.2.3.4
-      remote_key: "0123456789      "
+* Window Open/Close
+* Door Open/Close
+* Alarm
+* Trouble
+* Low Battery 
+* Bypass
 
-alarm_control_panel:
-  - platform: dmp
-    area_number: "001"
-    area_name: "Basement"
-    area_accountnumber: 1234
-    # Optional Arm/Disarm Command Zone Mapping Override
-    area_disarm_zone: "010203"
-    area_home_zone: "01"
-    area_away_zone: "010203"
-`
+It's important to note that in order for these sensor to be updated you must have "Zone Real-Time Status" enabled in the zone information menu for each zone you want real-time status for. Your dealer should be able to easily enable this for you. 
 
-Note that the remote key should be space padded. THe account number of the area should match that of the DMP panel it is attached to. This is how the two objects get linked.
-Note that the area number should be a string and zero padded to three digits. Eventually this will be fixed so it can accept numbers, but I'm lazy
+Additionally the integration provides a consolidated status sensor that provides a high level overview of each zone. One point to note is all of these sensors are assumed in a good state when enabling the integration, this is due to the fact that we are unaware of a way to request the status of each zone at initialization time.
 
-Clone this repo in the custom_components directory, restart hass, and you're up and running!
+## Setup Instructions
+This integration implements a Home Assistant configuration flow to simplify setup. To install, simply checkout this repo and copy `<REPO>/custom_components/dmp` to `<HASS INSTALL>/config/custom_components/dmp` and restart Home Assistant. Once installed the integration can be added from the control panel by searching for DMP.
+
+## Planned Updates
+* Additional zone type support
+* Custom bypass arming
+* Bypassing individual zones
+* Validate configuration inputs
+* Simplification of platform code
+* Separation of panel specific code
+* Unit testing
+
+## Credit
+Thank you to [baddienatalie](https://community.home-assistant.io/u/baddienatalie/summary) in the Home Assistant community. They made the first [pass at this integration](https://git.natnat.xyz/hass-dmp-integration/dmp), which was forked and used as the base for this integration. This was my first Home Assistant integration and I have learned a lot along the way. There was a lot of trial and error as I worked through the documentation, and as suchthere is a lot to cleanup and optimize now. 

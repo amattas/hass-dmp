@@ -1,15 +1,12 @@
 """The DMP Integration Component"""
 import homeassistant.helpers.config_validation as cv
 from datetime import datetime
-import voluptuous as vol
 import asyncio
 import logging
 
-from homeassistant.helpers.discovery import async_load_platform
-from homeassistant.helpers.template import Template
-from homeassistant.helpers.script import Script
-from homeassistant.core import callback, Context
-from homeassistant.helpers import device_registry as dr
+from copy import deepcopy
+from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.event import (
     TrackTemplate,
@@ -19,23 +16,31 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED
+    STATE_ALARM_TRIGGERED,
+    Platform
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
-                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN)
+                    CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES,
+                    CONF_ZONE_NUMBER)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
 
 _LOGGER = logging.getLogger(__name__)
+
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
 async def async_setup_entry(hass, entry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
+    # Create Options Callback
+    entry.add_update_listener(options_update_listener)
+    # if entry.options:
+    #     config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
-    # create and start the listener
+    # Create and start the DMP Listener
     listener = DMPListener(hass, config)
     await listener.start()
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
@@ -46,16 +51,68 @@ async def async_setup_entry(hass, entry) -> bool:
     listener.addPanel(panel)
     _LOGGER.debug("Panels attached to listener: %s",
                   str(listener.getPanels()))
-    # Forward the setup to the sensor platform. We want the alarm panel to load
-    # before the sesnsors otherwise we have a race condition and things won't
-    # link properly.
     await hass.config_entries.async_forward_entry_setup(
         entry,
-        "alarm_control_panel")
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
+        "alarm_control_panel"
     )
+    await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setup(entry, "sensor")
     return True
+
+
+async def async_unload_entry(hass, entry):
+    _LOGGER.debug("Unloading entry.")
+    listener = hass.data[DOMAIN][LISTENER]
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+        ) and await listener.stop()
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
+
+
+async def options_update_listener(hass, entry):
+    _LOGGER.debug("Options flow completed.")
+    entity_registry = er.async_get(hass)
+    config = dict(entry.data)
+    options = dict(entry.options)
+    if options:
+        _LOGGER.debug("Updated options found: %s" % options)
+        """Handle options update."""
+        # Remove Entities
+        entries = er.async_entries_for_config_entry(
+            entity_registry, entry.entry_id
+        )
+        entry_map = {e.entity_id: e for e in entries}
+        active_zones = [
+            z[CONF_ZONE_NUMBER]
+            for z in options[CONF_ZONES]
+        ]
+        _LOGGER.debug("Zones found in options: %s" % active_zones)
+        deleted_entries = []
+        for emk in entry_map.keys():
+            if (
+                entry_map[emk].unique_id.split('-')[2] == 'zone'
+                and (
+                    entry_map[emk].unique_id.split('-')[3]
+                    not in active_zones
+                    )
+            ):
+                deleted_entries.append(emk)
+        _LOGGER.debug("Zone entities to be deleted: " % deleted_entries)
+        for de in deleted_entries:
+            entity_registry.async_remove(de)
+
+        # Get and replace zones config
+        _LOGGER.debug("Current config zones: %s" % config[CONF_ZONES])
+        _LOGGER.debug("New config zones: %s" % config[CONF_ZONES])
+        config[CONF_ZONES] = options[CONF_ZONES]
+        hass.config_entries.async_update_entry(
+            entry,
+            data=config,
+            options={}
+            )
+        await hass.config_entries.async_reload(entry.entry_id)
 
 
 class DMPPanel():
@@ -70,12 +127,13 @@ class DMPPanel():
                            or "                ")
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
-        self._area = None
+        self._area = STATE_ALARM_DISARMED  # Default Value
         self._open_close_zones = {}
         self._battery_zones = {}
         self._trouble_zones = {}
         self._bypass_zones = {}
         self._alarm_zones = {}
+        self._status_zones = {}
 
     def __str__(self):
         return ('DMP Panel with account number %s at addr %s'
@@ -96,7 +154,10 @@ class DMPPanel():
         return self._area
 
     def getOpenCloseZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
+        if zoneNumber in self._open_close_zones:
+            return self._open_close_zones[zoneNumber]
+        else:
+            return None
 
     def getOpenCloseZones(self):
         return self._open_close_zones
@@ -110,12 +171,16 @@ class DMPPanel():
             self._open_close_zones[zoneNum] = eventObj
         _LOGGER.debug("Open Close Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getBatteryZone(self, zoneNumber):
-        return self._open_close_zones[zoneNumber]
+        if zoneNumber in self._battery_zones:
+            return self._battery_zones[zoneNumber]
+        else:
+            return None
 
     def getBatteryZones(self):
-        return self._open_close_zones
+        return self._battery_zones
 
     def updateBatteryZone(self, zoneNum, eventObj):
         if (zoneNum in self._battery_zones):
@@ -126,9 +191,13 @@ class DMPPanel():
             self._battery_zones[zoneNum] = eventObj
         _LOGGER.debug("Battery Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getTroubleZone(self, zoneNumber):
-        return self._trouble_zones[zoneNumber]
+        if zoneNumber in self._trouble_zones:
+            return self._trouble_zones[zoneNumber]
+        else:
+            return None
 
     def getTroubleZones(self):
         return self._trouble_zones
@@ -142,9 +211,13 @@ class DMPPanel():
             self._trouble_zones[zoneNum] = eventObj
         _LOGGER.debug("Trouble Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getBypassZone(self, zoneNumber):
-        return self._bypass_zones[zoneNumber]
+        if zoneNumber in self._bypass_zones:
+            return self._bypass_zones[zoneNumber]
+        else:
+            return None
 
     def getBypassZones(self):
         return self._bypass_zones
@@ -158,9 +231,13 @@ class DMPPanel():
             self._bypass_zones[zoneNum] = eventObj
         _LOGGER.debug("Bypass Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
 
     def getAlarmZone(self, zoneNumber):
-        return self._alarm_zones[zoneNumber]
+        if zoneNumber in self._alarm_zones:
+            return self._alarm_zones[zoneNumber]
+        else:
+            return None
 
     def getAlarmZones(self):
         return self._alarm_zones
@@ -174,6 +251,42 @@ class DMPPanel():
             self._alarm_zones[zoneNum] = eventObj
         _LOGGER.debug("Alarm Zone %s has been updated to %s",
                       zoneNum, eventObj['zoneState'])
+        self.updateStatusZone(zoneNum, eventObj)
+
+    def getStatusZone(self, zoneNumber):
+        return self._status_zones[zoneNumber]
+
+    def getStatusZones(self):
+        return self._status_zones
+
+    def updateStatusZone(self, zoneNum, eventObj):
+        statusObj = deepcopy(eventObj)
+        zone_state = 'Ready'
+        if (self.getAlarmZone(zoneNum)
+           and self.getAlarmZone(zoneNum)['zoneState']):
+            zone_state = 'Alarm'
+        elif (self.getTroubleZone(zoneNum)
+              and self.getTroubleZone(zoneNum)['zoneState']):
+            zone_state = 'Trouble'
+        elif (self.getBypassZone(zoneNum)
+              and self.getBypassZone(zoneNum)['zoneState']):
+            zone_state = 'Bypass'
+        elif (self.getBatteryZone(zoneNum)
+              and self.getBatteryZone(zoneNum)['zoneState']):
+            zone_state = 'Bypass'
+        elif (self.getOpenCloseZone(zoneNum)
+              and self.getOpenCloseZone(zoneNum)['zoneState']):
+            zone_state = 'Open'
+        if (zoneNum in self._status_zones):
+            zone = self._status_zones[zoneNum]
+            zone.update({"zoneState": zone_state})
+            self._status_zones[zoneNum] = zone
+        else:
+            statusObj.update({"zoneState": zone_state})
+            self._status_zones[zoneNum] = statusObj
+
+        _LOGGER.debug("Status Zone %s has been updated to %s",
+                      zoneNum, zone_state)
 
     def getAccountNumber(self):
         return self._accountNumber
@@ -201,7 +314,6 @@ class DMPPanel():
         # close the socket
         writer.close()
         await writer.wait_closed()
-
         data = await reader.read(256)
         _LOGGER.debug("DMP: Received data after command: {}".format(data))
 
@@ -271,15 +383,18 @@ class DMPListener():
         """ Start TCP server listening on configured port """
         server = await asyncio.start_server(self.handle_connection, "0.0.0.0",
                                             self._port)
-        self._server = server
         addr = server.sockets[0].getsockname()
         _LOGGER.info(f"Listening on {addr}:{self._port}")
         server.serve_forever()
+        self._server = server
 
-    async def stop(self, other_arg):
+    async def stop(self):
         """ Stop TCP server """
         _LOGGER.info("Stop called. Closing server")
+        # Make sure sever is closed before reloading
         self._server.close()
+        await self._server.wait_closed()
+        return True
 
     async def handle_connection(self, reader, writer):
         """ Parse packets from DMP panel """
@@ -315,6 +430,8 @@ class DMPListener():
                     # this and shouldn't see it on the integration port.
                     pass
                 elif (eventCode == 'Zs'):  # System Message
+                    pass
+                elif (eventCode == 'Zj'):  # Door / Panel Access
                     pass
                 elif (eventCode == 'Zd'):  # Battery
                     zoneNumber = self._searchS3Segment(
