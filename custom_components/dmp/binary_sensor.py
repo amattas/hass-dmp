@@ -33,6 +33,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
         if (
             "window" in zone[CONF_ZONE_CLASS]
             or "door" in zone[CONF_ZONE_CLASS]
+            or "motion" in zone[CONF_ZONE_CLASS]
         ):
             openCloseZones.append(
                 DMPZoneOpenClose(
@@ -92,6 +93,8 @@ class DMPZoneOpenClose(BinarySensorEntity):
             self._device_class = "door"
         elif "window" in entity_config.get(CONF_ZONE_CLASS):
             self._device_class = "window"
+        elif "motion" in entity_config.get(CONF_ZONE_CLASS):
+            self._device_class = "motion"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneOpenCloseObj = {
@@ -143,13 +146,21 @@ class DMPZoneOpenClose(BinarySensorEntity):
         if state:
             if device_class == "window":
                 return 'mdi:window-open'
-            else:
+            elif device_class == "door":
                 return 'mdi:door-open'
+            elif device_class == "motion":
+                return 'mdi:motion-sensor'
+            else:
+                return 'mdi:checkbox-blank-circle'
         else:
             if device_class == "window":
                 return 'mdi:window-closed'
-            else:
+            elif device_class == "door":
                 return 'mdi:door-closed'
+            elif device_class == "motion":
+                return 'mdi:motion-sensor-off'
+            else:
+                return 'mdi:checkbox-blank-circle-outline'
 
     @property
     def device_class(self):

@@ -528,13 +528,13 @@ class DMPListener():
                         systemCode == "DO"
                         or systemCode == "HO"
                         or systemCode == "FO"
-                    ):  # Door Open
+                    ):  # Device Open
                         zoneObj = {
                             "zoneNumber": zoneNumber,
                             "zoneState": True
                             }
                         panel.updateOpenCloseZone(zoneNumber, zoneObj)
-                    elif (systemCode == "DC"):  # Door Closed
+                    elif (systemCode == "DC"):  # Device Closed
                         zoneObj = {
                             "zoneNumber": zoneNumber,
                             "zoneState": False
