@@ -129,7 +129,7 @@ class DMPZoneStatus(SensorEntity):
             return 'mdi:alert'
         elif state == 'Bypass':
             return 'mdi:alert'
-        elif state == 'Low Battery':
+        elif state == 'Battery':
             return 'mdi:battery-alert-variant-outline'
         elif state == 'Open':
             if device_class == "window":
