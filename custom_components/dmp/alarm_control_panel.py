@@ -113,12 +113,12 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel.connectAndSend('!O{},'.format(PANEL_ALL_ZONES))
+        await self._panel._dmpSender.disarm(PANEL_ALL_ZONES)
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(PANEL_ALL_ZONES))
+        await self._panel._dmpSender.arm(PANEL_ALL_ZONES)
 
     async def async_alarm_arm_home(self, code=None):
-        """Send arm away command."""
-        await self._panel.connectAndSend('!C{},YN'.format(self._home_zone))
+        """Send arm home command."""
+        await self._panel._dmpSender.arm(self._home_zone)
