@@ -175,7 +175,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> Dict[str, Any]:
         """Manage the options for the custom component."""
         errors: Dict[str, str] = {}
-        entity_registry = await async_get(self.hass)
+        entity_registry = async_get(self.hass)
         entries = async_entries_for_config_entry(
             entity_registry, self.config_entry.entry_id
         )
