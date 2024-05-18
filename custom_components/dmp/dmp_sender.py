@@ -20,6 +20,7 @@ class DMPSender:
         await self.connectAndSend('!O{},'.format(zones))
 
     async def setBypass(self, zoneNum, enableBypass):
+        zoneNum = str(zoneNum).zfill(3)
         cmd = 'X' if enableBypass else 'Y'
         await self.connectAndSend('!{}{}'.format(cmd, zoneNum))
 
