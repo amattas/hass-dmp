@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+from .const import (PANEL_AREA_COUNT)
+
 _LOGGER = logging.getLogger(__name__)
 
 class DMPSender:
@@ -22,6 +24,10 @@ class DMPSender:
         zoneNum = str(zoneNum).zfill(3)
         cmd = 'X' if enableBypass else 'Y'
         await self.connectAndSend('!{}{}'.format(cmd, zoneNum))
+
+    async def status(self):
+        zoneQuery = ['?WB**Y001'] + ['?WB'] * PANEL_AREA_COUNT
+        return await self.connectAndSend(zoneQuery)
 
     async def connectAndSend(self, commands):
         reader, writer = await asyncio.open_connection(self.ipAddr, self.port)
@@ -52,14 +58,20 @@ class DMPSender:
     def decodeResponse(self, response):
         _LOGGER.debug("DMP: Received data after command: {}".format(response))
         responseLines = response.decode("utf-8").split('\x02')
+        statusResponse = StatusResponse()
         for responseLine in responseLines:
             messageType = responseLine[8:10]
             if 'V' in messageType: # Auth/Drop Reply 
                 pass
             elif 'C' in messageType or 'O' in messageType or 'X' in messageType or 'Y' in messageType: # Arm/Disarm or Bypass/Reset Reply 
                 return DMPCharReply.getAckType(responseLine[7:8])
+            elif 'WB' in messageType: # Status Reply 
+                statusResponse.parseReply(responseLine[10:])
             elif messageType != str(''):
                 _LOGGER.debug("Unknown message type in line: {}".format(responseLine))
+
+        if statusResponse.hasData:
+            return statusResponse.flush()
 
     async def sendCommand(self, writer, cmd):
         _LOGGER.debug("DMP: Sending cmd: {}".format(cmd))
@@ -75,3 +87,62 @@ class DMPCharReply():
 
     def getAckType(char):
         return DMPCharReply.replyCharMap.get(char, char)
+
+class StatusResponse():
+    statusMap = {
+        # Areas
+        'A': 'Armed',
+        'D': 'Disarmed',
+        # Zones
+        'N': 'Normal',
+        'O': 'Open',
+        'S': 'Short',
+        'X': 'Bypassed',
+        'L': 'Low Battery',
+        'M': 'Missing'
+    }
+    def __init__(self):
+        self.areaDict = {}
+        self.zoneDict = {}
+        self.hasData = False
+
+    def addToDict(self, targetDict, number, status, name):
+        targetDict[int(number)] = {
+            'status': status,
+            'name': name,
+            'number': number
+        }
+
+    def flush(self):
+        self.printStatus()
+        return self.areaDict, self.zoneDict
+
+    def parseReply(self, word):
+        self.hasData = True
+        zones = word.split('\x1e')
+        for zone in zones:
+            zoneType = zone[:1]
+            if zone[:2] == str('-\r'):
+                break
+            number = zone[1:4]
+            status = zone[4:5]
+            name = zone[5:]
+            if zoneType == 'A':
+                self.addToDict(self.areaDict, number, status, name)
+            elif zoneType == 'L':
+                self.addToDict(self.zoneDict, number, status, name)
+            else:
+                _LOGGER.debug("Error: Unknown type '{}' for zone with number {}".format(zoneType, number))
+
+    def printStatus(self):
+        def printItems(title, items):
+            sortedItems = dict(sorted(items.items()))
+            _LOGGER.debug("{}:".format(title))
+            for number, details in sortedItems.items():
+                details['status'] = self.statusMap.get(details['status'], details['status'])
+                _LOGGER.debug("{} Number: {} ({}), Status: {}, Name: {}".format(
+                    title[:-1].title(), number, details['number'], details['status'], details['name']
+                ))
+        
+        printItems("Areas", self.areaDict)
+        printItems("Zones", self.zoneDict)
