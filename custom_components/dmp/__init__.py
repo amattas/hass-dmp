@@ -59,6 +59,7 @@ async def async_setup_entry(hass, entry) -> bool:
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setup(entry, "sensor")
     await hass.config_entries.async_forward_entry_setup(entry, "switch")
+    hass.async_create_task(listener.updateStatus())
     return True
 
 
@@ -293,7 +294,7 @@ class DMPPanel():
 
     def getAccountNumber(self):
         return self._accountNumber
-
+    
 class DMPListener():
     def __init__(self, hass, config):
         self._hass = hass
@@ -483,6 +484,7 @@ class DMPListener():
                     areaName = out[1]
                     if (systemCode == "OP"):  # Disarm
                         areaState = STATE_ALARM_DISARMED
+                        self._hass.async_create_task(self.updateStatus())
                     elif (systemCode == "CL"):  # Arm
                         if (areaNumber[1:] == self._home_area):
                             # Make sure we're not already armed away
@@ -527,9 +529,48 @@ class DMPListener():
                 # update contact time last to ensure we only log contact time
                 # on a successful message
                 panel.updateContactTime(datetime.utcnow())
-                # call to update the hass object
-                for callback in self._callbacks:
-                    await callback()
+                await self.updateHASS()
             else:
                 _LOGGER.debug("Connection disconnected")
                 connected = False
+
+    async def updateStatus(self):
+        for panelName, panel in self._panels.items():
+            status = await panel._dmpSender.status()
+            areaStatus = status[0]
+            zoneStatus = status[1]
+            _LOGGER.debug(panel._open_close_zones)
+            for zone, zoneData in zoneStatus.items():
+                faultZone = {"zoneNumber": zone, "zoneState": True}
+                clearZone = {"zoneNumber": zone, "zoneState": False}
+
+                if zone in panel._open_close_zones:
+                    _LOGGER.debug("setting _open_close_zones " + zone)
+                    if zoneData['status'] == 'Open' or zoneData['status'] == 'Short':
+                        panel.updateOpenCloseZone(zone, faultZone)
+                    elif zoneData['status'] == 'Normal':
+                        panel.updateOpenCloseZone(zone, clearZone)
+                if zone in panel._bypass_zones:
+                    _LOGGER.debug("setting _bypass_zones " + zone)
+                    if zoneData['status'] == 'Bypassed':
+                        panel.updateBypassZone(zone, faultZone)
+                    else:
+                        panel.updateBypassZone(zone, clearZone)
+                if zone in panel._trouble_zones:
+                    _LOGGER.debug("setting _trouble_zones " + zone)
+                    if zoneData['status'] == 'Missing':
+                        panel.updateTroubleZone(zone, faultZone)
+                    elif zoneData['status'] == 'Normal':
+                        panel.updateTroubleZone(zone, clearZone)
+                if zone in panel._battery_zones:
+                    _LOGGER.debug("setting _battery_zones " + zone)
+                    if zoneData['status'] == 'Low Battery':
+                        panel.updateBatteryZone(zone, faultZone)
+                    elif zoneData['status'] == 'Normal':
+                        panel.updateBatteryZone(zone, clearZone)
+        await self.updateHASS()
+
+    async def updateHASS(self):
+        # call to update the hass object
+        for callback in self._callbacks:
+            await callback()

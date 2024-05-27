@@ -27,12 +27,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
             )
         for zone in config[CONF_ZONES]
     ]
-    # Only Windows and doors for Open/Close zones.
     openCloseZones = []
     for zone in config[CONF_ZONES]:
         if (
             "window" in zone[CONF_ZONE_CLASS]
             or "door" in zone[CONF_ZONE_CLASS]
+            or "default" in zone[CONF_ZONE_CLASS]
         ):
             openCloseZones.append(
                 DMPZoneOpenClose(
@@ -93,6 +93,8 @@ class DMPZoneOpenClose(BinarySensorEntity):
             self._device_class = "door"
         elif "window" in entity_config.get(CONF_ZONE_CLASS):
             self._device_class = "window"
+        else:
+            self._device_class = "sensors"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
         self._state = False
         zoneOpenCloseObj = {

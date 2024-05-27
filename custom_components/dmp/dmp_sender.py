@@ -107,10 +107,9 @@ class StatusResponse():
         self.hasData = False
 
     def addToDict(self, targetDict, number, status, name):
-        targetDict[int(number)] = {
+        targetDict[number] = {
             'status': status,
             'name': name,
-            'number': number
         }
 
     def flush(self):
@@ -128,7 +127,7 @@ class StatusResponse():
             status = zone[4:5]
             name = zone[5:]
             if zoneType == 'A':
-                self.addToDict(self.areaDict, number, status, name)
+                self.addToDict(self.areaDict, number[1:], status, name)
             elif zoneType == 'L':
                 self.addToDict(self.zoneDict, number, status, name)
             else:
@@ -140,8 +139,8 @@ class StatusResponse():
             _LOGGER.debug("{}:".format(title))
             for number, details in sortedItems.items():
                 details['status'] = self.statusMap.get(details['status'], details['status'])
-                _LOGGER.debug("{} Number: {} ({}), Status: {}, Name: {}".format(
-                    title[:-1].title(), number, details['number'], details['status'], details['name']
+                _LOGGER.debug("{} Number: {}, Status: {}, Name: {}".format(
+                    title[:-1].title(), number, details['status'], details['name']
                 ))
         
         printItems("Areas", self.areaDict)
