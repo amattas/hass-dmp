@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from enum import Enum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class DMPSender:
         await writer.wait_closed()
         data = await reader.read()
         ret = self.decodeResponse(data)
-        _LOGGER.debug("DMP: Decoded: {}".format(ret))
+        _LOGGER.debug("DMP Response Decoded: {}".format(ret))
         return ret
 
     def getEncodedPayload(self, payload):
@@ -54,28 +53,25 @@ class DMPSender:
         _LOGGER.debug("DMP: Received data after command: {}".format(response))
         responseLines = response.decode("utf-8").split('\x02')
         for responseLine in responseLines:
-            messageType = responseLine[7:9]
+            messageType = responseLine[8:10]
             if 'V' in messageType: # Auth/Drop Reply 
                 pass
-            elif 'C' in messageType: # Arm Reply 
-                return DMPResponse.charToEnum(responseLine[7:8])
+            elif 'C' in messageType or 'O' in messageType or 'X' in messageType or 'Y' in messageType: # Arm/Disarm or Bypass/Reset Reply 
+                return DMPCharReply.getAckType(responseLine[7:8])
+            elif messageType != str(''):
+                _LOGGER.debug("Unknown message type in line: {}".format(responseLine))
 
     async def sendCommand(self, writer, cmd):
-        # print("Sending cmd: {}".format(cmd))
         _LOGGER.debug("DMP: Sending cmd: {}".format(cmd))
         writer.write(cmd)
         await writer.drain()
         await asyncio.sleep(0.3) # need some sleep or read buffer will be empty
 
-class DMPResponse(Enum):
-    ACK = '+'
-    NAK = '-'
-    NA = ''
+class DMPCharReply():
+    replyCharMap = {
+        'ACK': '+',
+        'NAK': '-'
+    }
 
-    def charToEnum(char):
-        if char == DMPResponse.ACK.value:
-            return DMPResponse.ACK
-        elif char == DMPResponse.NAK.value:
-            return DMPResponse.NAK
-        else:
-            return DMPResponse.NA
+    def getAckType(char):
+        return DMPCharReply.replyCharMap.get(char, char)
