@@ -59,6 +59,7 @@ async def async_setup_entry(hass, entry) -> bool:
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setup(entry, "sensor")
     await hass.config_entries.async_forward_entry_setup(entry, "switch")
+    await hass.config_entries.async_forward_entry_setup(entry, "button")
     hass.async_create_task(listener.updateStatus())
     return True
 
