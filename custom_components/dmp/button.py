@@ -9,7 +9,6 @@ from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup_entry(hass, config_entry, async_add_entities,):
     _LOGGER.info("Setting up alarm refresh button")
     hass.data.setdefault(DOMAIN, {})
@@ -49,6 +48,4 @@ class DMPRefreshStatusButton(ButtonEntity):
             },
             name=self._panel_name,
             manufacturer='Digital Monitoring Products',
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum))
-
         )

@@ -26,7 +26,8 @@ class DMPSender:
         await self.connectAndSend('!{}{}'.format(cmd, zoneNum))
 
     async def status(self):
-        zoneQuery = ['?WB**Y001'] + ['?WB'] * PANEL_AREA_COUNT
+        # may need to send additional based on how many zones per area 
+        zoneQuery = ['?WB**Y001'] + ['?WB'] * (PANEL_AREA_COUNT + 1)
         return await self.connectAndSend(zoneQuery)
 
     async def connectAndSend(self, commands):

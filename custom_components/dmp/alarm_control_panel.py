@@ -60,7 +60,7 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def process_area_callback(self):
         self.async_write_ha_state()
-        _LOGGER.debug("DMPArea Callback Executed")
+        # _LOGGER.debug("DMPArea Callback Executed")
 
     @property
     def name(self):

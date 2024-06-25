@@ -485,6 +485,7 @@ class DMPListener():
                     areaName = out[1]
                     if (systemCode == "OP"):  # Disarm
                         areaState = STATE_ALARM_DISARMED
+                        # do a manual status query - bypassed zones are reset but no message for it 
                         self._hass.async_create_task(self.updateStatus())
                     elif (systemCode == "CL"):  # Arm
                         if (areaNumber[1:] == self._home_area):
@@ -540,31 +541,26 @@ class DMPListener():
             status = await panel._dmpSender.status()
             areaStatus = status[0]
             zoneStatus = status[1]
-            _LOGGER.debug(panel._open_close_zones)
             for zone, zoneData in zoneStatus.items():
                 faultZone = {"zoneNumber": zone, "zoneState": True}
                 clearZone = {"zoneNumber": zone, "zoneState": False}
 
                 if zone in panel._open_close_zones:
-                    _LOGGER.debug("setting _open_close_zones " + zone)
                     if zoneData['status'] == 'Open' or zoneData['status'] == 'Short':
                         panel.updateOpenCloseZone(zone, faultZone)
                     elif zoneData['status'] == 'Normal':
                         panel.updateOpenCloseZone(zone, clearZone)
                 if zone in panel._bypass_zones:
-                    _LOGGER.debug("setting _bypass_zones " + zone)
                     if zoneData['status'] == 'Bypassed':
                         panel.updateBypassZone(zone, faultZone)
                     else:
                         panel.updateBypassZone(zone, clearZone)
                 if zone in panel._trouble_zones:
-                    _LOGGER.debug("setting _trouble_zones " + zone)
                     if zoneData['status'] == 'Missing':
                         panel.updateTroubleZone(zone, faultZone)
                     elif zoneData['status'] == 'Normal':
                         panel.updateTroubleZone(zone, clearZone)
                 if zone in panel._battery_zones:
-                    _LOGGER.debug("setting _battery_zones " + zone)
                     if zoneData['status'] == 'Low Battery':
                         panel.updateBatteryZone(zone, faultZone)
                     elif zoneData['status'] == 'Normal':

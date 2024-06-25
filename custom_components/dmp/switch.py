@@ -63,7 +63,7 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneBypassSwitch Callback Executed")
+        # _LOGGER.debug("DMPZoneBypassSwitch Callback Executed")
         self._state = self._panel.getBypassZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -82,8 +82,8 @@ class DMPZoneBypassSwitch(SwitchEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneBypassSwitch.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPZoneBypassSwitch.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property

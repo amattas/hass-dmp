@@ -113,7 +113,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneOpenClose Callback Executed")
+        # _LOGGER.debug("DMPZoneOpenClose Callback Executed")
         self._state = self._panel.getOpenCloseZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -135,7 +135,7 @@ class DMPZoneOpenClose(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZoneOpenClose.is_on: {}".format(self._state))
+        # _LOGGER.debug("Called DMPZoneOpenClose.is_on: {}".format(self._state))
         return self._state
 
     @property
@@ -157,8 +157,8 @@ class DMPZoneOpenClose(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneOpenClose.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPZoneOpenClose.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property
@@ -217,7 +217,7 @@ class DMPZoneBattery(BinarySensorEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneBattery Callback Executed")
+        # _LOGGER.debug("DMPZoneBattery Callback Executed")
         self._state = self._panel.getBatteryZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -239,7 +239,7 @@ class DMPZoneBattery(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZoneBattery.is_on: {}".format(self._state))
+        # _LOGGER.debug("Called DMPZoneBattery.is_on: {}".format(self._state))
         return self._state
 
     @property
@@ -254,8 +254,8 @@ class DMPZoneBattery(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneBattery.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPZoneBattery.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property
@@ -316,7 +316,7 @@ class DMPZoneTrouble(BinarySensorEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneTrouble Callback Executed")
+        # _LOGGER.debug("DMPZoneTrouble Callback Executed")
         self._state = self._panel.getTroubleZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -338,7 +338,7 @@ class DMPZoneTrouble(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPTroubleZone.is_on: {}".format(self._state))
+        # _LOGGER.debug("Called DMPTroubleZone.is_on: {}".format(self._state))
         return self._state
 
     @property
@@ -353,8 +353,8 @@ class DMPZoneTrouble(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPTrouble.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPTrouble.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property
@@ -415,7 +415,7 @@ class DMPZoneBypass(BinarySensorEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneBypass Callback Executed")
+        # _LOGGER.debug("DMPZoneBypass Callback Executed")
         self._state = self._panel.getBypassZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -437,7 +437,7 @@ class DMPZoneBypass(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZoneBypass.is_on: {}".format(self._state))
+        # _LOGGER.debug("Called DMPZoneBypass.is_on: {}".format(self._state))
         return self._state
 
     @property
@@ -452,8 +452,8 @@ class DMPZoneBypass(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneBypass.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPZoneBypass.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property
@@ -514,7 +514,7 @@ class DMPZoneAlarm(BinarySensorEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneAlarm Callback Executed")
+        # _LOGGER.debug("DMPZoneAlarm Callback Executed")
         self._state = self._panel.getAlarmZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -536,7 +536,7 @@ class DMPZoneAlarm(BinarySensorEntity):
     @property
     def is_on(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZoneAlarm.is_on: {}".format(self._state))
+        # _LOGGER.debug("Called DMPZoneAlarm.is_on: {}".format(self._state))
         return self._state
 
     @property
@@ -551,8 +551,8 @@ class DMPZoneAlarm(BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        _LOGGER.debug("Called DMPZoneAlarm.device_class: {}"
-                      .format(self._device_class))
+        # _LOGGER.debug("Called DMPZoneAlarm.device_class: {}"
+                    #   .format(self._device_class))
         return self._device_class
 
     @property
