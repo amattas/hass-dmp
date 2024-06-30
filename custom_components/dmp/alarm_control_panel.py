@@ -6,11 +6,10 @@ import logging
 
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.const import STATE_ALARM_DISARMED
-from homeassistant.components.alarm_control_panel.const import (
-    AlarmControlPanelEntityFeature
-)
+
 from homeassistant.components.alarm_control_panel import (
-    AlarmControlPanelEntity
+    AlarmControlPanelEntity,
+    AlarmControlPanelEntityFeature
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_HOME_AREA,
