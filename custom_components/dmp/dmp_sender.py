@@ -14,8 +14,12 @@ class DMPSender:
             self.accountNumber = ' ' * (5 - len(self.accountNumber)) + self.accountNumber
         self.remoteKey = remoteKey
 
-    async def arm(self, zones):
-        await self.connectAndSend('!C{},YN'.format(zones))
+    # instant removes all exit/entry delays. When a delay door is opened with instant arm - the delay is ignored and the alarm is triggered immediately 
+    async def arm(self, zones, instant):
+        instantFlag = 'N'
+        if instant:
+            instantFlag = 'Y'
+        await self.connectAndSend('!C{},YN{}'.format(zones, instantFlag))
 
     async def disarm(self, zones):
         await self.connectAndSend('!O{},'.format(zones))
