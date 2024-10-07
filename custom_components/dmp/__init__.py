@@ -25,6 +25,7 @@ from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
                     CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES,
                     CONF_ZONE_NUMBER)
 from .dmp_codes import DMP_EVENTS, DMP_TYPES
+from .dmp_sender import DMPSender
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ async def async_setup_entry(hass, entry) -> bool:
     )
     await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    await hass.config_entries.async_forward_entry_setup(entry, "switch")
     return True
 
 
@@ -128,6 +130,7 @@ class DMPPanel():
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
         self._area = STATE_ALARM_DISARMED  # Default Value
+        self._dmpSender = DMPSender(self._ipAddress, self._panelPort, self._accountNumber, self._remoteKey)
         self._open_close_zones = {}
         self._battery_zones = {}
         self._trouble_zones = {}
@@ -290,33 +293,6 @@ class DMPPanel():
 
     def getAccountNumber(self):
         return self._accountNumber
-
-    async def connectAndSend(self, sToSend):
-        reader, writer = await asyncio.open_connection(self._ipAddress,
-                                                       self._panelPort)
-
-        # drop any existing connection
-        writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
-        await writer.drain()
-        await asyncio.sleep(2)
-        # send auth string
-        writer.write('@ {}!V2{}\r'.format(self._accountNumber,
-                                          self._remoteKey).encode())
-        await writer.drain()
-        await asyncio.sleep(0.2)
-        # write single string to the receiver
-        writer.write('@ {}{}\r'.format(self._accountNumber, sToSend).encode())
-        await writer.drain()
-        await asyncio.sleep(0.2)
-        # disconnect
-        writer.write('@ {}!V0\r'.format(self._accountNumber).encode())
-        await writer.drain()
-        # close the socket
-        writer.close()
-        await writer.wait_closed()
-        data = await reader.read(256)
-        _LOGGER.debug("DMP: Received data after command: {}".format(data))
-
 
 class DMPListener():
     def __init__(self, hass, config):

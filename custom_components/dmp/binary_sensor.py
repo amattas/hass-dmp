@@ -73,7 +73,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
     async_add_entities(openCloseZones, update_before_add=False)
     async_add_entities(batteryZones, update_before_add=False)
     async_add_entities(troubleZones, update_before_add=False)
-    async_add_entities(bypassZones, update_before_add=False)
+    # using bypass switch instead 
+    # async_add_entities(bypassZones, update_before_add=False)
     async_add_entities(alarmZones, update_before_add=False)
 
 
