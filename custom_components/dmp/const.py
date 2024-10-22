@@ -48,4 +48,5 @@ BATTERY_LEVEL = "BatteryLevel"
 
 
 # Other Constants
-PANEL_ALL_ZONES = "010203"
+PANEL_AREA_COUNT = 3
+PANEL_ALL_AREAS = "010203"

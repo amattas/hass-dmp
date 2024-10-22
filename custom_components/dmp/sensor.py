@@ -79,7 +79,7 @@ class DMPZoneStatus(SensorEntity):
             item = device_registry.async_get_device(i)
 
     async def process_zone_callback(self):
-        _LOGGER.debug("DMPZoneStatus Callback Executed")
+        # _LOGGER.debug("DMPZoneStatus Callback Executed")
         self._state = self._panel.getStatusZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -106,7 +106,7 @@ class DMPZoneStatus(SensorEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        _LOGGER.debug("Called DMPZoneStatus.state: {}".format(self._state))
+        # _LOGGER.debug("Called DMPZoneStatus.state: {}".format(self._state))
         return self._state
 
     @property

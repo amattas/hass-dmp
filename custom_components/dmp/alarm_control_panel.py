@@ -15,7 +15,7 @@ from homeassistant.components.alarm_control_panel import (
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_HOME_AREA,
-                    CONF_AWAY_AREA, PANEL_ALL_ZONES)
+                    CONF_AWAY_AREA, PANEL_ALL_AREAS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def process_area_callback(self):
         self.async_write_ha_state()
-        _LOGGER.debug("DMPArea Callback Executed")
+        # _LOGGER.debug("DMPArea Callback Executed")
 
     @property
     def name(self):
@@ -113,11 +113,11 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel._dmpSender.disarm(PANEL_ALL_ZONES)
+        await self._panel._dmpSender.disarm(PANEL_ALL_AREAS)
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel._dmpSender.arm(PANEL_ALL_ZONES)
+        await self._panel._dmpSender.arm(PANEL_ALL_AREAS)
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm home command."""
