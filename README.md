@@ -16,13 +16,16 @@ This integration implements a simplified arming/disarming model from the panel's
 * Arm Night - arms the home area with the **instant** flag. This disables delay doors for exit and entry - alarm will trigger immediately if any zone is faulted. Shows as armed home from a status POV (haven't found a way to differentiate)
 
 ### Zone Monitoring
-This integration provides multiple entities for each zone provided by the panel. These include:
+This integration provides multiple entities for each zone provided by the panel. 
 
+___Entities shown based on device type:___
 * Window Open/Close (binary sensor)
 * Door Open/Close (binary sensor)
 * Alarm (binary sensor)
 * Trouble (binary sensor)
 * Low Battery (binary sensor)
+
+___Entities shown regardless of device type:___
 * Status (sensor - rollup of binary sensors for faults)
 * Bypass (switch - allow for enable/disable of bypass for each zone)
 
@@ -41,6 +44,7 @@ This integration implements a Home Assistant configuration flow to simplify setu
 * Simplification of platform code
 * Separation of panel specific listener code
 * Unit testing
+* Dynamic discovery of zones/areas
 
 ## Credit
 Thank you to [baddienatalie](https://community.home-assistant.io/u/baddienatalie/summary) in the Home Assistant community. They made the first [pass at this integration](https://git.natnat.xyz/hass-dmp-integration/dmp), which was forked and used as the base for this integration. This was my first Home Assistant integration and I have learned a lot along the way. There was a lot of trial and error as I worked through the documentation, and as suchthere is a lot to cleanup and optimize now. 
