@@ -26,6 +26,15 @@ class DMPRefreshStatusButton(ButtonEntity):
         self._listener = self._hass.data[DOMAIN][LISTENER]
         self._name = "Refresh Status"
 
+    async def async_added_to_hass(self):
+        self._listener.register_callback(self.process_zone_callback)
+
+    async def async_will_remove_from_hass(self):
+        self._listener.remove_callback(self.process_zone_callback)
+
+    async def process_zone_callback(self):
+        self.async_write_ha_state()
+
     async def async_press(self):
         await self._listener.updateStatus()
 
@@ -49,3 +58,8 @@ class DMPRefreshStatusButton(ButtonEntity):
             name=self._panel_name,
             manufacturer='Digital Monitoring Products',
         )
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._listener.getStatusAttributes()
