@@ -1,0 +1,7 @@
+{
+  "name": "DMP",
+    "domains": ["binary_sensor", "sensor", "switch", "alarm_control_panel"],
+  "homeassistant": "2024.1.0",
+  "iot_class": ["Local Poll"],
+  "render_readme": true
+}
