@@ -46,6 +46,8 @@ class DMPZoneStatus(SensorEntity):
             self._device_class = "door"
         elif "window" in entity_config.get(CONF_ZONE_CLASS):
             self._device_class = "window"
+        elif "motion" in entity_config.get(CONF_ZONE_CLASS):
+            self._device_class = "motion"
         else:
             self._device_class = "default"
         self._state = 'Ready'
@@ -132,6 +134,8 @@ class DMPZoneStatus(SensorEntity):
         elif state == 'Open':
             if device_class == "window":
                 return 'mdi:window-open'
+            elif device_class == "motion":
+                return 'mdi:motion'
             else:
                 return 'mdi:door-open'
         elif state == 'Ready':
