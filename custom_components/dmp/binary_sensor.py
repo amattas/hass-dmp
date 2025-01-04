@@ -150,14 +150,14 @@ class DMPZoneOpenClose(BinarySensorEntity):
             if device_class == "window":
                 return 'mdi:window-open'
             if device_class == "motion":
-                return 'mdi:motion-outline'
+                return 'mdi:motion'
             else:
                 return 'mdi:door-open'
         else:
             if device_class == "window":
                 return 'mdi:window-closed'
             if device_class == "motion":
-                return 'mdi:motion-outline'
+                return 'mdi:motion'
             else:
                 return 'mdi:door-closed'
 
