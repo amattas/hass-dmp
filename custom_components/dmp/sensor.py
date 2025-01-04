@@ -135,7 +135,7 @@ class DMPZoneStatus(SensorEntity):
             if device_class == "window":
                 return 'mdi:window-open'
             elif device_class == "motion":
-                return 'mdi:motion'
+                return 'mdi:motion-sensor-off'
             else:
                 return 'mdi:door-open'
         elif state == 'Ready':
