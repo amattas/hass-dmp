@@ -29,7 +29,7 @@ from .dmp_sender import DMPSender
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.ALARM_CONTROL_PANEL, Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SENSOR, Platform.SWITCH]
 
 
 async def async_setup_entry(hass, entry) -> bool:
@@ -52,14 +52,7 @@ async def async_setup_entry(hass, entry) -> bool:
     listener.addPanel(panel)
     _LOGGER.debug("Panels attached to listener: %s",
                   str(listener.getPanels()))
-    await hass.config_entries.async_forward_entry_setup(
-        entry,
-        "alarm_control_panel"
-    )
-    await hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
-    await hass.config_entries.async_forward_entry_setup(entry, "sensor")
-    await hass.config_entries.async_forward_entry_setup(entry, "switch")
-    await hass.config_entries.async_forward_entry_setup(entry, "button")
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     hass.async_create_task(listener.updateStatus())
     return True
 
