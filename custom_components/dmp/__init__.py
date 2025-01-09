@@ -271,7 +271,7 @@ class DMPPanel():
             zone_state = 'Bypass'
         elif (self.getBatteryZone(zoneNum)
               and self.getBatteryZone(zoneNum)['zoneState']):
-            zone_state = 'Bypass'
+            zone_state = 'Low Battery'
         elif (self.getOpenCloseZone(zoneNum)
               and self.getOpenCloseZone(zoneNum)['zoneState']):
             zone_state = 'Open'
