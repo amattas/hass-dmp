@@ -79,7 +79,7 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return AlarmControlPanelEntityFeature.ARM_HOME | AlarmControlPanelEntityFeature.ARM_AWAY
+        return AlarmControlPanelEntityFeature.ARM_HOME | AlarmControlPanelEntityFeature.ARM_AWAY | AlarmControlPanelEntityFeature.ARM_NIGHT
 
     @property
     def code_arm_required(self):
@@ -115,8 +115,14 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel._dmpSender.arm(PANEL_ALL_AREAS)
+        await self._panel._dmpSender.arm(PANEL_ALL_AREAS, False)
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm home command."""
-        await self._panel._dmpSender.arm(self._home_zone)
+        await self._panel._dmpSender.arm(self._home_zone, False)
+
+    # arm night is just an arm home with no exit/entry delay
+    async def async_alarm_arm_night(self, code=None):
+        """Send arm night command."""
+        await self._panel._dmpSender.arm(self._home_zone, True)
+
