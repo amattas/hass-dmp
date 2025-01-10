@@ -298,6 +298,7 @@ class DMPListener():
         self._port = config.get(CONF_PANEL_LISTEN_PORT)
         self._server = None
         self._panels = {}
+        self.statusAttributes = {}
         # callbacks to call when an event gets posted in
         self._callbacks = set()
 
@@ -558,7 +559,22 @@ class DMPListener():
                         panel.updateBatteryZone(zone, faultZone)
                     elif zoneData['status'] == 'Normal':
                         panel.updateBatteryZone(zone, clearZone)
+        self.setStatusAttributes(areaStatus, zoneStatus)
         await self.updateHASS()
+
+    def setStatusAttributes(self, areaStatus, zoneStatus):
+        attr = {}
+        attr[datetime.now().strftime("%Y-%m-%d %H:%M:%S") ] = ''
+        attr['Areas:'] = ''
+        for area in dict(sorted(areaStatus.items())):
+            attr['Area: ' + area + ' - ' + areaStatus[area]['name']] = areaStatus[area]['status']
+        attr['Zones:'] = ''
+        for zone in dict(sorted(zoneStatus.items())):
+            attr['Zone: ' + zone + ' - ' + zoneStatus[zone]['name']] = zoneStatus[zone]['status']
+        self.statusAttributes = attr
+
+    def getStatusAttributes(self):
+        return self.statusAttributes
 
     async def updateHASS(self):
         # call to update the hass object
