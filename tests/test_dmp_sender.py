@@ -1,11 +1,11 @@
 """Test DMP Sender module."""
 import pytest
-from unittest.mock import patch, AsyncMock
-from custom_components.dmp.dmp_sender import DMPSender
+from unittest.mock import patch, AsyncMock, MagicMock
+from custom_components.dmp.dmp_sender import DMPSender, DMPCharReply, StatusResponse
 
 
-class TestDMPSender:
-    """Test DMPSender class."""
+class TestDMPAccountNumbers:
+    """Test account number formatting."""
 
     def test_account_number_padding_short(self):
         """Test that account numbers less than 5 chars are padded."""
@@ -37,6 +37,9 @@ class TestDMPSender:
         encoded = sender.getEncodedPayload("")
         assert encoded == b"@  123\r"
 
+
+class TestDMPArming:
+    """Test arming commands."""
     @pytest.mark.asyncio
     async def test_arm_with_instant(self):
         """Test arm command with instant flag enabled."""
@@ -73,6 +76,9 @@ class TestDMPSender:
             await sender.disarm("02")
             mock_send.assert_called_once_with("!O02,")
 
+class TestDMPBypass:
+    """Test bypass commands."""
+
     @pytest.mark.asyncio
     async def test_setBypass_enable(self):
         """Test setBypass command to enable bypass."""
@@ -100,6 +106,9 @@ class TestDMPSender:
             await sender.setBypass(123, True)
             mock_send.assert_called_once_with("!X123")
 
+class TestDMPStatus:
+    """Test status command."""
+
     @pytest.mark.asyncio
     async def test_status(self):
         """Test status command sends correct zone queries."""
@@ -110,4 +119,3 @@ class TestDMPSender:
             # PANEL_AREA_COUNT is 3, so we expect 1 initial query + 4 additional
             expected_commands = ['?WB**Y001', '?WB', '?WB', '?WB', '?WB']
             mock_send.assert_called_once_with(expected_commands)
-
