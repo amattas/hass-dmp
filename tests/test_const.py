@@ -1,6 +1,6 @@
 """Test constants module."""
 import pytest
-from custom_components.dmp.const import *
+from ..custom_components.dmp.const import *
 
 
 def test_component_constant():
