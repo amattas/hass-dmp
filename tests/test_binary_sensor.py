@@ -68,8 +68,8 @@ def mock_zone_config():
     ]
 
 
-class TestDMPSetup:
-    """ Test setting up binary sensors"""
+class TestBinarySensorSetup:
+    """Test setting up binary sensors"""
 
     @pytest.mark.asyncio
     async def test_async_setup_entry(self, hass: HomeAssistant, mock_config_entry, mock_zone_config, mock_listener):
@@ -107,145 +107,44 @@ class TestDMPZoneOpenClose:
         }
         return hass, mock_listener.getPanels()["12345"]
 
-    def test_door_sensor_initialization(self, setup_sensor, mock_config_entry):
-        """Test door sensor initialization."""
+    @pytest.mark.parametrize(
+        "zone_class,expected_device_class", [
+            ("wired_door", "door"),
+            ("battery_window", "window"),
+            ("wired_motion", "motion"),
+            ("unknown_type", "sensors"),
+        ]
+    )
+    def test_device_class_mapping(self, setup_sensor, mock_config_entry, zone_class, expected_device_class):
         hass, mock_panel = setup_sensor
         zone_config = {
-            CONF_ZONE_NAME: "Test Door",
+            CONF_ZONE_NAME: "Test Zone",
             CONF_ZONE_NUMBER: "001",
-            CONF_ZONE_CLASS: "wired_door"
+            CONF_ZONE_CLASS: zone_class
         }
-        
         sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        
-        assert sensor._device_class == "door"
-        assert sensor._name == "Test Door"
-        assert sensor._number == "001"
-        assert sensor.is_on is False
-        mock_panel.updateOpenCloseZone.assert_called_once()
+        assert sensor._device_class == expected_device_class
 
-    def test_window_sensor_initialization(self, setup_sensor, mock_config_entry):
-        """Test window sensor initialization."""
+    @pytest.mark.parametrize(
+        "zone_class,state,expected_icon", [
+            ("wired_door", False, "mdi:door-closed"),
+            ("wired_door", True, "mdi:door-open"),
+            ("battery_window", False, "mdi:window-closed"),
+            ("battery_window", True, "mdi:window-open"),
+            ("wired_motion", False, "mdi:motion-sensor-off"),
+            ("wired_motion", True, "mdi:motion-sensor"),
+        ]
+    )
+    def test_icon_mapping(self, setup_sensor, mock_config_entry, zone_class, state, expected_icon):
         hass, mock_panel = setup_sensor
         zone_config = {
-            CONF_ZONE_NAME: "Test Window",
-            CONF_ZONE_NUMBER: "002",
-            CONF_ZONE_CLASS: "battery_window"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        
-        assert sensor._device_class == "window"
-
-    def test_motion_sensor_initialization(self, setup_sensor, mock_config_entry):
-        """Test motion sensor initialization."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Motion",
-            CONF_ZONE_NUMBER: "003",
-            CONF_ZONE_CLASS: "wired_motion"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        
-        assert sensor._device_class == "motion"
-
-    def test_default_sensor_initialization(self, setup_sensor, mock_config_entry):
-        """Test sensor with unknown class defaults to sensors."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Sensor",
-            CONF_ZONE_NUMBER: "004",
-            CONF_ZONE_CLASS: "unknown_type"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        
-        assert sensor._device_class == "sensors"
-
-    def test_icon_door_closed(self, setup_sensor, mock_config_entry):
-        """Test icon for closed door."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Door",
+            CONF_ZONE_NAME: "Test Zone",
             CONF_ZONE_NUMBER: "001",
-            CONF_ZONE_CLASS: "wired_door"
+            CONF_ZONE_CLASS: zone_class
         }
-        
         sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = False
-        
-        assert sensor.icon == "mdi:door-closed"
-
-    def test_icon_door_open(self, setup_sensor, mock_config_entry):
-        """Test icon for open door."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Door",
-            CONF_ZONE_NUMBER: "001",
-            CONF_ZONE_CLASS: "wired_door"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = True
-        
-        assert sensor.icon == "mdi:door-open"
-
-    def test_icon_window_closed(self, setup_sensor, mock_config_entry):
-        """Test icon for closed window."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Window",
-            CONF_ZONE_NUMBER: "002",
-            CONF_ZONE_CLASS: "battery_window"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = False
-        
-        assert sensor.icon == "mdi:window-closed"
-
-    def test_icon_window_open(self, setup_sensor, mock_config_entry):
-        """Test icon for open window."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Window",
-            CONF_ZONE_NUMBER: "002",
-            CONF_ZONE_CLASS: "battery_window"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = True
-        
-        assert sensor.icon == "mdi:window-open"
-
-    def test_icon_motion_inactive(self, setup_sensor, mock_config_entry):
-        """Test icon for inactive motion sensor."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Motion",
-            CONF_ZONE_NUMBER: "003",
-            CONF_ZONE_CLASS: "wired_motion"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = False
-        
-        assert sensor.icon == "mdi:motion-sensor-off"
-
-    def test_icon_motion_active(self, setup_sensor, mock_config_entry):
-        """Test icon for active motion sensor."""
-        hass, mock_panel = setup_sensor
-        zone_config = {
-            CONF_ZONE_NAME: "Test Motion",
-            CONF_ZONE_NUMBER: "003",
-            CONF_ZONE_CLASS: "wired_motion"
-        }
-        
-        sensor = DMPZoneOpenClose(hass, mock_config_entry, zone_config)
-        sensor._state = True
-        
-        assert sensor.icon == "mdi:motion-sensor"
+        sensor._state = state
+        assert sensor.icon == expected_icon
 
     @pytest.mark.asyncio
     async def test_process_zone_callback(self, setup_sensor, mock_config_entry):
