@@ -1,4 +1,217 @@
-# HomeAssistant quality scale:
-#   https://developers.home-assistant.io/docs/core/integration-quality-scale/
+# Home Assistant Integration Quality Scale Tracking
+# This file tracks the implementation status of quality scale rules
+# Status options: todo, done, exempt
+# For exempt rules, add a comment explaining the exemption reason
+
 rules:
-  brands: done
+  # Bronze Tier Rules
+  action-setup: 
+    status: todo
+    # Service actions are registered in async_setup
+  
+  appropriate-polling: 
+    status: todo
+    # If it's a polling integration, set an appropriate polling interval
+  
+  brands: 
+    status: todo
+    # Has branding assets available for the integration
+  
+  common-modules: 
+    status: todo
+    # Place common patterns in common modules
+  
+  config-flow-test-coverage: 
+    status: todo
+    # Full test coverage for the config flow
+  
+  config-flow: 
+    status: todo
+    # Integration needs to be able to be set up via the UI
+  
+  dependency-transparency: 
+    status: todo
+    # Dependency transparency
+  
+  docs-actions: 
+    status: todo
+    # The documentation describes the provided service actions that can be used
+  
+  docs-high-level-description: 
+    status: todo
+    # The documentation includes a high-level description of the integration brand, product, or service
+  
+  docs-installation-instructions: 
+    status: todo
+    # The documentation provides step-by-step installation instructions for the integration, including, if needed, prerequisites
+  
+  docs-removal-instructions: 
+    status: todo
+    # The documentation provides removal instructions
+  
+  entity-event-setup: 
+    status: todo
+    # Entity events are subscribed in the correct lifecycle methods
+  
+  entity-unique-id: 
+    status: todo
+    # Entities have a unique ID
+  
+  has-entity-name: 
+    status: todo
+    # Entities use has_entity_name = True
+  
+  runtime-data: 
+    status: todo
+    # Use ConfigEntry.runtime_data to store runtime data
+  
+  test-before-configure: 
+    status: todo
+    # Test a connection in the config flow
+  
+  test-before-setup: 
+    status: todo
+    # Check during integration initialization if we are able to set it up correctly
+  
+  unique-config-entry: 
+    status: todo
+    # Don't allow the same device or service to be able to be set up twice
+
+  # Silver Tier Rules
+  action-exceptions: 
+    status: todo
+    # Service actions raise exceptions when encountering failures
+  
+  config-entry-unloading: 
+    status: todo
+    # Support config entry unloading
+  
+  docs-configuration-parameters: 
+    status: todo
+    # The documentation describes all integration configuration options
+  
+  docs-installation-parameters: 
+    status: todo
+    # The documentation describes all integration installation parameters
+  
+  entity-unavailable: 
+    status: todo
+    # Mark entity unavailable if appropriate
+  
+  integration-owner: 
+    status: todo
+    # Has an integration owner
+  
+  log-when-unavailable: 
+    status: todo
+    # If internet/device/service is unavailable, log once when unavailable and once when back connected
+  
+  parallel-updates: 
+    status: todo
+    # Number of parallel updates is specified
+  
+  reauthentication-flow: 
+    status: todo
+    # Reauthentication needs to be available via the UI
+  
+  test-coverage: 
+    status: todo
+    # Above 95% test coverage for all integration modules
+
+  # Gold Tier Rules
+  devices: 
+    status: todo
+    # The integration creates devices
+  
+  diagnostics: 
+    status: todo
+    # Implements diagnostics
+  
+  discovery-update-info: 
+    status: todo
+    # Integration uses discovery info to update network information
+  
+  discovery: 
+    status: todo
+    # Devices can be discovered
+  
+  docs-data-update: 
+    status: todo
+    # The documentation describes how data is updated
+  
+  docs-examples: 
+    status: todo
+    # The documentation provides automation examples the user can use
+  
+  docs-known-limitations: 
+    status: todo
+    # The documentation describes known limitations of the integration (not to be confused with bugs)
+  
+  docs-supported-devices: 
+    status: todo
+    # The documentation describes known supported / unsupported devices
+  
+  docs-supported-functions: 
+    status: todo
+    # The documentation describes the supported functionality, including entities, and platforms
+  
+  docs-troubleshooting: 
+    status: todo
+    # The documentation provides troubleshooting information
+  
+  docs-use-cases: 
+    status: todo
+    # The documentation describes use cases to illustrate how this integration can be used
+  
+  dynamic-devices: 
+    status: todo
+    # Devices added after integration setup
+  
+  entity-category: 
+    status: todo
+    # Entities are assigned an appropriate EntityCategory
+  
+  entity-device-class: 
+    status: todo
+    # Entities use device classes where possible
+  
+  entity-disabled-by-default: 
+    status: todo
+    # Integration disables less popular (or noisy) entities
+  
+  entity-translations: 
+    status: todo
+    # Entities have translated names
+  
+  exception-translations: 
+    status: todo
+    # Exception messages are translatable
+  
+  icon-translations: 
+    status: todo
+    # Entities implement icon translations
+  
+  reconfiguration-flow: 
+    status: todo
+    # Integrations should have a reconfigure flow
+  
+  repair-issues: 
+    status: todo
+    # Repair issues and repair flows are used when user intervention is needed
+  
+  stale-devices: 
+    status: todo
+    # Stale devices are removed
+
+  # Platinum Tier Rules
+  async-dependency: 
+    status: todo
+    # Dependency is async
+  
+  inject-websession: 
+    status: todo
+    # The integration dependency supports passing in a websession
+  
+  strict-typing: 
+    status: todo
+    # Strict typing
