@@ -116,3 +116,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/homeassistant,macos,windows,visualstudiocode
+/custom_components/dmp/__pycache__
