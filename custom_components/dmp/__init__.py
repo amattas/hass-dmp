@@ -19,7 +19,7 @@ from homeassistant.const import (
     STATE_ALARM_TRIGGERED,
     Platform
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
+from .const import (CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
                     CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES,

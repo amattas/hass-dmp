@@ -4,8 +4,7 @@ from homeassistant.components.switch import (
 from homeassistant.helpers.entity import DeviceInfo
 
 from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
-                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ZONES)
+                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONES)
 import logging
 
 

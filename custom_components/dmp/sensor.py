@@ -1,6 +1,4 @@
 """Platform for DMP Alarm Panel integration"""
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 import logging
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo

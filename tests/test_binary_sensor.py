@@ -5,7 +5,6 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.binary_sensor import (
-    async_setup_entry,
     DMPZoneOpenClose,
     DMPZoneBattery,
     DMPZoneTrouble,
@@ -13,7 +12,7 @@ from custom_components.dmp.binary_sensor import (
     DMPZoneBypass,
 )
 from custom_components.dmp.const import (
-    DOMAIN, LISTENER, CONF_ZONES, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
+    DOMAIN, LISTENER, CONF_ZONE_NAME, CONF_ZONE_NUMBER,
     CONF_ZONE_CLASS, CONF_PANEL_ACCOUNT_NUMBER
 )
 

@@ -1,9 +1,7 @@
 """Test async_setup_entry and async_unload_entry."""
-import asyncio
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 
 import custom_components.dmp as dmp_module
 from custom_components.dmp import async_setup_entry, async_unload_entry, options_update_listener

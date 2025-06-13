@@ -1,8 +1,8 @@
 """Complete tests for DMPPanel class."""
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 from datetime import datetime
-from homeassistant.const import STATE_ALARM_DISARMED, STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_TRIGGERED
+from homeassistant.const import STATE_ALARM_DISARMED, STATE_ALARM_ARMED_AWAY
 
 from custom_components.dmp import DMPPanel
 from custom_components.dmp.const import (

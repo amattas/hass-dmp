@@ -1,9 +1,7 @@
 """Test updateStatusZone logic in DMPPanel."""
 import pytest
 from unittest.mock import Mock, patch
-from copy import deepcopy
 from custom_components.dmp import DMPPanel
-from custom_components.dmp.const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_IP
 
 
 @pytest.fixture

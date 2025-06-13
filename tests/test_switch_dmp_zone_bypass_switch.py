@@ -145,7 +145,7 @@ def test_device_info_and_poll(hass: HomeAssistant, mock_config_entry, mock_liste
     assert switch.should_poll is True
     # device_info identifiers
     device_info = switch.device_info
-    expected_id = (DOMAIN, f"dmp-12345-zone-001")
+    expected_id = (DOMAIN, "dmp-12345-zone-001")
     assert expected_id in device_info["identifiers"]
     # via_device set to panel
     assert device_info["via_device"] == (DOMAIN, "dmp-12345-panel")

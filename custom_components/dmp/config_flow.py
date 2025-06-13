@@ -2,13 +2,10 @@ from copy import deepcopy
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant import config_entries, core
+from homeassistant import config_entries
 
 # from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import (
     async_entries_for_config_entry,
@@ -39,7 +36,6 @@ from .const import (
     DEV_TYPE_WIRED_DOOR,
     DEV_TYPE_WIRED_GLASSBREAK,
     DEV_TYPE_WIRED_MOTION,
-    DEV_TYPE_WIRED_SIREN,
     DEV_TYPE_WIRED_SMOKE,
     DEV_TYPE_WIRED_WINDOW,
 )

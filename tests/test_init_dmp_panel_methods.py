@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from custom_components.dmp import DMPPanel
 from custom_components.dmp.const import (
-    CONF_PANEL_IP, CONF_PANEL_REMOTE_KEY, CONF_PANEL_REMOTE_PORT,
+    CONF_PANEL_IP, CONF_PANEL_REMOTE_PORT,
     CONF_PANEL_ACCOUNT_NUMBER
 )
 

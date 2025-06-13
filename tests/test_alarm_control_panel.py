@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ALARM_DISARMED, STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME
+from homeassistant.const import STATE_ALARM_DISARMED
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.alarm_control_panel import DMPArea, async_setup_entry

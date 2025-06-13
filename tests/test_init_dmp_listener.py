@@ -1,8 +1,6 @@
 """Complete tests for DMPListener class."""
 import pytest
-import asyncio
 from unittest.mock import Mock, patch, AsyncMock
-from homeassistant.const import STATE_ALARM_DISARMED, STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_TRIGGERED
 
 from custom_components.dmp import DMPListener
 from custom_components.dmp.const import CONF_HOME_AREA, CONF_AWAY_AREA, CONF_PANEL_LISTEN_PORT
