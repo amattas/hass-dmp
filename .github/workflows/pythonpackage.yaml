@@ -31,7 +31,7 @@ jobs:
 
       - name: Lint with Ruff
         run: |
-          ruff .
+          ruff check .
 
       - name: Bandit security scan
         run: |
