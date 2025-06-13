@@ -6,9 +6,17 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp import options_update_listener
-from custom_components.dmp.const import DOMAIN, LISTENER, CONF_ZONES, CONF_ZONE_NUMBER, CONF_ZONE_NAME, CONF_ZONE_CLASS
+from custom_components.dmp.const import (
+    DOMAIN,
+    LISTENER,
+    CONF_ZONES,
+    CONF_ZONE_NUMBER,
+    CONF_ZONE_NAME,
+    CONF_ZONE_CLASS,
+)
 
 
+pytestmark = pytest.mark.asyncio
 
 @pytest.fixture
 def mock_config_entry():
@@ -92,10 +100,9 @@ async def test_options_update_no_changes(hass: HomeAssistant, mock_config_entry)
     )
     
     await options_update_listener(hass, entry_with_no_options)
-    
-    # Should not do anything since no options provided
-    # Just verify it completes without error
-    assert True
+
+    # Should not modify stored configuration
+    assert hass.data[DOMAIN][mock_config_entry.entry_id] == mock_config_entry.data
 
 async def test_options_update_zone_removed(hass: HomeAssistant, mock_config_entry, mock_entity_registry, mock_entity_entries):
     """Test removing a zone removes its entities."""
@@ -260,10 +267,9 @@ async def test_options_update_handles_missing_platform(hass: HomeAssistant, mock
         
         # Should not raise AttributeError even though entity has no unique_id split
         await options_update_listener(hass, entry_with_options)
-        
+
         # The entity should still be removed if it's a zone entity
-        # In this case it will try to split unique_id and may fail, but shouldn't crash
-        assert True  # Just verify it completes without error
+        assert mock_entity_registry.async_remove.called
 
 async def test_options_update_filters_by_zone_number(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test that entity removal correctly filters by zone number."""

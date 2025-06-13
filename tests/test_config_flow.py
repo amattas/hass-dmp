@@ -7,11 +7,17 @@ from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.dmp.config_flow import DMPCustomConfigFlow, OptionsFlowHandler
 from custom_components.dmp.const import (
-    CONF_ZONES, CONF_ZONE_NAME, CONF_ZONE_NUMBER, 
-    CONF_ZONE_CLASS, CONF_HOME_AREA, CONF_AWAY_AREA, CONF_ADD_ANOTHER
+    CONF_ZONES,
+    CONF_ZONE_NAME,
+    CONF_ZONE_NUMBER,
+    CONF_ZONE_CLASS,
+    CONF_HOME_AREA,
+    CONF_AWAY_AREA,
+    CONF_ADD_ANOTHER,
 )
 
 
+pytestmark = pytest.mark.asyncio
 async def test_form_user_step(hass: HomeAssistant):
     """Test we get the user form."""
     flow = DMPCustomConfigFlow()

@@ -350,11 +350,4 @@ async def test_alarm_callbacks(setup_alarm_sensor, mock_config_entry, mock_liste
     mock_listener.remove_callback.assert_called_with(sensor.process_zone_callback)
 
 
-__all__ = [
-"TestBinarySensorSetup",
-"TestDMPZoneOpenClose",
-"TestDMPZoneBattery",
-"TestDMPZoneTrouble",
-"TestDMPZoneAlarm",
-"TestDMPZoneBypass",
-]
+

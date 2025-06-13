@@ -71,9 +71,22 @@ def test_basic_properties(hass: HomeAssistant, mock_config_entry,
     assert switch.unique_id == expected_unique
     assert switch.device_class == "switch"
 
+@pytest.mark.parametrize(
+    "method,expected",
+    [
+        ("async_turn_on", True),
+        ("async_turn_off", False),
+    ],
+)
 @pytest.mark.asyncio
-async def test_async_turn_on(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    """Test turning on bypass via async_turn_on calls setBypass with True."""
+async def test_async_turn_on_off(
+    hass: HomeAssistant,
+    mock_config_entry,
+    mock_listener_panel,
+    method,
+    expected,
+):
+    """Test bypass switch on/off calls DMPSender with correct value."""
     listener, panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
@@ -81,21 +94,8 @@ async def test_async_turn_on(hass: HomeAssistant, mock_config_entry, mock_listen
         CONF_ZONE_CLASS: "wired_door",
     }
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-    await switch.async_turn_on()
-    panel._dmpSender.setBypass.assert_called_once_with("001", True)
-
-@pytest.mark.asyncio
-async def test_async_turn_off(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    """Test turning off bypass via async_turn_off calls setBypass with False."""
-    listener, panel = mock_listener_panel
-    zone_config = {
-        CONF_ZONE_NAME: "Front Door",
-        CONF_ZONE_NUMBER: "001",
-        CONF_ZONE_CLASS: "wired_door",
-    }
-    switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-    await switch.async_turn_off()
-    panel._dmpSender.setBypass.assert_called_once_with("001", False)
+    await getattr(switch, method)()
+    panel._dmpSender.setBypass.assert_called_once_with("001", expected)
 
 @pytest.mark.parametrize(
     "zone_name,zone_number,zone_class", [
