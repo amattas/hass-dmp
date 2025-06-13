@@ -4,6 +4,9 @@ from unittest.mock import Mock, patch, AsyncMock
 
 from custom_components.dmp import DMPListener
 from custom_components.dmp.const import CONF_HOME_AREA, CONF_AWAY_AREA, CONF_PANEL_LISTEN_PORT
+@pytest.fixture
+def listener_default():
+    return DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02", CONF_PANEL_LISTEN_PORT: 40001})
 
 
 def test_listener_str_representation():
