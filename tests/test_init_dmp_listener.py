@@ -8,7 +8,7 @@ from custom_components.dmp import DMPListener
 from custom_components.dmp.const import CONF_HOME_AREA, CONF_AWAY_AREA, CONF_PANEL_LISTEN_PORT
 
 
-def test_listener_str_representation(self):
+def test_listener_str_representation():
     """Test string representation of listener."""
     config = {
         CONF_HOME_AREA: "01",
@@ -19,7 +19,7 @@ def test_listener_str_representation(self):
     listener = DMPListener(Mock(), config)
     assert str(listener) == "DMP Listener on port 40001"
 
-def test_listener_initialization(self):
+def test_listener_initialization():
     """Test listener initialization."""
     hass_mock = Mock()
     config = {
@@ -40,7 +40,7 @@ def test_listener_initialization(self):
     assert listener.statusAttributes == {}
     assert len(listener._callbacks) == 0
 
-def test_event_type_and_event_lookups(self):
+def test_event_type_and_event_lookups():
     """Test event type and event code lookups."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     
@@ -48,7 +48,7 @@ def test_event_type_and_event_lookups(self):
     assert listener._event_types("UNKNOWN") == "Unknown Type UNKNOWN"
     assert listener._events("ZZ") == "Unknown Event ZZ"
 
-def test_getS3Segment_with_backslash(self):
+def test_getS3Segment_with_backslash():
     """Test S3 segment extraction with backslash terminator."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     
@@ -60,7 +60,7 @@ def test_getS3Segment_with_backslash(self):
     result = listener._getS3Segment("\\a", "prefix\\a  01 Main Area  \\next")
     assert result == "01 Main Area"
 
-def test_searchS3Segment_edge_cases(self):
+def test_searchS3Segment_edge_cases():
     """Test S3 segment search edge cases."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     
@@ -75,7 +75,7 @@ def test_searchS3Segment_edge_cases(self):
     assert name == "Zone-2 (Main)\""
 
 @pytest.mark.asyncio
-async def test_listener_updateStatus_with_short_status(self):
+async def test_listener_updateStatus_with_short_status():
     """Test updateStatus handles 'Short' status for open/close zones."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     
@@ -108,7 +108,7 @@ async def test_listener_updateStatus_with_short_status(self):
     panel.updateOpenCloseZone.assert_any_call("002", {"zoneNumber": "002", "zoneState": False})
 
 @pytest.mark.asyncio  
-async def test_listener_start_and_listen(self):
+async def test_listener_start_and_listen():
     """Test listener start creates server and calls listen."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02", CONF_PANEL_LISTEN_PORT: 40001})
     
@@ -129,7 +129,7 @@ async def test_listener_start_and_listen(self):
         assert listener._server == mock_server
 
 @pytest.mark.asyncio
-async def test_listener_stop(self):
+async def test_listener_stop():
     """Test listener stop."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02", CONF_PANEL_LISTEN_PORT: 40001})
     
@@ -149,7 +149,7 @@ async def test_listener_stop(self):
     mock_server.wait_closed.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_listener_updateHASS(self):
+async def test_listener_updateHASS():
     """Test updateHASS method with callbacks."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     
@@ -165,7 +165,7 @@ async def test_listener_updateHASS(self):
     callback1.assert_called_once()
     callback2.assert_called_once()
 
-def test_listener_panel_management(self):
+def test_listener_panel_management():
     """Test panel add/remove/get operations."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
     

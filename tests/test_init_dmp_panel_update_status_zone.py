@@ -7,7 +7,7 @@ from custom_components.dmp.const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_IP
 
 
 @pytest.fixture
-def mock_panel(self):
+def mock_panel():
     """Create a mock panel with initialized zones."""
     with patch('custom_components.dmp.DMPListener'), \
             patch('custom_components.dmp.DMPSender'):
@@ -39,7 +39,7 @@ def mock_panel(self):
         ({'alarm': False, 'trouble': False, 'bypass': False, 'battery': False, 'open': False}, 'Ready'),
     ]
 )
-def test_updateStatusZone_priority(self, mock_panel, flags, expected):
+def test_updateStatusZone_priority(mock_panel, flags, expected):
     """Test that status zone priority yields expected state."""
     zone = '001'
     event = {'zoneName': 'Test Zone', 'zoneNumber': zone}
@@ -51,7 +51,7 @@ def test_updateStatusZone_priority(self, mock_panel, flags, expected):
     mock_panel.updateStatusZone(zone, event)
     assert mock_panel._status_zones[zone]['zoneState'] == expected
 
-def test_updateStatusZone_updates_existing_zone(self, mock_panel):
+def test_updateStatusZone_updates_existing_zone(mock_panel):
     """Test updating an existing status zone."""
     zone_num = "001"
     event_obj = {"zoneName": "Test Zone", "zoneNumber": zone_num}
@@ -75,7 +75,7 @@ def test_updateStatusZone_updates_existing_zone(self, mock_panel):
     assert mock_panel._status_zones[zone_num]["zoneState"] == "Open"
     assert mock_panel._status_zones[zone_num]["existingField"] == "value"
 
-def test_updateStatusZone_creates_new_zone(self, mock_panel):
+def test_updateStatusZone_creates_new_zone(mock_panel):
     """Test creating a new status zone."""
     zone_num = "001"
     event_obj = {"zoneName": "Test Zone", "zoneNumber": zone_num, "customField": "value"}
@@ -86,7 +86,7 @@ def test_updateStatusZone_creates_new_zone(self, mock_panel):
     assert mock_panel._status_zones[zone_num]["zoneState"] == "Ready"
     assert mock_panel._status_zones[zone_num]["customField"] == "value"
 
-def test_updateStatusZone_open_fifth_priority(self, mock_panel):
+def test_updateStatusZone_open_fifth_priority(mock_panel):
     """Test that open state has fifth priority."""
     zone_num = "001"
     event_obj = {"zoneName": "Test Zone", "zoneNumber": zone_num}

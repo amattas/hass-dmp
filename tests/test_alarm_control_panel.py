@@ -43,7 +43,7 @@ def mock_config_entry():
     )
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_creates_area_entity(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_async_setup_entry_creates_area_entity(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test that async_setup_entry adds a DMPArea entity."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -59,7 +59,7 @@ async def test_async_setup_entry_creates_area_entity(self, hass: HomeAssistant, 
 
 
 """Test DMPArea initialization and basic properties."""
-def test_dmparea_initialization(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_dmparea_initialization(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][LISTENER] = listener
@@ -75,7 +75,7 @@ def test_dmparea_initialization(self, hass: HomeAssistant, mock_config_entry, mo
     })
 
 @pytest.fixture
-def area_with_sender(self, mock_config_entry, mock_listener_panel):
+def area_with_sender(mock_config_entry, mock_listener_panel):
     listener, panel = mock_listener_panel
     sender = Mock()
     sender.disarm = AsyncMock()
@@ -84,19 +84,19 @@ def area_with_sender(self, mock_config_entry, mock_listener_panel):
     return DMPArea(listener, mock_config_entry.data), sender
 
 @pytest.mark.asyncio
-async def test_async_alarm_disarm(self, area_with_sender):
+async def test_async_alarm_disarm(area_with_sender):
     area, sender = area_with_sender
     await area.async_alarm_disarm()
     sender.disarm.assert_awaited_once()
 
 @pytest.mark.asyncio
-async def test_async_alarm_arm_away(self, area_with_sender):
+async def test_async_alarm_arm_away(area_with_sender):
     area, sender = area_with_sender
     await area.async_alarm_arm_away()
     sender.arm.assert_awaited_once()
 
 @pytest.mark.asyncio
-async def test_async_alarm_arm_home_and_night(self, area_with_sender):
+async def test_async_alarm_arm_home_and_night(area_with_sender):
     area, sender = area_with_sender
     await area.async_alarm_arm_home()
     sender.arm.assert_any_await(area._home_zone, False)
@@ -104,7 +104,7 @@ async def test_async_alarm_arm_home_and_night(self, area_with_sender):
     sender.arm.assert_any_await(area._home_zone, True)
 
 @pytest.fixture
-def setup_area(self, mock_config_entry, mock_listener_panel):
+def setup_area(mock_config_entry, mock_listener_panel):
     listener, panel = mock_listener_panel
     config = mock_config_entry.data
     area = DMPArea(listener, config)
@@ -118,6 +118,6 @@ def setup_area(self, mock_config_entry, mock_listener_panel):
         ("name", "Test Panel Arming Control"),
     ],
 )
-def test_properties(self, setup_area, prop, expected):
+def test_properties(setup_area, prop, expected):
     area, panel = setup_area
     assert getattr(area, prop) == expected

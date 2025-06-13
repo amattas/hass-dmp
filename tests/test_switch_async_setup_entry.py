@@ -11,7 +11,7 @@ from custom_components.dmp.const import (
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_all_zones(self, hass: HomeAssistant):
+async def test_async_setup_entry_all_zones(hass: HomeAssistant):
     """Test async_setup_entry creates bypass switches for all zones."""
     from custom_components.dmp.switch import async_setup_entry
     
@@ -83,7 +83,7 @@ async def test_async_setup_entry_all_zones(self, hass: HomeAssistant):
     assert "Glass Break Bypass" in entity_names
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_empty_zones(self, hass: HomeAssistant):
+async def test_async_setup_entry_empty_zones(hass: HomeAssistant):
     """Test async_setup_entry with no zones."""
     from custom_components.dmp.switch import async_setup_entry
     
@@ -111,7 +111,7 @@ async def test_async_setup_entry_empty_zones(self, hass: HomeAssistant):
     assert len(entities) == 0
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_update_before_add_false(self, hass: HomeAssistant):
+async def test_async_setup_entry_update_before_add_false(hass: HomeAssistant):
     """Test async_setup_entry calls async_add_entities with update_before_add=False."""
     from custom_components.dmp.switch import async_setup_entry
     

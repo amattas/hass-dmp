@@ -10,13 +10,13 @@ from custom_components.dmp.dmp_sender import DMPSender, DMPCharReply, StatusResp
     ("12345", "12345"),
     ("123456", "123456"),
 ])
-def test_account_number_padding(self, acct, expected):
+def test_account_number_padding(acct, expected):
     sender = DMPSender("192.168.1.1", 40001, acct, "")
     assert sender.accountNumber == expected
     assert len(sender.accountNumber) == len(expected)
 
 @pytest.mark.parametrize("payload", ["!C05", ""])
-def test_get_encoded_payload(self, payload):
+def test_get_encoded_payload(payload):
     sender = DMPSender("192.168.1.1", 40001, "123", "")
     expected = b"@" + sender.accountNumber.encode() + payload.encode() + b"\r"
     assert sender.getEncodedPayload(payload) == expected
@@ -28,7 +28,7 @@ def test_get_encoded_payload(self, payload):
     ]
 )
 @pytest.mark.asyncio
-async def test_arm_commands(self, zones, instant, expected):
+async def test_arm_commands(zones, instant, expected):
     sender = DMPSender("192.168.1.1", 40001, "123", "testkey")
     with patch.object(sender, 'connectAndSend', new_callable=AsyncMock) as mock_send:
         await sender.arm(zones, instant)
@@ -41,7 +41,7 @@ async def test_arm_commands(self, zones, instant, expected):
     ]
 )
 @pytest.mark.asyncio
-async def test_disarm_commands(self, zones, expected):
+async def test_disarm_commands(zones, expected):
     sender = DMPSender("192.168.1.1", 40001, "123", "testkey")
     with patch.object(sender, 'connectAndSend', new_callable=AsyncMock) as mock_send:
         await sender.disarm(zones)
@@ -55,14 +55,14 @@ async def test_disarm_commands(self, zones, expected):
     ]
 )
 @pytest.mark.asyncio
-async def test_set_bypass_commands(self, zoneNum, enable, expected):
+async def test_set_bypass_commands(zoneNum, enable, expected):
     sender = DMPSender("192.168.1.1", 40001, "123", "testkey")
     with patch.object(sender, 'connectAndSend', new_callable=AsyncMock) as mock_send:
         await sender.setBypass(zoneNum, enable)
         mock_send.assert_called_once_with(expected)
 
 @pytest.mark.asyncio
-async def test_status(self):
+async def test_status():
     """Test status command sends correct zone queries."""
     sender = DMPSender("192.168.1.1", 40001, "123", "testkey")
     
@@ -72,7 +72,7 @@ async def test_status(self):
         expected_commands = ['?WB**Y001', '?WB', '?WB', '?WB', '?WB']
         mock_send.assert_called_once_with(expected_commands)
 
-def test_parse_and_flush(self):
+def test_parse_and_flush():
     """Test parsing reply and flushing data."""
     sr = StatusResponse()
     # Simulate a response with one area and one zone entry
@@ -93,7 +93,7 @@ def test_parse_and_flush(self):
         ('X', 'X'),
     ]
 )
-def test_get_ack_type(self, char, expected):
+def test_get_ack_type(char, expected):
     """Test getAckType method with different characters."""
     assert DMPCharReply.getAckType(char) == expected
 

@@ -76,7 +76,7 @@ def mock_zone_config():
 
 
 @pytest.fixture
-def setup_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Set up sensor with mocked dependencies."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][LISTENER] = mock_listener
@@ -93,7 +93,7 @@ def setup_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
         ("unknown_type", "sensors"),
     ]
 )
-def test_device_class_mapping(self, setup_sensor, mock_config_entry, zone_class, expected_device_class):
+def test_device_class_mapping(setup_sensor, mock_config_entry, zone_class, expected_device_class):
     hass, panel = setup_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Zone",
@@ -113,7 +113,7 @@ def test_device_class_mapping(self, setup_sensor, mock_config_entry, zone_class,
         ("wired_motion", True, "mdi:motion-sensor"),
     ]
 )
-def test_icon_mapping(self, setup_sensor, mock_config_entry, zone_class, state, expected_icon):
+def test_icon_mapping(setup_sensor, mock_config_entry, zone_class, state, expected_icon):
     hass, panel = setup_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Zone",
@@ -125,7 +125,7 @@ def test_icon_mapping(self, setup_sensor, mock_config_entry, zone_class, state, 
     assert sensor.icon == expected_icon
 
 @pytest.mark.asyncio
-async def test_process_zone_callback(self, setup_sensor, mock_config_entry):
+async def test_process_zone_callback(setup_sensor, mock_config_entry):
     """Test processing zone state callback."""
     hass, panel = setup_sensor
     zone_config = {
@@ -143,7 +143,7 @@ async def test_process_zone_callback(self, setup_sensor, mock_config_entry):
     sensor.async_write_ha_state.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_async_added_to_hass(self, setup_sensor, mock_config_entry, mock_listener):
+async def test_async_added_to_hass(setup_sensor, mock_config_entry, mock_listener):
     """Test registering callback when added to hass."""
     hass, panel = setup_sensor
     zone_config = {
@@ -156,7 +156,7 @@ async def test_async_added_to_hass(self, setup_sensor, mock_config_entry, mock_l
     mock_listener.register_callback.assert_called_once_with(sensor.process_zone_callback)
 
 @pytest.mark.asyncio
-async def test_async_will_remove_from_hass(self, setup_sensor, mock_config_entry, mock_listener):
+async def test_async_will_remove_from_hass(setup_sensor, mock_config_entry, mock_listener):
     """Test removing callback when removed from hass."""
     hass, panel = setup_sensor
     zone_config = {
@@ -171,7 +171,7 @@ async def test_async_will_remove_from_hass(self, setup_sensor, mock_config_entry
 
 
 @pytest.fixture
-def setup_battery_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_battery_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.updateBatteryZone = Mock()
@@ -181,7 +181,7 @@ def setup_battery_sensor(self, hass: HomeAssistant, mock_config_entry, mock_list
     hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
     return hass, panel
 
-def test_battery_sensor_initialization(self, setup_battery_sensor, mock_config_entry):
+def test_battery_sensor_initialization(setup_battery_sensor, mock_config_entry):
     hass, panel = setup_battery_sensor
     zone_config = {CONF_ZONE_NAME: "Test Battery", CONF_ZONE_NUMBER: "010", CONF_ZONE_CLASS: "battery_window"}
     sensor = DMPZoneBattery(hass, mock_config_entry, zone_config)
@@ -191,7 +191,7 @@ def test_battery_sensor_initialization(self, setup_battery_sensor, mock_config_e
     panel.updateBatteryZone.assert_called_once()
 
 @pytest.mark.parametrize("state,icon", [(False, 'mdi:battery'), (True, 'mdi:battery-alert-variant-outline')])
-def test_battery_icon(self, setup_battery_sensor, mock_config_entry, state, icon):
+def test_battery_icon(setup_battery_sensor, mock_config_entry, state, icon):
     hass, panel = setup_battery_sensor
     zone_config = {CONF_ZONE_NAME: "Test Battery", CONF_ZONE_NUMBER: "010", CONF_ZONE_CLASS: "battery_window"}
     sensor = DMPZoneBattery(hass, mock_config_entry, zone_config)
@@ -199,7 +199,7 @@ def test_battery_icon(self, setup_battery_sensor, mock_config_entry, state, icon
     assert sensor.icon == icon
 
 @pytest.mark.asyncio
-async def test_battery_callbacks(self, setup_battery_sensor, mock_config_entry, mock_listener):
+async def test_battery_callbacks(setup_battery_sensor, mock_config_entry, mock_listener):
     hass, panel = setup_battery_sensor
     zone_config = {CONF_ZONE_NAME: "Test Battery", CONF_ZONE_NUMBER: "010", CONF_ZONE_CLASS: "battery_window"}
     sensor = DMPZoneBattery(hass, mock_config_entry, zone_config)
@@ -216,7 +216,7 @@ async def test_battery_callbacks(self, setup_battery_sensor, mock_config_entry, 
 
 
 @pytest.fixture
-def setup_trouble_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_trouble_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.updateTroubleZone = Mock()
@@ -226,7 +226,7 @@ def setup_trouble_sensor(self, hass: HomeAssistant, mock_config_entry, mock_list
     hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
     return hass, panel
 
-def test_trouble_sensor_initialization(self, setup_trouble_sensor, mock_config_entry):
+def test_trouble_sensor_initialization(setup_trouble_sensor, mock_config_entry):
     hass, panel = setup_trouble_sensor
     zone_config = {CONF_ZONE_NAME: "Test Trouble", CONF_ZONE_NUMBER: "011", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneTrouble(hass, mock_config_entry, zone_config)
@@ -236,7 +236,7 @@ def test_trouble_sensor_initialization(self, setup_trouble_sensor, mock_config_e
     panel.updateTroubleZone.assert_called_once()
 
 @pytest.mark.parametrize("state,icon", [(False, 'mdi:check'), (True, 'mdi:alert-outline')])
-def test_trouble_icon(self, setup_trouble_sensor, mock_config_entry, state, icon):
+def test_trouble_icon(setup_trouble_sensor, mock_config_entry, state, icon):
     hass, panel = setup_trouble_sensor
     zone_config = {CONF_ZONE_NAME: "Test Trouble", CONF_ZONE_NUMBER: "011", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneTrouble(hass, mock_config_entry, zone_config)
@@ -244,7 +244,7 @@ def test_trouble_icon(self, setup_trouble_sensor, mock_config_entry, state, icon
     assert sensor.icon == icon
 
 @pytest.mark.asyncio
-async def test_trouble_callbacks(self, setup_trouble_sensor, mock_config_entry, mock_listener):
+async def test_trouble_callbacks(setup_trouble_sensor, mock_config_entry, mock_listener):
     hass, panel = setup_trouble_sensor
     zone_config = {CONF_ZONE_NAME: "Test Trouble", CONF_ZONE_NUMBER: "011", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneTrouble(hass, mock_config_entry, zone_config)
@@ -259,7 +259,7 @@ async def test_trouble_callbacks(self, setup_trouble_sensor, mock_config_entry, 
     mock_listener.remove_callback.assert_called_with(sensor.process_zone_callback)
 
 @pytest.fixture
-def setup_bypass_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_bypass_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.updateBypassZone = Mock()
@@ -269,7 +269,7 @@ def setup_bypass_sensor(self, hass: HomeAssistant, mock_config_entry, mock_liste
     hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
     return hass, panel
 
-def test_bypass_sensor_initialization(self, setup_bypass_sensor, mock_config_entry):
+def test_bypass_sensor_initialization(setup_bypass_sensor, mock_config_entry):
     hass, panel = setup_bypass_sensor
     zone_config = {CONF_ZONE_NAME: "Test Bypass", CONF_ZONE_NUMBER: "013", CONF_ZONE_CLASS: "wired_door"}
     sensor = DMPZoneBypass(hass, mock_config_entry, zone_config)
@@ -279,14 +279,14 @@ def test_bypass_sensor_initialization(self, setup_bypass_sensor, mock_config_ent
     panel.updateBypassZone.assert_called_once()
 
 @pytest.mark.parametrize("state,icon", [(False, "mdi:check"), (True, "mdi:alert-outline")])
-def test_bypass_icon(self, setup_bypass_sensor, mock_config_entry, state, icon):
+def test_bypass_icon(setup_bypass_sensor, mock_config_entry, state, icon):
     hass, panel = setup_bypass_sensor
     zone_config = {CONF_ZONE_NAME: "Test Bypass", CONF_ZONE_NUMBER: "013", CONF_ZONE_CLASS: "wired_door"}
     sensor = DMPZoneBypass(hass, mock_config_entry, zone_config)
     sensor._state = state
     assert sensor.icon == icon
 
-def test_bypass_properties(self, setup_bypass_sensor, mock_config_entry):
+def test_bypass_properties(setup_bypass_sensor, mock_config_entry):
     hass, panel = setup_bypass_sensor
     zone_config = {CONF_ZONE_NAME: "Test Bypass", CONF_ZONE_NUMBER: "013", CONF_ZONE_CLASS: "wired_door"}
     sensor = DMPZoneBypass(hass, mock_config_entry, zone_config)
@@ -297,7 +297,7 @@ def test_bypass_properties(self, setup_bypass_sensor, mock_config_entry):
     assert sensor.extra_state_attributes == {"last_contact": "t3"}
 
 @pytest.mark.asyncio
-async def test_bypass_callbacks(self, setup_bypass_sensor, mock_config_entry, mock_listener):
+async def test_bypass_callbacks(setup_bypass_sensor, mock_config_entry, mock_listener):
     hass, panel = setup_bypass_sensor
     zone_config = {CONF_ZONE_NAME: "Test Bypass", CONF_ZONE_NUMBER: "013", CONF_ZONE_CLASS: "wired_door"}
     sensor = DMPZoneBypass(hass, mock_config_entry, zone_config)
@@ -313,7 +313,7 @@ async def test_bypass_callbacks(self, setup_bypass_sensor, mock_config_entry, mo
 
 
 @pytest.fixture
-def setup_alarm_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_alarm_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.updateAlarmZone = Mock()
@@ -323,7 +323,7 @@ def setup_alarm_sensor(self, hass: HomeAssistant, mock_config_entry, mock_listen
     hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
     return hass, panel
 
-def test_alarm_sensor_initialization(self, setup_alarm_sensor, mock_config_entry):
+def test_alarm_sensor_initialization(setup_alarm_sensor, mock_config_entry):
     hass, panel = setup_alarm_sensor
     zone_config = {CONF_ZONE_NAME: "Test Alarm", CONF_ZONE_NUMBER: "012", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneAlarm(hass, mock_config_entry, zone_config)
@@ -333,7 +333,7 @@ def test_alarm_sensor_initialization(self, setup_alarm_sensor, mock_config_entry
     panel.updateAlarmZone.assert_called_once()
 
 @pytest.mark.parametrize("state,icon", [(False, 'mdi:check'), (True, 'mdi:alarm-bell')])
-def test_alarm_icon(self, setup_alarm_sensor, mock_config_entry, state, icon):
+def test_alarm_icon(setup_alarm_sensor, mock_config_entry, state, icon):
     hass, panel = setup_alarm_sensor
     zone_config = {CONF_ZONE_NAME: "Test Alarm", CONF_ZONE_NUMBER: "012", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneAlarm(hass, mock_config_entry, zone_config)
@@ -341,7 +341,7 @@ def test_alarm_icon(self, setup_alarm_sensor, mock_config_entry, state, icon):
     assert sensor.icon == icon
 
 @pytest.mark.asyncio
-async def test_alarm_callbacks(self, setup_alarm_sensor, mock_config_entry, mock_listener):
+async def test_alarm_callbacks(setup_alarm_sensor, mock_config_entry, mock_listener):
     hass, panel = setup_alarm_sensor
     zone_config = {CONF_ZONE_NAME: "Test Alarm", CONF_ZONE_NUMBER: "012", CONF_ZONE_CLASS: "wired_motion"}
     sensor = DMPZoneAlarm(hass, mock_config_entry, zone_config)

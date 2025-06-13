@@ -11,7 +11,7 @@ from custom_components.dmp.const import DOMAIN, LISTENER, CONF_ZONES, CONF_ZONE_
 
 
 @pytest.fixture
-def mock_config_entry(self):
+def mock_config_entry():
     """Create mock config entry with zones."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -38,7 +38,7 @@ def mock_config_entry(self):
     return entry
 
 @pytest.fixture
-def mock_entity_entries(self):
+def mock_entity_entries():
     """Create mock entity registry entries."""
     entries = []
     
@@ -68,14 +68,14 @@ def mock_entity_entries(self):
     return entries
 
 @pytest.fixture
-def mock_entity_registry(self, mock_entity_entries):
+def mock_entity_registry(mock_entity_entries):
     """Mock entity registry."""
     registry = Mock(spec=er.EntityRegistry)
     registry.entities = {e.entity_id: e for e in mock_entity_entries}
     registry.async_remove = Mock()
     return registry
 
-async def test_options_update_no_changes(self, hass: HomeAssistant, mock_config_entry):
+async def test_options_update_no_changes(hass: HomeAssistant, mock_config_entry):
     """Test options update with no changes."""
     # Set up hass data
     hass.data[DOMAIN] = {
@@ -97,7 +97,7 @@ async def test_options_update_no_changes(self, hass: HomeAssistant, mock_config_
     # Just verify it completes without error
     assert True
 
-async def test_options_update_zone_removed(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry, mock_entity_entries):
+async def test_options_update_zone_removed(hass: HomeAssistant, mock_config_entry, mock_entity_registry, mock_entity_entries):
     """Test removing a zone removes its entities."""
     # Set up hass data
     hass.data[DOMAIN] = {
@@ -142,7 +142,7 @@ async def test_options_update_zone_removed(self, hass: HomeAssistant, mock_confi
         zone_001_entities = [e for e in removed_entity_ids if "zone_001" in e]
         assert len(zone_001_entities) == 0
 
-async def test_options_update_zone_added(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_update_zone_added(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test adding a zone updates config."""
     # Set up hass data
     hass.data[DOMAIN] = {
@@ -187,7 +187,7 @@ async def test_options_update_zone_added(self, hass: HomeAssistant, mock_config_
         )
         assert new_zone[CONF_ZONE_NAME] == "Back Door"
 
-async def test_options_update_zone_modified(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_update_zone_modified(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test modifying a zone name updates config."""
     # Set up hass data
     hass.data[DOMAIN] = {
@@ -227,7 +227,7 @@ async def test_options_update_zone_modified(self, hass: HomeAssistant, mock_conf
         )
         assert zone_001[CONF_ZONE_NAME] == "Main Entrance"
 
-async def test_options_update_handles_missing_platform(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_update_handles_missing_platform(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test that missing platform attribute is handled gracefully."""
     # Create entity without platform attribute
     bad_entity = Mock()
@@ -265,7 +265,7 @@ async def test_options_update_handles_missing_platform(self, hass: HomeAssistant
         # In this case it will try to split unique_id and may fail, but shouldn't crash
         assert True  # Just verify it completes without error
 
-async def test_options_update_filters_by_zone_number(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_update_filters_by_zone_number(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test that entity removal correctly filters by zone number."""
     # Create entities with different zone numbers in unique_id
     entities = []

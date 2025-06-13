@@ -12,7 +12,7 @@ from custom_components.dmp.const import (
 )
 
 
-async def test_form_user_step(self, hass: HomeAssistant):
+async def test_form_user_step(hass: HomeAssistant):
     """Test we get the user form."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -23,7 +23,7 @@ async def test_form_user_step(self, hass: HomeAssistant):
     assert result["errors"] == {}
     assert result["step_id"] == "user"
 
-async def test_form_user_to_areas(self, hass: HomeAssistant):
+async def test_form_user_to_areas(hass: HomeAssistant):
     """Test user input progresses to areas step."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -43,7 +43,7 @@ async def test_form_user_to_areas(self, hass: HomeAssistant):
     assert flow.data == user_input
     assert flow.data[CONF_ZONES] == []
 
-async def test_form_areas_to_zones(self, hass: HomeAssistant):
+async def test_form_areas_to_zones(hass: HomeAssistant):
     """Test areas input progresses to zones step."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -61,7 +61,7 @@ async def test_form_areas_to_zones(self, hass: HomeAssistant):
     assert flow.data[CONF_HOME_AREA] == "01"
     assert flow.data[CONF_AWAY_AREA] == "02"
 
-async def test_form_areas_add_another(self, hass: HomeAssistant):
+async def test_form_areas_add_another(hass: HomeAssistant):
     """Test areas with add_another stays on areas step."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -80,7 +80,7 @@ async def test_form_areas_add_another(self, hass: HomeAssistant):
     # add_another should be removed from data
     assert CONF_ADD_ANOTHER not in flow.data
 
-async def test_form_zones_creates_entry(self, hass: HomeAssistant):
+async def test_form_zones_creates_entry(hass: HomeAssistant):
     """Test zones input creates config entry."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -109,7 +109,7 @@ async def test_form_zones_creates_entry(self, hass: HomeAssistant):
             "zone_class": "wired_door"
         }
 
-async def test_form_zones_add_another(self, hass: HomeAssistant):
+async def test_form_zones_add_another(hass: HomeAssistant):
     """Test zones with add_another stays on zones step."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -134,7 +134,7 @@ async def test_form_zones_add_another(self, hass: HomeAssistant):
     # This could be improved, but for now we test the actual behavior
     assert flow.data[CONF_ZONES][0][CONF_ADD_ANOTHER] == True
 
-async def test_form_zones_multiple_zones(self, hass: HomeAssistant):
+async def test_form_zones_multiple_zones(hass: HomeAssistant):
     """Test adding multiple zones."""
     flow = DMPCustomConfigFlow()
     flow.hass = hass
@@ -164,7 +164,7 @@ async def test_form_zones_multiple_zones(self, hass: HomeAssistant):
 
 
 @pytest.fixture
-def mock_config_entry(self):
+def mock_config_entry():
     """Create a mock config entry."""
     entry = Mock(spec=config_entries.ConfigEntry)
     entry.entry_id = "test_entry_id"
@@ -186,7 +186,7 @@ def mock_config_entry(self):
     return entry
 
 @pytest.fixture
-def mock_entity_registry(self):
+def mock_entity_registry():
     """Mock entity registry."""
     with patch("homeassistant.helpers.entity_registry.async_get") as mock_get:
         registry = Mock()
@@ -194,7 +194,7 @@ def mock_entity_registry(self):
         mock_get.return_value = registry
         yield registry
 
-async def test_options_flow_init(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_flow_init(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test options flow initialization."""
     flow = OptionsFlowHandler(mock_config_entry)
     flow.hass = hass
@@ -209,7 +209,7 @@ async def test_options_flow_init(self, hass: HomeAssistant, mock_config_entry, m
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "init"
 
-async def test_options_flow_remove_zone(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_flow_remove_zone(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test removing a zone."""
     flow = OptionsFlowHandler(mock_config_entry)
     flow.hass = hass
@@ -234,7 +234,7 @@ async def test_options_flow_remove_zone(self, hass: HomeAssistant, mock_config_e
             assert len(call_args.kwargs['data'][CONF_ZONES]) == 1
             assert call_args.kwargs['data'][CONF_ZONES][0][CONF_ZONE_NUMBER] == "001"
 
-async def test_options_flow_add_zone(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_flow_add_zone(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test adding a new zone."""
     flow = OptionsFlowHandler(mock_config_entry)
     flow.hass = hass
@@ -262,7 +262,7 @@ async def test_options_flow_add_zone(self, hass: HomeAssistant, mock_config_entr
             assert new_zone[CONF_ZONE_NAME] == "Back Door"
             assert new_zone[CONF_ZONE_CLASS] == "wired_door"
 
-async def test_options_flow_no_changes(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_flow_no_changes(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test options flow with no changes."""
     flow = OptionsFlowHandler(mock_config_entry)
     flow.hass = hass
@@ -286,7 +286,7 @@ async def test_options_flow_no_changes(self, hass: HomeAssistant, mock_config_en
             # Should have same zones
             assert len(call_args.kwargs['data'][CONF_ZONES]) == 2
 
-async def test_options_flow_zone_dict_creation(self, hass: HomeAssistant, mock_config_entry, mock_entity_registry):
+async def test_options_flow_zone_dict_creation(hass: HomeAssistant, mock_config_entry, mock_entity_registry):
     """Test zone dictionary is created correctly."""
     flow = OptionsFlowHandler(mock_config_entry)
     flow.hass = hass

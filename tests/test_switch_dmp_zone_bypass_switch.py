@@ -12,7 +12,7 @@ from custom_components.dmp.const import (
 
 
 @pytest.fixture
-def mock_listener_panel(self):
+def mock_listener_panel():
     """Create mock listener with panel."""
     listener = Mock()
     panel = Mock()
@@ -31,7 +31,7 @@ def mock_listener_panel(self):
     return listener, panel
 
 @pytest.fixture
-def mock_config_entry(self):
+def mock_config_entry():
     """Create mock config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
@@ -50,7 +50,7 @@ def mock_config_entry(self):
             "Back Window Bypass", "dmp-12345-zone-002-bypass-switch"),
     ]
 )
-def test_basic_properties(self, hass: HomeAssistant, mock_config_entry,
+def test_basic_properties(hass: HomeAssistant, mock_config_entry,
                             mock_listener_panel,
                             zone_name, zone_number, zone_class,
                             expected_name, expected_unique):
@@ -74,7 +74,7 @@ def test_basic_properties(self, hass: HomeAssistant, mock_config_entry,
     assert switch.device_class == "switch"
 
 @pytest.mark.asyncio
-async def test_async_turn_on(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_async_turn_on(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test turning on bypass via async_turn_on calls setBypass with True."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -90,7 +90,7 @@ async def test_async_turn_on(self, hass: HomeAssistant, mock_config_entry, mock_
     panel._dmpSender.setBypass.assert_called_once_with("001", True)
 
 @pytest.mark.asyncio
-async def test_async_turn_off(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_async_turn_off(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test turning off bypass via async_turn_off calls setBypass with False."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -111,7 +111,7 @@ async def test_async_turn_off(self, hass: HomeAssistant, mock_config_entry, mock
         ("Back Window", "002", "battery_window"),
     ]
 )
-def test_initial_update_calls_panel_update(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel,
+def test_initial_update_calls_panel_update(hass: HomeAssistant, mock_config_entry, mock_listener_panel,
                                             zone_name, zone_number, zone_class):
     """Init should call panel.updateBypassZone with initial state."""
     listener, panel = mock_listener_panel
@@ -133,7 +133,7 @@ def test_initial_update_calls_panel_update(self, hass: HomeAssistant, mock_confi
     assert init_obj["zoneNumber"] == zone_number
     assert init_obj["zoneState"] is False
 
-def test_device_info_and_poll(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_device_info_and_poll(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_info identifiers and default should_poll property."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -151,7 +151,7 @@ def test_device_info_and_poll(self, hass: HomeAssistant, mock_config_entry, mock
     assert device_info["via_device"] == (DOMAIN, "dmp-12345-panel")
 
 @pytest.mark.asyncio
-async def test_process_zone_callback_and_callbacks(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_process_zone_callback_and_callbacks(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test process_zone_callback updates state and register/unregister callbacks."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -168,7 +168,7 @@ async def test_process_zone_callback_and_callbacks(self, hass: HomeAssistant, mo
     listener.register_callback.assert_called_once_with(switch.process_zone_callback)
     await switch.async_will_remove_from_hass()
     listener.remove_callback.assert_called_once_with(switch.process_zone_callback)
-def test_is_on_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_is_on_property(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test is_on property returns current state."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -179,7 +179,7 @@ def test_is_on_property(self, hass: HomeAssistant, mock_config_entry, mock_liste
     assert switch.is_on is False
     switch._state = True
     assert switch.is_on is True
-def test_device_name_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_device_name_property(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_name property."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -188,7 +188,7 @@ def test_device_name_property(self, hass: HomeAssistant, mock_config_entry, mock
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     assert switch.device_name == "Front Door"
-def test_device_info_missing_name(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_device_info_missing_name(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_info does not include a name attribute."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -199,7 +199,7 @@ def test_device_info_missing_name(self, hass: HomeAssistant, mock_config_entry, 
     device_info = switch.device_info
     assert "name" not in device_info
 @pytest.mark.asyncio
-async def test_process_zone_callback_zone_not_found(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_process_zone_callback_zone_not_found(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test process_zone_callback when zone is not found."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})

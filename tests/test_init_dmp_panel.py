@@ -9,7 +9,7 @@ from custom_components.dmp.const import (
     CONF_PANEL_IP, CONF_PANEL_REMOTE_PORT, CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY
 )
 
-def test_panel_initialization_with_defaults(self):
+def test_panel_initialization_with_defaults():
     """Test panel initialization with missing optional fields."""
     config = {
         CONF_PANEL_ACCOUNT_NUMBER: "12345",
@@ -25,7 +25,7 @@ def test_panel_initialization_with_defaults(self):
     assert panel._panel_last_contact is None
     assert panel._area == STATE_ALARM_DISARMED
 
-def test_panel_initialization_with_all_fields(self):
+def test_panel_initialization_with_all_fields():
     """Test panel initialization with all fields provided."""
     config = {
         CONF_PANEL_ACCOUNT_NUMBER: "12345",
@@ -41,7 +41,7 @@ def test_panel_initialization_with_all_fields(self):
     assert panel._panelPort == 3000
     assert panel._remoteKey == "mykey123"
 
-def test_panel_str_representation(self):
+def test_panel_str_representation():
     """Test string representation of panel."""
     config = {
         CONF_PANEL_ACCOUNT_NUMBER: "12345",
@@ -52,7 +52,7 @@ def test_panel_str_representation(self):
     
     assert str(panel) == "DMP Panel with account number 12345 at addr 192.168.1.100"
 
-def test_panel_contact_time_methods(self):
+def test_panel_contact_time_methods():
     """Test contact time update and retrieval."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     
@@ -60,7 +60,7 @@ def test_panel_contact_time_methods(self):
     panel.updateContactTime(test_time)
     assert panel.getContactTime() == test_time
 
-def test_panel_area_methods(self):
+def test_panel_area_methods():
     """Test area update and retrieval."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     
@@ -68,7 +68,7 @@ def test_panel_area_methods(self):
     panel.updateArea(area_obj)
     assert panel.getArea() == area_obj
 
-def test_panel_get_all_zone_collections(self):
+def test_panel_get_all_zone_collections():
     """Test getting all zone collections."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     
@@ -87,7 +87,7 @@ def test_panel_get_all_zone_collections(self):
     assert panel.getAlarmZones() == {"005": {"state": "alarm"}}
     assert panel.getStatusZones() == {"006": {"state": "ready"}}
 
-def test_panel_zone_update_preserves_existing_data(self):
+def test_panel_zone_update_preserves_existing_data():
     """Test that zone updates preserve existing zone data."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     
@@ -108,7 +108,7 @@ def test_panel_zone_update_preserves_existing_data(self):
     assert zone["zoneName"] == "Front Door"
     assert zone["extraField"] == "preserved"
 
-def test_panel_methods_with_dmp_sender(self):
+def test_panel_methods_with_dmp_sender():
     """Test panel methods that interact with DMPSender."""
     config = {
         CONF_PANEL_ACCOUNT_NUMBER: "12345",
@@ -127,7 +127,7 @@ def test_panel_methods_with_dmp_sender(self):
         # Test DMPSender instance assigned to panel
         assert panel._dmpSender == mock_sender
 
-def test_panel_getters_return_none_when_empty(self):
+def test_panel_getters_return_none_when_empty():
     """Test that zone getters return None when zone doesn't exist."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     
@@ -141,7 +141,7 @@ def test_panel_getters_return_none_when_empty(self):
     with pytest.raises(KeyError):
         panel.getStatusZone("999")
 
-def test_panel_zone_state_updates(self):
+def test_panel_zone_state_updates():
     """Test zone state update methods."""
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"})
     

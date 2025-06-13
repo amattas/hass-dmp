@@ -14,13 +14,13 @@ from custom_components.dmp.const import (
 )
 
 @pytest.fixture(autouse=True)
-def clean_hass_data(self, hass):
+def clean_hass_data(hass):
     """Ensure hass.data starts clean for DOMAIN."""
     hass.data.pop(DOMAIN, None)
     return hass
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_success(self, monkeypatch, hass):
+async def test_async_setup_entry_success(monkeypatch, hass):
     """Test successful setup of integration."""
     calls = []
 
@@ -31,7 +31,7 @@ async def test_async_setup_entry_success(self, monkeypatch, hass):
             self.hass = hass_arg
         async def start(self):
             calls.append(('listener_start',))
-        async def stop(self, *args):
+        async def stop(*args):
             calls.append(('listener_stop',))
             return True
         def addPanel(self, panel):
@@ -95,7 +95,7 @@ async def test_async_setup_entry_success(self, monkeypatch, hass):
     assert entry.entry_id in hass.data[DOMAIN]
 
 @pytest.mark.asyncio
-async def test_async_unload_entry_success(self, hass):
+async def test_async_unload_entry_success(hass):
     """Test successful unload of integration."""
     # Setup mock listener
     mock_listener = Mock()
@@ -118,7 +118,7 @@ async def test_async_unload_entry_success(self, hass):
     assert "test_entry" not in hass.data[DOMAIN]
 
 @pytest.mark.asyncio
-async def test_async_unload_entry_platform_failure(self, hass):
+async def test_async_unload_entry_platform_failure(hass):
     """Test unload fails when platforms fail to unload."""
     # Setup mock listener
     mock_listener = Mock()
@@ -139,7 +139,7 @@ async def test_async_unload_entry_platform_failure(self, hass):
     assert "test_entry" in hass.data[DOMAIN]
 
 @pytest.mark.asyncio
-async def test_async_unload_entry_listener_failure(self, hass):
+async def test_async_unload_entry_listener_failure(hass):
     """Test unload fails when listener fails to stop."""
     # Setup mock listener that fails to stop
     mock_listener = Mock()
