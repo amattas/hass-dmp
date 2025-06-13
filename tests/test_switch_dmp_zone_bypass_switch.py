@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+pytestmark = pytest.mark.usefixtures("init_integration")
 
 from custom_components.dmp.switch import DMPZoneBypassSwitch
 from custom_components.dmp.const import (
@@ -55,9 +56,6 @@ def test_basic_properties(hass: HomeAssistant, mock_config_entry,
                             zone_name, zone_number, zone_class,
                             expected_name, expected_unique):
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {
         CONF_ZONE_NAME: zone_name,
         CONF_ZONE_NUMBER: zone_number,
@@ -77,9 +75,6 @@ def test_basic_properties(hass: HomeAssistant, mock_config_entry,
 async def test_async_turn_on(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test turning on bypass via async_turn_on calls setBypass with True."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -93,9 +88,6 @@ async def test_async_turn_on(hass: HomeAssistant, mock_config_entry, mock_listen
 async def test_async_turn_off(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test turning off bypass via async_turn_off calls setBypass with False."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -115,9 +107,6 @@ def test_initial_update_calls_panel_update(hass: HomeAssistant, mock_config_entr
                                             zone_name, zone_number, zone_class):
     """Init should call panel.updateBypassZone with initial state."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {
         CONF_ZONE_NAME: zone_name,
         CONF_ZONE_NUMBER: zone_number,
@@ -136,9 +125,6 @@ def test_initial_update_calls_panel_update(hass: HomeAssistant, mock_config_entr
 def test_device_info_and_poll(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_info identifiers and default should_poll property."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     # should_poll default as implemented
@@ -154,9 +140,6 @@ def test_device_info_and_poll(hass: HomeAssistant, mock_config_entry, mock_liste
 async def test_process_zone_callback_and_callbacks(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test process_zone_callback updates state and register/unregister callbacks."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     switch.async_write_ha_state = Mock()
@@ -171,9 +154,6 @@ async def test_process_zone_callback_and_callbacks(hass: HomeAssistant, mock_con
 def test_is_on_property(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test is_on property returns current state."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     assert switch.is_on is False
@@ -182,18 +162,12 @@ def test_is_on_property(hass: HomeAssistant, mock_config_entry, mock_listener_pa
 def test_device_name_property(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_name property."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     assert switch.device_name == "Front Door"
 def test_device_info_missing_name(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test device_info does not include a name attribute."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     device_info = switch.device_info
@@ -202,9 +176,6 @@ def test_device_info_missing_name(hass: HomeAssistant, mock_config_entry, mock_l
 async def test_process_zone_callback_zone_not_found(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test process_zone_callback when zone is not found."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "999", CONF_ZONE_CLASS: "wired_door"}
     panel.getBypassZone.return_value = None
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)

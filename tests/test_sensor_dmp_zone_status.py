@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock, patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+pytestmark = pytest.mark.usefixtures("init_integration")
 
 from custom_components.dmp.sensor import DMPZoneStatus
 from custom_components.dmp.const import DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER, CONF_ZONES, CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS
@@ -46,9 +47,6 @@ class TestDMPZoneStatus:
 
     def test_zone_status_initialization(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
 
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
@@ -62,9 +60,6 @@ class TestDMPZoneStatus:
 
     def test_properties_and_icon(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
 
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
@@ -79,9 +74,6 @@ class TestDMPZoneStatus:
     @pytest.mark.asyncio
     async def test_callbacks_registration(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
 
         sensor = DMPZoneStatus(hass, mock_config_entry, mock_config_entry.data[CONF_ZONES][0])
         await sensor.async_added_to_hass()
@@ -92,9 +84,6 @@ class TestDMPZoneStatus:
     def test_native_value_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
         """Test native_value returns None."""
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         assert sensor.native_value is None
@@ -102,20 +91,13 @@ class TestDMPZoneStatus:
     def test_device_name_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
         """Test device_name property."""
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         assert sensor.device_name == "Test Zone"
 
-    def test_icon_mapping_all_states(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-        """Test icon mapping for all possible states."""
-        listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-        test_cases = [
+    @pytest.mark.parametrize(
+        "zone_class,state,expected_icon",
+        [
             ("wired_door", "Alarm", "mdi:alarm-bell"),
             ("battery_window", "Trouble", "mdi:alert"),
             ("wired_motion", "Bypass", "mdi:alert"),
@@ -125,24 +107,22 @@ class TestDMPZoneStatus:
             ("wired_motion", "Open", "mdi:door-open"),
             ("wired_door", "Ready", "mdi:check"),
             ("unknown_type", "Open", "mdi:door-open"),
-        ]
-        for zone_class, state, expected_icon in test_cases:
-            zone_config = {
-                CONF_ZONE_NAME: "Test Zone",
-                CONF_ZONE_NUMBER: "001",
-                CONF_ZONE_CLASS: zone_class
-            }
-            sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
-            sensor._state = state
-            assert sensor.icon == expected_icon
+        ],
+    )
+    def test_icon_mapping_all_states(self, hass, mock_config_entry, mock_listener_panel, init_integration,
+                                     zone_class, state, expected_icon):
+        zone_config = {
+            CONF_ZONE_NAME: "Test Zone",
+            CONF_ZONE_NUMBER: "001",
+            CONF_ZONE_CLASS: zone_class,
+        }
+        sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
+        sensor._state = state
+        assert sensor.icon == expected_icon
 
-    def test_device_class_mapping(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-        """Test device class mapping based on zone class."""
-        listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-        test_cases = [
+    @pytest.mark.parametrize(
+        "zone_class,expected_device_class",
+        [
             ("wired_door", "door"),
             ("battery_door", "door"),
             ("wired_window", "window"),
@@ -151,15 +131,17 @@ class TestDMPZoneStatus:
             ("battery_motion", "motion"),
             ("wired_smoke", "default"),
             ("unknown_type", "default"),
-        ]
-        for zone_class, expected_class in test_cases:
-            zone_config = {
-                CONF_ZONE_NAME: "Test Zone",
-                CONF_ZONE_NUMBER: "001",
-                CONF_ZONE_CLASS: zone_class
-            }
-            sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
-            assert sensor._device_class == expected_class
+        ],
+    )
+    def test_device_class_mapping(self, hass, mock_config_entry, mock_listener_panel, init_integration,
+                                  zone_class, expected_device_class):
+        zone_config = {
+            CONF_ZONE_NAME: "Test Zone",
+            CONF_ZONE_NUMBER: "001",
+            CONF_ZONE_CLASS: zone_class,
+        }
+        sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
+        assert sensor._device_class == expected_device_class
 
     @pytest.mark.asyncio
     async def test_process_zone_callback_updates_state(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):

@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+pytestmark = pytest.mark.usefixtures("init_integration")
 
 from custom_components.dmp.button import async_setup_entry, DMPRefreshStatusButton
 from custom_components.dmp.const import DOMAIN, LISTENER, CONF_PANEL_NAME, CONF_PANEL_ACCOUNT_NUMBER
@@ -30,9 +31,6 @@ def mock_listener():
 
 @pytest.mark.asyncio
 async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_listener):
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     entities = []
     async_add = lambda new_entities, update_before_add=False: entities.extend(new_entities)
 
@@ -41,9 +39,6 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_li
     assert isinstance(entities[0], DMPRefreshStatusButton)
 
 def test_button_properties(hass: HomeAssistant, mock_config_entry, mock_listener):
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
 
     btn = DMPRefreshStatusButton(hass, mock_config_entry)
     assert btn.name == "Refresh Status"
@@ -55,9 +50,6 @@ def test_button_properties(hass: HomeAssistant, mock_config_entry, mock_listener
 
 @pytest.mark.asyncio
 async def test_async_press_and_callbacks(hass: HomeAssistant, mock_config_entry, mock_listener):
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
 
     btn = DMPRefreshStatusButton(hass, mock_config_entry)
     await btn.async_added_to_hass()

@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+pytestmark = pytest.mark.usefixtures("init_integration")
 
 from custom_components.dmp.binary_sensor import (
     DMPZoneOpenClose,
@@ -75,14 +76,10 @@ def mock_zone_config():
 
 
 @pytest.fixture
-def setup_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
+def setup_sensor(hass, init_integration, mock_config_entry, mock_listener):
     """Set up sensor with mocked dependencies."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = {
-        CONF_PANEL_ACCOUNT_NUMBER: "12345"
-    }
-    return hass, mock_listener.getPanels()["12345"]
+    panel = mock_listener.getPanels()["12345"]
+    return hass, panel
 
 @pytest.mark.parametrize(
     "zone_class,expected_device_class", [
@@ -170,14 +167,12 @@ async def test_async_will_remove_from_hass(setup_sensor, mock_config_entry, mock
 
 
 @pytest.fixture
-def setup_battery_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
-    hass.data.setdefault(DOMAIN, {})
+def setup_battery_sensor(hass, init_integration, mock_config_entry, mock_listener):
+    """Set up battery sensor with mocked dependencies."""
     panel = mock_listener.getPanels()["12345"]
     panel.updateBatteryZone = Mock()
     panel.getBatteryZone = Mock(return_value={"zoneState": False})
     panel.getContactTime = Mock(return_value="t0")
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
     return hass, panel
 
 def test_battery_sensor_initialization(setup_battery_sensor, mock_config_entry):
