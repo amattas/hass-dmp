@@ -42,95 +42,82 @@ def mock_config_entry():
         entry_id="test_entry_id"
     )
 
+@pytest.mark.asyncio
+async def test_async_setup_entry_creates_area_entity(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+    """Test that async_setup_entry adds a DMPArea entity."""
+    listener, panel = mock_listener_panel
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][LISTENER] = listener
+    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+    entities = []
+    def async_add(ents, update_before_add=True):
+        entities.extend(ents)
+    await async_setup_entry(hass, mock_config_entry, async_add)
+    assert len(entities) == 1
+    assert isinstance(entities[0], DMPArea)
+    assert entities[0].name == "Test Panel Arming Control"
 
-class TestDMPAreaAsyncSetup:
-    """Test async_setup_entry function."""
 
-    @pytest.mark.asyncio
-    async def test_async_setup_entry_creates_area_entity(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-        """Test that async_setup_entry adds a DMPArea entity."""
-        listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-        entities = []
-        def async_add(ents, update_before_add=True):
-            entities.extend(ents)
-        await async_setup_entry(hass, mock_config_entry, async_add)
-        assert len(entities) == 1
-        assert isinstance(entities[0], DMPArea)
-        assert entities[0].name == "Test Panel Arming Control"
+"""Test DMPArea initialization and basic properties."""
+def test_dmparea_initialization(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+    listener, panel = mock_listener_panel
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][LISTENER] = listener
+    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+    area = DMPArea(listener, mock_config_entry.data)
+    assert area._name == "Test Panel Arming Control"
+    assert area._home_zone == "01"
+    assert area._away_zone == "02"
+    assert area._account_number == "12345"
+    panel.updateArea.assert_called_once_with({
+        "areaName": area.name,
+        "areaState": STATE_ALARM_DISARMED
+    })
 
-# ------------------------------------------------------------------------------
-# Consolidated DMPArea Initialization, Command, and Property Tests
-# ------------------------------------------------------------------------------
-class TestDMPAreaInitialization:
-    """Test DMPArea initialization and basic properties."""
-    def test_dmparea_initialization(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-        listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-        area = DMPArea(listener, mock_config_entry.data)
-        assert area._name == "Test Panel Arming Control"
-        assert area._home_zone == "01"
-        assert area._away_zone == "02"
-        assert area._account_number == "12345"
-        panel.updateArea.assert_called_once_with({
-            "areaName": area.name,
-            "areaState": STATE_ALARM_DISARMED
-        })
+@pytest.fixture
+def area_with_sender(self, mock_config_entry, mock_listener_panel):
+    listener, panel = mock_listener_panel
+    sender = Mock()
+    sender.disarm = AsyncMock()
+    sender.arm = AsyncMock()
+    panel._dmpSender = sender
+    return DMPArea(listener, mock_config_entry.data), sender
 
-class TestDMPAreaCommands:
-    """Test async alarm arm/disarm methods on DMPArea."""
-    @pytest.fixture
-    def area_with_sender(self, mock_config_entry, mock_listener_panel):
-        listener, panel = mock_listener_panel
-        sender = Mock()
-        sender.disarm = AsyncMock()
-        sender.arm = AsyncMock()
-        panel._dmpSender = sender
-        return DMPArea(listener, mock_config_entry.data), sender
+@pytest.mark.asyncio
+async def test_async_alarm_disarm(self, area_with_sender):
+    area, sender = area_with_sender
+    await area.async_alarm_disarm()
+    sender.disarm.assert_awaited_once()
 
-    @pytest.mark.asyncio
-    async def test_async_alarm_disarm(self, area_with_sender):
-        area, sender = area_with_sender
-        await area.async_alarm_disarm()
-        sender.disarm.assert_awaited_once()
+@pytest.mark.asyncio
+async def test_async_alarm_arm_away(self, area_with_sender):
+    area, sender = area_with_sender
+    await area.async_alarm_arm_away()
+    sender.arm.assert_awaited_once()
 
-    @pytest.mark.asyncio
-    async def test_async_alarm_arm_away(self, area_with_sender):
-        area, sender = area_with_sender
-        await area.async_alarm_arm_away()
-        sender.arm.assert_awaited_once()
+@pytest.mark.asyncio
+async def test_async_alarm_arm_home_and_night(self, area_with_sender):
+    area, sender = area_with_sender
+    await area.async_alarm_arm_home()
+    sender.arm.assert_any_await(area._home_zone, False)
+    await area.async_alarm_arm_night()
+    sender.arm.assert_any_await(area._home_zone, True)
 
-    @pytest.mark.asyncio
-    async def test_async_alarm_arm_home_and_night(self, area_with_sender):
-        area, sender = area_with_sender
-        await area.async_alarm_arm_home()
-        sender.arm.assert_any_await(area._home_zone, False)
-        await area.async_alarm_arm_night()
-        sender.arm.assert_any_await(area._home_zone, True)
+@pytest.fixture
+def setup_area(self, mock_config_entry, mock_listener_panel):
+    listener, panel = mock_listener_panel
+    config = mock_config_entry.data
+    area = DMPArea(listener, config)
+    return area, panel
 
-class TestDMPAreaProperties:
-    """Test DMPArea properties not covered in existing tests."""
-    @pytest.fixture
-    def setup_area(self, mock_config_entry, mock_listener_panel):
-        listener, panel = mock_listener_panel
-        config = mock_config_entry.data
-        area = DMPArea(listener, config)
-        return area, panel
-
-    @pytest.mark.parametrize(
-        "prop,expected",
-        [
-            ("should_poll", False),
-            ("code_arm_required", False),
-            ("name", "Test Panel Arming Control"),
-        ],
-    )
-    def test_properties(self, setup_area, prop, expected):
-        area, panel = setup_area
-        assert getattr(area, prop) == expected
-# ------------------------------------------------------------------------------
-
+@pytest.mark.parametrize(
+    "prop,expected",
+    [
+        ("should_poll", False),
+        ("code_arm_required", False),
+        ("name", "Test Panel Arming Control"),
+    ],
+)
+def test_properties(self, setup_area, prop, expected):
+    area, panel = setup_area
+    assert getattr(area, prop) == expected

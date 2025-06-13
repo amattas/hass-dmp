@@ -41,20 +41,5 @@ def mock_listener_panel():
     return listener, panel
 
 
-class TestSensorAsyncSetup:
-    """Test async_setup_entry for sensor platform."""
-
-    @pytest.mark.asyncio
-    async def test_async_setup_entry(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-        listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-        entities = []
-        async_add = lambda new_entities, update_before_add=True: entities.extend(new_entities)
-
-        await async_setup_entry(hass, mock_config_entry, async_add)
-        assert len(entities) == 1
-        sensor = entities[0]
-        assert isinstance(sensor, DMPZoneStatus)
+# async_setup_entry test consolidated in test_platform_setup.py
 
