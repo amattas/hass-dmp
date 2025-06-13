@@ -162,15 +162,54 @@ class TestDMPZoneBypassSwitch:
         hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
         zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
         switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-        # Test callback processing
         switch.async_write_ha_state = Mock()
         panel.getBypassZone.return_value = {"zoneState": True}
         await switch.process_zone_callback()
         assert switch._state is True
         switch.async_write_ha_state.assert_called_once()
-        # Test registering callback
         await switch.async_added_to_hass()
         listener.register_callback.assert_called_once_with(switch.process_zone_callback)
-        # Test removing callback
         await switch.async_will_remove_from_hass()
         listener.remove_callback.assert_called_once_with(switch.process_zone_callback)
+    def test_is_on_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+        """Test is_on property returns current state."""
+        listener, panel = mock_listener_panel
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][LISTENER] = listener
+        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
+        switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
+        assert switch.is_on is False
+        switch._state = True
+        assert switch.is_on is True
+    def test_device_name_property(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+        """Test device_name property."""
+        listener, panel = mock_listener_panel
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][LISTENER] = listener
+        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
+        switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
+        assert switch.device_name == "Front Door"
+    def test_device_info_missing_name(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+        """Test device_info does not include a name attribute."""
+        listener, panel = mock_listener_panel
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][LISTENER] = listener
+        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "001", CONF_ZONE_CLASS: "wired_door"}
+        switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
+        device_info = switch.device_info
+        assert "name" not in device_info
+    @pytest.mark.asyncio
+    async def test_process_zone_callback_zone_not_found(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+        """Test process_zone_callback when zone is not found."""
+        listener, panel = mock_listener_panel
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][LISTENER] = listener
+        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        zone_config = {CONF_ZONE_NAME: "Front Door", CONF_ZONE_NUMBER: "999", CONF_ZONE_CLASS: "wired_door"}
+        panel.getBypassZone.return_value = None
+        switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
+        with pytest.raises(TypeError):
+            await switch.process_zone_callback()
