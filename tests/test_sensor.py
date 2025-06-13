@@ -1,4 +1,4 @@
-"""Test DMPZoneStatus sensor and async_setup_entry."""
+"""Test sensor module for DMP integration."""
 import pytest
 from unittest.mock import Mock
 from homeassistant.core import HomeAssistant
@@ -41,63 +41,30 @@ def mock_listener_panel():
     return listener, panel
 
 
-@pytest.mark.asyncio
-async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-    entities = []
-    async_add = lambda new_entities, update_before_add=True: entities.extend(new_entities)
+class TestSensorAsyncSetup:
+    """Test async_setup_entry for sensor platform."""
 
-    await async_setup_entry(hass, mock_config_entry, async_add)
-    assert len(entities) == 1
-    sensor = entities[0]
-    assert isinstance(sensor, DMPZoneStatus)
+    @pytest.mark.asyncio
+    async def test_async_setup_entry(self, hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+        listener, panel = mock_listener_panel
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN][LISTENER] = listener
+        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        entities = []
+        async_add = lambda new_entities, update_before_add=True: entities.extend(new_entities)
 
-
-def test_zone_status_initialization(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-
-    zone_config = mock_config_entry.data[CONF_ZONES][0]
-    sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
-    assert sensor.name == "Test Zone Status"
-    assert sensor.state == "Ready"
-    panel.updateStatusZone.assert_called_once_with("001", {
-        "zoneName": "Test Zone",
-        "zoneNumber": "001",
-        "zoneState": "Ready"
-    })
+        await async_setup_entry(hass, mock_config_entry, async_add)
+        assert len(entities) == 1
+        sensor = entities[0]
+        assert isinstance(sensor, DMPZoneStatus)
 
 
-def test_properties_and_icon(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+# Import other test classes
+from .test_sensor_dmp_zone_status import TestDMPZoneStatus
+from .test_sensor_dmp_zone_status_complete import TestDMPZoneStatusComplete
 
-    zone_config = mock_config_entry.data[CONF_ZONES][0]
-    sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
-    sensor._state = "Open"
-    assert sensor.icon == "mdi:door-open"
-    assert sensor.unique_id == "dmp-12345-zone-001-status"
-    device_info = sensor.device_info
-    identifiers = device_info["identifiers"]
-    assert (DOMAIN, "dmp-12345-zone-001") in identifiers
-    assert sensor.extra_state_attributes == {"last_contact": "2023-01-02T00:00:00"}
-
-@pytest.mark.asyncio
-async def test_callbacks_registration(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
-    listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
-
-    sensor = DMPZoneStatus(hass, mock_config_entry, mock_config_entry.data[CONF_ZONES][0])
-    await sensor.async_added_to_hass()
-    listener.register_callback.assert_called_once_with(sensor.process_zone_callback)
-    await sensor.async_will_remove_from_hass()
-    listener.remove_callback.assert_called_once_with(sensor.process_zone_callback)
+__all__ = [
+    "TestSensorAsyncSetup",
+    "TestDMPZoneStatus",
+    "TestDMPZoneStatusComplete",
+]
