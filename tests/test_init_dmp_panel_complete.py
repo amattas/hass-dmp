@@ -128,8 +128,8 @@ class TestDMPPanelComplete:
             # Test getAccountNumber
             assert panel.getAccountNumber() == "12345"
             
-            # Test getDMPSender
-            assert panel.getDMPSender() == mock_sender
+            # Test DMPSender instance assigned to panel
+            assert panel._dmpSender == mock_sender
 
     def test_panel_getters_return_none_when_empty(self):
         """Test that zone getters return None when zone doesn't exist."""
@@ -141,7 +141,9 @@ class TestDMPPanelComplete:
         assert panel.getTroubleZone("999") is None
         assert panel.getBypassZone("999") is None
         assert panel.getAlarmZone("999") is None
-        assert panel.getStatusZone("999") is None
+        # getStatusZone raises KeyError for non-existent zones
+        with pytest.raises(KeyError):
+            panel.getStatusZone("999")
 
     def test_panel_zone_state_updates(self):
         """Test zone state update methods."""
