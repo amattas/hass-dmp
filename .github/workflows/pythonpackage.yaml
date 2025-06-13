@@ -28,3 +28,12 @@ jobs:
       - name: Run pytest
         run: |
           pytest
+
+      - name: Lint with Ruff
+        run: |
+          ruff .
+
+      - name: Bandit security scan
+        run: |
+          bandit -r .
+
