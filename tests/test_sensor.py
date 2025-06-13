@@ -58,13 +58,3 @@ class TestSensorAsyncSetup:
         sensor = entities[0]
         assert isinstance(sensor, DMPZoneStatus)
 
-
-# Import other test classes
-from .test_sensor_dmp_zone_status import TestDMPZoneStatus
-from .test_sensor_dmp_zone_status_complete import TestDMPZoneStatusComplete
-
-__all__ = [
-    "TestSensorAsyncSetup",
-    "TestDMPZoneStatus",
-    "TestDMPZoneStatusComplete",
-]

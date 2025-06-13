@@ -1,5 +1,3 @@
-import pytest
-pytest.skip("Consolidated into test_sensor.py", allow_module_level=True)
 """Test DMPZoneStatus sensor initialization and basic functionality."""
 import pytest
 from unittest.mock import Mock

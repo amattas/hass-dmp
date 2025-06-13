@@ -1,5 +1,3 @@
-import pytest
-pytest.skip("Consolidated into test_switch.py", allow_module_level=True)
 """Complete tests for DMPZoneBypassSwitch entity."""
 import pytest
 from unittest.mock import Mock, AsyncMock
