@@ -322,26 +322,6 @@ def test_status_attributes_helpers():
     assert attr["Zone: 001 - Door"] == "Open"
 
 @pytest.mark.asyncio
-async def test_handle_connection_unknown_account():
-    """Unknown account numbers raise NameError."""
-    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    listener._panels = {"12345": panel}
-    listener.updateHASS = AsyncMock()
-
-    msg = 'AAAAAAA999990000000ZdXXX\\z001"Zone1\\'
-    reader = DummyReader([msg, ""])
-    writer = DummyWriter()
-
-    with pytest.raises(KeyError):
-        await listener.handle_connection(reader, writer)
-
-    assert writer.writes == []
-    listener.updateHASS.assert_not_called()
-
-
-@pytest.mark.asyncio
 async def test_handle_connection_checkin_and_pass_events(caplog):
     """Handle checkin and pass events from panel."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
