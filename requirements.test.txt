@@ -1,0 +1,6 @@
+bandit
+homeassistant
+pytest
+pytest-cov
+pytest-homeassistant-custom-component
+ruff

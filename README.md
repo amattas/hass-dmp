@@ -1,3 +1,5 @@
+[![Python package](https://github.com/amattas/hass-dmp/actions/workflows/pythonpackage.yaml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/pythonpackage.yaml) [![Validate with hassfest](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml)
+
 # DMP Integration for Home Assistant
 
 Integrate your DMP XR series alarn panel with Home Assistant. This integration provides arming control along with zone monitoring. 

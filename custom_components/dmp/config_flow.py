@@ -2,18 +2,11 @@ from copy import deepcopy
 import logging
 from typing import Any, Dict, Optional
 
-from homeassistant import config_entries, core
+from homeassistant import config_entries
 
 # from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_registry import (
-    async_entries_for_config_entry,
-    async_get,
-)
 from homeassistant.helpers.selector import selector
 import voluptuous as vol
 
@@ -39,7 +32,6 @@ from .const import (
     DEV_TYPE_WIRED_DOOR,
     DEV_TYPE_WIRED_GLASSBREAK,
     DEV_TYPE_WIRED_MOTION,
-    DEV_TYPE_WIRED_SIREN,
     DEV_TYPE_WIRED_SMOKE,
     DEV_TYPE_WIRED_WINDOW,
 )
@@ -88,7 +80,7 @@ SENSOR_TYPES = selector(
 PANEL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PANEL_NAME, default="DMP XR150"): cv.string,
-        vol.Required(CONF_PANEL_IP, default="0.0.0.0"): cv.string,
+        vol.Required(CONF_PANEL_IP, default="192.168.1.2"): cv.string,
         vol.Optional(CONF_PANEL_REMOTE_PORT, default=8011): cv.port,
         vol.Optional(CONF_PANEL_LISTEN_PORT, default=8001): cv.port,
         vol.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
@@ -175,17 +167,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> Dict[str, Any]:
         """Manage the options for the custom component."""
         errors: Dict[str, str] = {}
-        entity_registry = async_get(self.hass)
-        entries = async_entries_for_config_entry(
-            entity_registry, self.config_entry.entry_id
-        )
+        # entity_registry = async_get(self.hass)
+        # entries = async_entries_for_config_entry(
+        #     entity_registry, self.config_entry.entry_id
+        # )
         # Get a list of zones for the UI since each zone has multiple
         # sensors.
         zones = dict(self.config_entry.data)[CONF_ZONES]
         zones_dict = {z[CONF_ZONE_NUMBER]: z[CONF_ZONE_NAME] for z in zones}
         if user_input is not None:
             updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
-            entry_map = {e.entity_id: e for e in entries}
+            # entry_map = {e.entity_id: e for e in entries}
             deleted_zones = deleted_zones = [
                 z[CONF_ZONE_NUMBER]
                 for z in zones
