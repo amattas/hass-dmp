@@ -21,8 +21,6 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    # if entry.options:
-    #     config.update(entry.options)
     _LOGGER.debug("Alarm control panel config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
     area = DMPArea(listener, config)
@@ -56,7 +54,6 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def process_area_callback(self):
         self.async_write_ha_state()
-        # _LOGGER.debug("DMPArea Callback Executed")
 
     @property
     def name(self):

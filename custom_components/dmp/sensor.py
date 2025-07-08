@@ -106,7 +106,6 @@ class DMPZoneStatus(SensorEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        # _LOGGER.debug("Called DMPZoneStatus.state: {}".format(self._state))
         return self._state
 
     @property

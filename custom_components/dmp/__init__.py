@@ -32,8 +32,6 @@ async def async_setup_entry(hass, entry) -> bool:
     config = dict(entry.data)
     # Create Options Callback
     entry.add_update_listener(options_update_listener)
-    # if entry.options:
-    #     config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
     # Create and start the DMP Listener
     listener = DMPListener(hass, config)
@@ -343,9 +341,6 @@ class DMPListener():
     def _events(self, arg):
         return (DMP_EVENTS.get(arg, "Unknown Event " + arg))
 
-    # async def start(self):       
-    #     await self.listen() 
-
     async def listen(self):
         """ Start TCP server listening on configured port """
         ip = await net.async_get_source_ip(self._hass)
@@ -386,9 +381,6 @@ class DMPListener():
                     break
                 _LOGGER.debug("Received data from panel %s: %s",
                               panel.getAccountNumber(), data)
-
-                # eventObj = {"accountNumber": acctNum.strip()}
-
                 if (data.find(acctNum + ' s0700240') != -1):
                     _LOGGER.info('{}: Received checkin message'
                                  .format(acctNum))
@@ -450,13 +442,10 @@ class DMPListener():
                     panel.updateAlarmZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Za' or eventCode == 'Zb'):  # Alarm
                     systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._events(eventCode)
-                    # typeName = self._event_types(systemCode)
                     out = self._searchS3Segment(
                         self._getS3Segment('\\z', data)
                         )
                     zoneNumber = out[0]
-                    # zoneName = out[1]
                     out = self._searchS3Segment(
                         self._getS3Segment('\\a', data)
                         )
@@ -491,7 +480,6 @@ class DMPListener():
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zc'):  # Device status
                     systemCode = self._getS3Segment('\\t', data)[1:]
-                    # codeName = self._event_types(systemCode)
                     zoneNumber = self._getS3Segment('\\z', data)
                     if (
                         systemCode == "DO"

@@ -38,9 +38,6 @@ class DMPSender:
         reader, writer = await asyncio.open_connection(self.ipAddr, self.port)
         dropConnectionStr = '!V0'
         sendAuthStr = '!V2{}'.format(self.remoteKey)
-
-        # original code had an initial drop followed by 2 second sleep - haven't had an issue without it...
-        # await self.sendCommand(writer, self.getEncodedPayload(dropConnectionStr))
         await self.sendCommand(writer, self.getEncodedPayload(sendAuthStr))
 
         if isinstance(commands, str):

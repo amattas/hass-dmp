@@ -18,17 +18,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
     bypassZones = []
     for zone in config[CONF_ZONES]:
         # allow all zones to be bypassed 
-        # if (
-        #     "window" in zone[CONF_ZONE_CLASS]
-        #     or "door" in zone[CONF_ZONE_CLASS]
-        #     or "glassbreak" in zone[CONF_ZONE_CLASS]
-        #     or "motion" in zone[CONF_ZONE_CLASS]
-        # ):
-            bypassZones.append(
-                DMPZoneBypassSwitch(
-                    hass, config_entry, zone
-                )
+        bypassZones.append(
+            DMPZoneBypassSwitch(
+                hass, config_entry, zone
             )
+        )
     # Don't update before add or you have a race condition with the
     # status zone.
     async_add_entities(bypassZones, update_before_add=False)
@@ -62,7 +56,6 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        # _LOGGER.debug("DMPZoneBypassSwitch Callback Executed")
         self._state = self._panel.getBypassZone(self._number)["zoneState"]
         self.async_write_ha_state()
 
@@ -81,8 +74,6 @@ class DMPZoneBypassSwitch(SwitchEntity):
     @property
     def device_class(self):
         """Return the class of the device"""
-        # _LOGGER.debug("Called DMPZoneBypassSwitch.device_class: {}"
-                    #   .format(self._device_class))
         return self._device_class
 
     @property

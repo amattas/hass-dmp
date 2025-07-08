@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
 
-# from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.selector import selector
@@ -167,17 +166,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> Dict[str, Any]:
         """Manage the options for the custom component."""
         errors: Dict[str, str] = {}
-        # entity_registry = async_get(self.hass)
-        # entries = async_entries_for_config_entry(
-        #     entity_registry, self.config_entry.entry_id
-        # )
         # Get a list of zones for the UI since each zone has multiple
         # sensors.
         zones = dict(self.config_entry.data)[CONF_ZONES]
         zones_dict = {z[CONF_ZONE_NUMBER]: z[CONF_ZONE_NAME] for z in zones}
         if user_input is not None:
             updated_zones = deepcopy(self.config_entry.data[CONF_ZONES])
-            # entry_map = {e.entity_id: e for e in entries}
             deleted_zones = deleted_zones = [
                 z[CONF_ZONE_NUMBER]
                 for z in zones
