@@ -464,7 +464,7 @@ class DMPListener():
                     if (systemCode == "OP"):  # Disarm
                         areaState = AlarmControlPanelState.DISARMED
                         # do a manual status query - bypassed zones are reset but no message for it 
-                        await self._hass.async_create_task(self.updateStatus())
+                        self._hass.async_create_task(self.updateStatus())
                     elif (systemCode == "CL"):  # Arm
                         if (areaNumber[1:] == self._home_area):
                             # Make sure we're not already armed away
