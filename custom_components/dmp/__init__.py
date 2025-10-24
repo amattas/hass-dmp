@@ -1,25 +1,19 @@
 """The DMP Integration Component"""
-import homeassistant.helpers.config_validation as cv
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 import logging
 
 from copy import deepcopy
-from homeassistant.core import callback
+
 from homeassistant.helpers import entity_registry as er
+from homeassistant.components import network as net
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
-from homeassistant.helpers.event import (
-    TrackTemplate,
-    async_track_template_result
-    )
+from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
     Platform
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_IP, LISTENER,
+ 
+from .const import (CONF_PANEL_IP, LISTENER,
                     CONF_PANEL_LISTEN_PORT, CONF_PANEL_REMOTE_PORT,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_REMOTE_KEY,
                     CONF_HOME_AREA, CONF_AWAY_AREA, DOMAIN, CONF_ZONES,
@@ -38,12 +32,11 @@ async def async_setup_entry(hass, entry) -> bool:
     config = dict(entry.data)
     # Create Options Callback
     entry.add_update_listener(options_update_listener)
-    # if entry.options:
-    #     config.update(entry.options)
     _LOGGER.debug("Loaded config %s", config)
     # Create and start the DMP Listener
     listener = DMPListener(hass, config)
-    await listener.start()
+    listener_task = asyncio.create_task(listener.listen())
+    await listener_task
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, listener.stop)
     hass.data[DOMAIN][LISTENER] = listener
     hass.data[DOMAIN][entry.entry_id] = config
@@ -124,7 +117,7 @@ class DMPPanel():
                            or "                ")
         self._panelPort = config.get(CONF_PANEL_REMOTE_PORT) or 2001
         self._panel_last_contact = None
-        self._area = STATE_ALARM_DISARMED  # Default Value
+        self._area = AlarmControlPanelState.DISARMED  # Default Value
         self._dmpSender = DMPSender(self._ipAddress, self._panelPort, self._accountNumber, self._remoteKey)
         self._open_close_zones = {}
         self._battery_zones = {}
@@ -348,17 +341,14 @@ class DMPListener():
     def _events(self, arg):
         return (DMP_EVENTS.get(arg, "Unknown Event " + arg))
 
-    async def start(self):
-        await self.listen()
-
     async def listen(self):
         """ Start TCP server listening on configured port """
-        server = await asyncio.start_server(self.handle_connection, "0.0.0.0",
+        ip = await net.async_get_source_ip(self._hass)
+        listener = await asyncio.start_server(self.handle_connection, ip,
                                             self._port)
-        addr = server.sockets[0].getsockname()
+        addr = listener.sockets[0].getsockname()
         _LOGGER.info(f"Listening on {addr}:{self._port}")
-        server.serve_forever()
-        self._server = server
+        self._listener = listener.serve_forever()
 
     async def stop(self):
         """ Stop TCP server """
@@ -385,15 +375,12 @@ class DMPListener():
                 zoneNumber = None
                 try:
                     panel = self._panels[acctNum.strip()]
-                except e:
-                    _LOGGER.warn("Unknown account number sending data - %s",
+                except Exception:
+                    _LOGGER.warning("Unknown account number sending data - %s",
                                  acctNum.strip())
                     break
                 _LOGGER.debug("Received data from panel %s: %s",
                               panel.getAccountNumber(), data)
-
-                eventObj = {"accountNumber": acctNum.strip()}
-
                 if (data.find(acctNum + ' s0700240') != -1):
                     _LOGGER.info('{}: Received checkin message'
                                  .format(acctNum))
@@ -455,20 +442,17 @@ class DMPListener():
                     panel.updateAlarmZone(zoneNumber, zoneObj)
                 elif (eventCode == 'Za' or eventCode == 'Zb'):  # Alarm
                     systemCode = self._getS3Segment('\\t', data)[1:]
-                    codeName = self._events(eventCode)
-                    typeName = self._event_types(systemCode)
                     out = self._searchS3Segment(
                         self._getS3Segment('\\z', data)
                         )
                     zoneNumber = out[0]
-                    zoneName = out[1]
                     out = self._searchS3Segment(
                         self._getS3Segment('\\a', data)
                         )
                     areaNumber = out[0]
                     areaName = out[1]
                     areaObj = {"areaName": areaName,
-                               "areaState": STATE_ALARM_TRIGGERED}
+                               "areaState": AlarmControlPanelState.TRIGGERED}
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zq'):  # Arming Status
                     systemCode = self._getS3Segment('\\t', data)[1:]
@@ -478,7 +462,7 @@ class DMPListener():
                     areaNumber = out[0]
                     areaName = out[1]
                     if (systemCode == "OP"):  # Disarm
-                        areaState = STATE_ALARM_DISARMED
+                        areaState = AlarmControlPanelState.DISARMED
                         # do a manual status query - bypassed zones are reset but no message for it 
                         self._hass.async_create_task(self.updateStatus())
                     elif (systemCode == "CL"):  # Arm
@@ -486,17 +470,16 @@ class DMPListener():
                             # Make sure we're not already armed away
                             if (
                                 panel.getArea()["areaState"] !=
-                                    STATE_ALARM_ARMED_AWAY):
-                                areaState = STATE_ALARM_ARMED_HOME
+                                    AlarmControlPanelState.ARMED_AWAY):
+                                areaState = AlarmControlPanelState.ARMED_HOME
                         else:
-                            areaState = STATE_ALARM_ARMED_AWAY
+                            areaState = AlarmControlPanelState.ARMED_AWAY
                     areaObj = {"areaName": areaName,
                                "areaState": areaState}
                     _LOGGER.debug("Updated area: %s" % areaObj)
                     panel.updateArea(areaObj)
                 elif (eventCode == 'Zc'):  # Device status
                     systemCode = self._getS3Segment('\\t', data)[1:]
-                    codeName = self._event_types(systemCode)
                     zoneNumber = self._getS3Segment('\\z', data)
                     if (
                         systemCode == "DO"
@@ -524,7 +507,7 @@ class DMPListener():
                 writer.write(ackString.encode())
                 # update contact time last to ensure we only log contact time
                 # on a successful message
-                panel.updateContactTime(datetime.utcnow())
+                panel.updateContactTime(datetime.now(timezone.utc))
                 await self.updateHASS()
             else:
                 _LOGGER.debug("Connection disconnected")

@@ -1,6 +1,4 @@
 """Platform for DMP Alarm Panel integration"""
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 import logging
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
@@ -77,8 +75,8 @@ class DMPZoneStatus(SensorEntity):
             for i in e.identifiers:
                 if i in device_identifiers:
                     device_registry.async_remove_device(e.id)
-        for i in device_identifiers:
-            item = device_registry.async_get_device(i)
+        # for i in device_identifiers:
+            # item = device_registry.async_get_device(i)
 
     async def process_zone_callback(self):
         # _LOGGER.debug("DMPZoneStatus Callback Executed")
@@ -108,7 +106,6 @@ class DMPZoneStatus(SensorEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        # _LOGGER.debug("Called DMPZoneStatus.state: {}".format(self._state))
         return self._state
 
     @property

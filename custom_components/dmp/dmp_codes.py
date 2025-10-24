@@ -51,7 +51,6 @@ DMP_TYPES = {
     # Equipment
     'RP': 'Equipment: Repair',
     'RL': 'Equipment: Replace',
-    'AD': 'Equipment: Add',
     'RM': 'Equipment: Remove',
     'AJ': 'Equipment: Adjust',
     'TS': 'Equipment: Test',
@@ -149,11 +148,13 @@ DMP_TYPES = {
     'HC': 'Holiday Schedule C',
 
     # User Code
-    'AD': 'User Code Added',
     'CH': 'User Code Changed',
     'DE': 'User Code Deleted',
 
     # Service User
     'ST': 'Start Service User',
     'SP': 'Stop Service User',
+
+    # Generic
+    'AD': 'Added' # Used for both Equipment and User
 }

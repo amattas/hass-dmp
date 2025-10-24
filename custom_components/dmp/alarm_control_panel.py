@@ -1,15 +1,13 @@
 """Platform for DMP Alarm Panel integration"""
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 import logging
 
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.const import STATE_ALARM_DISARMED
 
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
-    AlarmControlPanelEntityFeature
+    AlarmControlPanelEntityFeature,
+    AlarmControlPanelState
 )
 from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
                     CONF_PANEL_ACCOUNT_NUMBER, CONF_HOME_AREA,
@@ -23,8 +21,6 @@ async def async_setup_entry(hass, entry, async_add_entities,):
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    # if entry.options:
-    #     config.update(entry.options)
     _LOGGER.debug("Alarm control panel config: %s" % config)
     listener = hass.data[DOMAIN][LISTENER]
     area = DMPArea(listener, config)
@@ -45,7 +41,7 @@ class DMPArea(AlarmControlPanelEntity):
                            or self._number[1:])
         self._away_zone = (config.get(CONF_AWAY_AREA)
                            or self._number[1:])
-        areaObj = {"areaName": self._name, "areaState": STATE_ALARM_DISARMED}
+        areaObj = {"areaName": self._name, "areaState": AlarmControlPanelState.DISARMED}
         self._panel.updateArea(areaObj)
 
     async def async_added_to_hass(self):
@@ -58,7 +54,6 @@ class DMPArea(AlarmControlPanelEntity):
 
     async def process_area_callback(self):
         self.async_write_ha_state()
-        # _LOGGER.debug("DMPArea Callback Executed")
 
     @property
     def name(self):
