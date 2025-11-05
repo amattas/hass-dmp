@@ -66,7 +66,7 @@ class DMPArea(AlarmControlPanelEntity):
         return False
 
     @property
-    def state(self):
+    def alarm_state(self):
         """Return the state of the device."""
         state = self._panel.getArea()["areaState"]
         return state
