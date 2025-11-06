@@ -52,7 +52,9 @@ async def async_setup_entry(hass, entry) -> bool:
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug("Unloading entry.")
-    listener = hass.data[DOMAIN][LISTENER]
+    # listener = hass.data[DOMAIN][LISTENER]
+    # Temporary fix to support HomeAssistant boxes with multiple NICs. 
+    listener = "0.0.0.0"
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS
         ) and await listener.stop()
