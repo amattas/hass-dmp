@@ -155,8 +155,7 @@ async def test_listener_start_and_listen():
     """Test listener start creates server and calls listen."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02", CONF_PANEL_LISTEN_PORT: 40001})
 
-    with patch("custom_components.dmp.__init__.net.async_get_source_ip", new_callable=AsyncMock, return_value="0.0.0.0"), \
-        patch("asyncio.start_server") as mock_start_server:
+    with patch("asyncio.start_server") as mock_start_server:
         mock_server = Mock()
         mock_socket = Mock()
         mock_socket.getsockname.return_value = ("0.0.0.0", 40001)
@@ -473,4 +472,3 @@ async def test_listener_updateStatus_clearing():
     panel.updateBatteryZone.assert_called_with("003", {"zoneNumber": "003", "zoneState": False})
     listener.setStatusAttributes.assert_called_once()
     listener.updateHASS.assert_called_once()
-
