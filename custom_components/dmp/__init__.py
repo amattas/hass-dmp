@@ -6,7 +6,7 @@ import logging
 from copy import deepcopy
 
 from homeassistant.helpers import entity_registry as er
-from homeassistant.components import network as net
+#from homeassistant.components import network as net
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.const import (
