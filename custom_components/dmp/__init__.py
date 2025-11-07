@@ -6,7 +6,7 @@ import logging
 from copy import deepcopy
 
 from homeassistant.helpers import entity_registry as er
-from homeassistant.components import network as net
+#from homeassistant.components import network as net
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.const import (
@@ -343,7 +343,9 @@ class DMPListener():
 
     async def listen(self):
         """ Start TCP server listening on configured port """
-        ip = await net.async_get_source_ip(self._hass)
+        # ip = await net.async_get_source_ip(self._hass)
+        # Temporary fix for multi-homed networking issues
+        ip = '0.0.0.0'
         listener = await asyncio.start_server(self.handle_connection, ip,
                                             self._port)
         addr = listener.sockets[0].getsockname()
