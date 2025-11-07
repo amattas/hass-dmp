@@ -535,7 +535,7 @@ class DMPListener():
                     else:
                         panel.updateBypassZone(zone, clearZone)
                 if zone in panel._trouble_zones:
-                    if zoneData['status'] == 'Missing':
+                    if zoneData['status'] == 'Missing' or zoneData['status'] == 'Short':
                         panel.updateTroubleZone(zone, faultZone)
                     elif zoneData['status'] == 'Normal':
                         panel.updateTroubleZone(zone, clearZone)
