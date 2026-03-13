@@ -1,6 +1,7 @@
 import pytest
 from custom_components.dmp.const import DOMAIN, LISTENER
 
+
 @pytest.fixture
 def init_integration(hass, request):
     """

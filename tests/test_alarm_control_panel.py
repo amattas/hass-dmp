@@ -1,4 +1,5 @@
 """Test alarm control panel entity for DMP integration."""
+
 import pytest
 from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
@@ -7,8 +8,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.alarm_control_panel import DMPArea, async_setup_entry
 from custom_components.dmp.const import (
-    DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_HOME_AREA, CONF_AWAY_AREA
+    DOMAIN,
+    LISTENER,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_HOME_AREA,
+    CONF_AWAY_AREA,
 )
 
 
@@ -22,6 +26,9 @@ def mock_listener_panel():
     panel.updateArea = Mock()
     panel.getArea = Mock(return_value={"areaState": AlarmControlPanelState.DISARMED})
     panel.getContactTime = Mock()
+    panel._pydmp_panel = AsyncMock()
+    panel._pydmp_panel.arm_areas = AsyncMock()
+    panel._pydmp_panel.disarm_areas = AsyncMock()
     listener.getPanels.return_value = {"12345": panel}
     listener.register_callback = Mock()
     listener.remove_callback = Mock()
@@ -37,28 +44,35 @@ def mock_config_entry():
             "panel_name": "Test Panel",
             CONF_PANEL_ACCOUNT_NUMBER: "12345",
             CONF_HOME_AREA: "01",
-            CONF_AWAY_AREA: "02"
+            CONF_AWAY_AREA: "02",
         },
-        entry_id="test_entry_id"
+        entry_id="test_entry_id",
     )
 
+
 @pytest.mark.asyncio
-async def test_async_setup_entry_creates_area_entity(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+async def test_async_setup_entry_creates_area_entity(
+    hass: HomeAssistant, mock_config_entry, mock_listener_panel
+):
     """Test that async_setup_entry adds a DMPArea entity."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][LISTENER] = listener
     hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
     entities = []
+
     def async_add(ents, update_before_add=True):
         entities.extend(ents)
+
     await async_setup_entry(hass, mock_config_entry, async_add)
     assert len(entities) == 1
     assert isinstance(entities[0], DMPArea)
     assert entities[0].name == "Test Panel Arming Control"
 
 
-def test_dmparea_initialization(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
+def test_dmparea_initialization(
+    hass: HomeAssistant, mock_config_entry, mock_listener_panel
+):
     """Verify DMPArea initializes with expected values."""
     listener, panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
@@ -69,43 +83,46 @@ def test_dmparea_initialization(hass: HomeAssistant, mock_config_entry, mock_lis
     assert area._home_zone == "01"
     assert area._away_zone == "02"
     assert area._account_number == "12345"
-    panel.updateArea.assert_called_once_with({
-        "areaName": area.name,
-        "areaState": AlarmControlPanelState.DISARMED
-    })
+    panel.updateArea.assert_called_once_with(
+        {"areaName": area.name, "areaState": AlarmControlPanelState.DISARMED}
+    )
 
-@pytest.fixture
-def area_with_sender(mock_config_entry, mock_listener_panel):
-    """Provide a DMPArea with an attached DMPSender for action tests."""
-    listener, panel = mock_listener_panel
-    sender = Mock()
-    sender.disarm = AsyncMock()
-    sender.arm = AsyncMock()
-    panel._dmpSender = sender
-    return DMPArea(listener, mock_config_entry.data), sender
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "method,expected",
-    [
-        ("async_alarm_disarm", ("disarm", None)),
-        ("async_alarm_arm_away", ("arm", None)),
-        ("async_alarm_arm_home", ("arm", False)),
-        ("async_alarm_arm_night", ("arm", True)),
-    ],
-)
-async def test_alarm_actions(area_with_sender, method, expected):
-    """Verify alarm actions call the DMPSender appropriately."""
-    area, sender = area_with_sender
-    await getattr(area, method)()
+async def test_alarm_disarm(mock_config_entry, mock_listener_panel):
+    """Verify disarm calls pydmp_panel.disarm_areas."""
+    listener, panel = mock_listener_panel
+    area = DMPArea(listener, mock_config_entry.data)
+    await area.async_alarm_disarm()
+    panel._pydmp_panel.disarm_areas.assert_awaited_once_with([1, 2, 3])
 
-    attr, arg = expected
-    if attr == "disarm":
-        sender.disarm.assert_awaited_once()
-    elif arg is None:
-        getattr(sender, attr).assert_awaited_once()
-    else:
-        getattr(sender, attr).assert_any_await(area._home_zone, arg)
+
+@pytest.mark.asyncio
+async def test_alarm_arm_away(mock_config_entry, mock_listener_panel):
+    """Verify arm away calls pydmp_panel.arm_areas with all areas."""
+    listener, panel = mock_listener_panel
+    area = DMPArea(listener, mock_config_entry.data)
+    await area.async_alarm_arm_away()
+    panel._pydmp_panel.arm_areas.assert_awaited_once_with([1, 2, 3])
+
+
+@pytest.mark.asyncio
+async def test_alarm_arm_home(mock_config_entry, mock_listener_panel):
+    """Verify arm home calls pydmp_panel.arm_areas with home area."""
+    listener, panel = mock_listener_panel
+    area = DMPArea(listener, mock_config_entry.data)
+    await area.async_alarm_arm_home()
+    panel._pydmp_panel.arm_areas.assert_awaited_once_with([1])
+
+
+@pytest.mark.asyncio
+async def test_alarm_arm_night(mock_config_entry, mock_listener_panel):
+    """Verify arm night calls pydmp_panel.arm_areas with instant=True."""
+    listener, panel = mock_listener_panel
+    area = DMPArea(listener, mock_config_entry.data)
+    await area.async_alarm_arm_night()
+    panel._pydmp_panel.arm_areas.assert_awaited_once_with([1], instant=True)
+
 
 @pytest.fixture
 def setup_area(mock_config_entry, mock_listener_panel):
@@ -114,6 +131,7 @@ def setup_area(mock_config_entry, mock_listener_panel):
     config = mock_config_entry.data
     area = DMPArea(listener, config)
     return area, panel
+
 
 @pytest.mark.parametrize(
     "prop,expected",

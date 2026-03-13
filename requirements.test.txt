@@ -1,5 +1,6 @@
 bandit
 homeassistant
+pydmp
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
