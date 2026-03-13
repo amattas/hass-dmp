@@ -419,7 +419,6 @@ class DMPListener:
             DMPEventType.ZONE_RESTORE,  # Zr
         ):
             zoneObj = {"zoneNumber": zone_number, "zoneState": False}
-            panel.updateOpenCloseZone(zone_number, zoneObj)
             panel.updateTroubleZone(zone_number, zoneObj)
             panel.updateBatteryZone(zone_number, zoneObj)
             panel.updateBypassZone(zone_number, zoneObj)
@@ -459,7 +458,8 @@ class DMPListener:
                 else:
                     areaState = AlarmControlPanelState.ARMED_AWAY
             else:
-                areaState = AlarmControlPanelState.DISARMED
+                _LOGGER.warning("Unknown arming type_code: %s, ignoring", type_code)
+                return
             areaObj = {"areaName": area_name, "areaState": areaState}
             _LOGGER.debug("Updated area: %s" % areaObj)
             panel.updateArea(areaObj)

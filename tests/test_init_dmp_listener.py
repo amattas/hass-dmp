@@ -190,7 +190,7 @@ async def test_handle_s3_event_restore():
         await listener._handle_s3_event(msg)
 
         clear_obj = {"zoneNumber": "004", "zoneState": False}
-        panel.updateOpenCloseZone.assert_called_with("004", clear_obj)
+        panel.updateOpenCloseZone.assert_not_called()
         panel.updateTroubleZone.assert_called_with("004", clear_obj)
         panel.updateBatteryZone.assert_called_with("004", clear_obj)
         panel.updateBypassZone.assert_called_with("004", clear_obj)
@@ -306,6 +306,26 @@ async def test_handle_s3_event_arming_arm_away():
             "areaState": AlarmControlPanelState.ARMED_AWAY,
         }
     )
+
+
+@pytest.mark.asyncio
+async def test_handle_s3_event_arming_unknown_type_code():
+    """Unknown arming type codes should not change area state."""
+    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+    panel = Mock()
+    panel.getAccountNumber.return_value = "12345"
+    panel.updateArea = Mock()
+    panel.updateContactTime = Mock()
+    listener._panels = {"12345": panel}
+    listener.updateHASS = AsyncMock()
+
+    msg = _make_s3_msg(
+        "12345", "Zq", type_code="LA", fields=['a 001"Main', "t SLA"], raw="test"
+    )
+
+    await listener._handle_s3_event(msg)
+
+    panel.updateArea.assert_not_called()
 
 
 @pytest.mark.asyncio
