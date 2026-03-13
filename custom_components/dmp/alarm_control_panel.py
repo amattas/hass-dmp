@@ -7,16 +7,25 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,
-    AlarmControlPanelState
+    AlarmControlPanelState,
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
-                    CONF_PANEL_ACCOUNT_NUMBER, CONF_HOME_AREA,
-                    CONF_AWAY_AREA, PANEL_ALL_AREAS)
+from .const import (
+    DOMAIN,
+    LISTENER,
+    CONF_PANEL_NAME,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_HOME_AREA,
+    CONF_AWAY_AREA,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities,):
+async def async_setup_entry(
+    hass,
+    entry,
+    async_add_entities,
+):
     _LOGGER.info("Setting up alarm control panels.")
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
@@ -37,10 +46,8 @@ class DMPArea(AlarmControlPanelEntity):
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = config.get(CONF_HOME_AREA)
         self._panel = listener.getPanels()[str(self._account_number)]
-        self._home_zone = (config.get(CONF_HOME_AREA)
-                           or self._number[1:])
-        self._away_zone = (config.get(CONF_AWAY_AREA)
-                           or self._number[1:])
+        self._home_zone = config.get(CONF_HOME_AREA) or self._number[1:]
+        self._away_zone = config.get(CONF_AWAY_AREA) or self._number[1:]
         areaObj = {"areaName": self._name, "areaState": AlarmControlPanelState.DISARMED}
         self._panel.updateArea(areaObj)
 
@@ -74,7 +81,11 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return AlarmControlPanelEntityFeature.ARM_HOME | AlarmControlPanelEntityFeature.ARM_AWAY | AlarmControlPanelEntityFeature.ARM_NIGHT
+        return (
+            AlarmControlPanelEntityFeature.ARM_HOME
+            | AlarmControlPanelEntityFeature.ARM_AWAY
+            | AlarmControlPanelEntityFeature.ARM_NIGHT
+        )
 
     @property
     def code_arm_required(self):
@@ -97,27 +108,24 @@ class DMPArea(AlarmControlPanelEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, "dmp-%s-panel" % self._account_number)
-            },
+            identifiers={(DOMAIN, "dmp-%s-panel" % self._account_number)},
             name=self._panel_name,
-            manufacturer='Digital Monitoring Products'
+            manufacturer="Digital Monitoring Products",
         )
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        await self._panel._dmpSender.disarm(PANEL_ALL_AREAS)
+        await self._panel._pydmp_panel.disarm_areas([1, 2, 3])
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        await self._panel._dmpSender.arm(PANEL_ALL_AREAS, False)
+        await self._panel._pydmp_panel.arm_areas([1, 2, 3])
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm home command."""
-        await self._panel._dmpSender.arm(self._home_zone, False)
+        await self._panel._pydmp_panel.arm_areas([int(self._home_zone)])
 
     # arm night is just an arm home with no exit/entry delay
     async def async_alarm_arm_night(self, code=None):
         """Send arm night command."""
-        await self._panel._dmpSender.arm(self._home_zone, True)
-
+        await self._panel._pydmp_panel.arm_areas([int(self._home_zone)], instant=True)

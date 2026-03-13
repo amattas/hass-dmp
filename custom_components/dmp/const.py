@@ -48,5 +48,8 @@ BATTERY_LEVEL = "BatteryLevel"
 
 
 # Other Constants
-PANEL_AREA_COUNT = 3
 PANEL_ALL_AREAS = "010203"
+
+# pyDMP object keys for hass.data
+PYDMP_PANEL = "pydmp_panel"
+STATUS_SERVER = "status_server"
