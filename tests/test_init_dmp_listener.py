@@ -75,14 +75,26 @@ def _make_s3_msg(account, definition, type_code=None, fields=None, raw=""):
     )
 
 
-@pytest.mark.asyncio
-async def test_handle_s3_event_battery():
-    """Parse battery event and update zone."""
-    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+def _make_panel_with_zone(zone_number="001"):
+    """Helper to create a mock panel with ensure_zone returning a mock zone."""
     panel = Mock()
     panel.getAccountNumber.return_value = "12345"
-    panel.updateBatteryZone = Mock()
     panel.updateContactTime = Mock()
+    mock_zone = Mock()
+    mock_zone.update_state = Mock()
+    panel.ensure_zone = Mock(return_value=mock_zone)
+    panel.set_alarm = Mock()
+    panel.clear_alarm = Mock()
+    panel.updateArea = Mock()
+    panel.getArea = Mock(return_value={"areaState": AlarmControlPanelState.DISARMED})
+    return panel, mock_zone
+
+
+@pytest.mark.asyncio
+async def test_handle_s3_event_battery():
+    """Parse battery event and update zone via pyDMP."""
+    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -90,9 +102,7 @@ async def test_handle_s3_event_battery():
 
     await listener._handle_s3_event(msg)
 
-    panel.updateBatteryZone.assert_called_once_with(
-        "001", {"zoneNumber": "001", "zoneState": True}
-    )
+    mock_zone.update_state.assert_called_once_with("L")
     listener.updateHASS.assert_awaited()
 
 
@@ -100,10 +110,7 @@ async def test_handle_s3_event_battery():
 async def test_handle_s3_event_bypass():
     """Process bypass zone event message."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateBypassZone = Mock()
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -111,9 +118,7 @@ async def test_handle_s3_event_bypass():
 
     await listener._handle_s3_event(msg)
 
-    panel.updateBypassZone.assert_called_once_with(
-        "002", {"zoneNumber": "002", "zoneState": True}
-    )
+    mock_zone.update_state.assert_called_once_with("X")
     listener.updateHASS.assert_awaited()
 
 
@@ -150,13 +155,15 @@ def test_status_attributes_helpers():
 
 @pytest.mark.asyncio
 async def test_handle_s3_event_trouble():
-    """Process trouble events (Zf, Zh, Zt, Zw) update trouble zone."""
-    for event_code in ["Zf", "Zh", "Zt", "Zw"]:
+    """Process trouble events (Zf, Zh, Zt, Zw) update zone state."""
+    for event_code, expected_state in [
+        ("Zf", "S"),
+        ("Zh", "M"),
+        ("Zt", "S"),
+        ("Zw", "S"),
+    ]:
         listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-        panel = Mock()
-        panel.getAccountNumber.return_value = "12345"
-        panel.updateTroubleZone = Mock()
-        panel.updateContactTime = Mock()
+        panel, mock_zone = _make_panel_with_zone()
         listener._panels = {"12345": panel}
         listener.updateHASS = AsyncMock()
 
@@ -164,24 +171,15 @@ async def test_handle_s3_event_trouble():
 
         await listener._handle_s3_event(msg)
 
-        panel.updateTroubleZone.assert_called_once_with(
-            "003", {"zoneNumber": "003", "zoneState": True}
-        )
+        mock_zone.update_state.assert_called_once_with(expected_state)
 
 
 @pytest.mark.asyncio
 async def test_handle_s3_event_restore():
-    """Process restore/reset events clear all zone states."""
+    """Process restore/reset events set zone to Normal and clear alarm."""
     for event_code in ["Zy", "Zr"]:
         listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-        panel = Mock()
-        panel.getAccountNumber.return_value = "12345"
-        panel.updateOpenCloseZone = Mock()
-        panel.updateTroubleZone = Mock()
-        panel.updateBatteryZone = Mock()
-        panel.updateBypassZone = Mock()
-        panel.updateAlarmZone = Mock()
-        panel.updateContactTime = Mock()
+        panel, mock_zone = _make_panel_with_zone()
         listener._panels = {"12345": panel}
         listener.updateHASS = AsyncMock()
 
@@ -189,23 +187,15 @@ async def test_handle_s3_event_restore():
 
         await listener._handle_s3_event(msg)
 
-        clear_obj = {"zoneNumber": "004", "zoneState": False}
-        panel.updateOpenCloseZone.assert_not_called()
-        panel.updateTroubleZone.assert_called_with("004", clear_obj)
-        panel.updateBatteryZone.assert_called_with("004", clear_obj)
-        panel.updateBypassZone.assert_called_with("004", clear_obj)
-        panel.updateAlarmZone.assert_called_with("004", clear_obj)
+        mock_zone.update_state.assert_called_once_with("N")
+        panel.clear_alarm.assert_called_once_with("004")
 
 
 @pytest.mark.asyncio
 async def test_handle_s3_event_alarm():
-    """Handle alarm event updates alarm zone and area to TRIGGERED."""
+    """Handle alarm event sets alarm flag and area to TRIGGERED."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateAlarmZone = Mock()
-    panel.updateArea = Mock()
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -219,9 +209,7 @@ async def test_handle_s3_event_alarm():
 
     await listener._handle_s3_event(msg)
 
-    panel.updateAlarmZone.assert_called_once_with(
-        "005", {"zoneNumber": "005", "zoneState": True}
-    )
+    panel.set_alarm.assert_called_once_with("005")
     panel.updateArea.assert_called_once_with(
         {"areaName": "Main", "areaState": AlarmControlPanelState.TRIGGERED}
     )
@@ -231,11 +219,7 @@ async def test_handle_s3_event_alarm():
 async def test_handle_s3_event_arming_disarm():
     """Handle arming status disarm event."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateArea = Mock()
-    panel.getArea = Mock(return_value={"areaState": AlarmControlPanelState.DISARMED})
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
     listener._hass.async_create_task = Mock()
@@ -260,11 +244,7 @@ async def test_handle_s3_event_arming_disarm():
 async def test_handle_s3_event_arming_arm_home():
     """Handle arming status CL event for home area."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateArea = Mock()
-    panel.getArea = Mock(return_value={"areaState": AlarmControlPanelState.DISARMED})
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -286,11 +266,7 @@ async def test_handle_s3_event_arming_arm_home():
 async def test_handle_s3_event_arming_arm_away():
     """Handle arming status CL event for away area."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateArea = Mock()
-    panel.getArea = Mock(return_value={"areaState": AlarmControlPanelState.DISARMED})
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -312,10 +288,7 @@ async def test_handle_s3_event_arming_arm_away():
 async def test_handle_s3_event_arming_unknown_type_code():
     """Unknown arming type codes should not change area state."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateArea = Mock()
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -332,10 +305,7 @@ async def test_handle_s3_event_arming_unknown_type_code():
 async def test_handle_s3_event_device_status():
     """Handle device status (Zc) events for open/close."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateOpenCloseZone = Mock()
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -344,20 +314,16 @@ async def test_handle_s3_event_device_status():
         "12345", "Zc", type_code="DO", fields=["z 006", "t ADO"], raw="test"
     )
     await listener._handle_s3_event(msg)
-    panel.updateOpenCloseZone.assert_called_with(
-        "006", {"zoneNumber": "006", "zoneState": True}
-    )
+    mock_zone.update_state.assert_called_with("O")
 
-    panel.updateOpenCloseZone.reset_mock()
+    mock_zone.update_state.reset_mock()
 
     # Door Closed
     msg = _make_s3_msg(
         "12345", "Zc", type_code="DC", fields=["z 006", "t ADC"], raw="test"
     )
     await listener._handle_s3_event(msg)
-    panel.updateOpenCloseZone.assert_called_with(
-        "006", {"zoneNumber": "006", "zoneState": False}
-    )
+    mock_zone.update_state.assert_called_with("N")
 
 
 @pytest.mark.asyncio
@@ -365,9 +331,7 @@ async def test_handle_s3_event_ignored_events():
     """Ignored events (Zs, Zj, Zl) should not update zones."""
     for event_code in ["Zs", "Zj", "Zl"]:
         listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-        panel = Mock()
-        panel.getAccountNumber.return_value = "12345"
-        panel.updateContactTime = Mock()
+        panel, mock_zone = _make_panel_with_zone()
         listener._panels = {"12345": panel}
         listener.updateHASS = AsyncMock()
 
@@ -388,6 +352,39 @@ async def test_handle_s3_event_unknown_account():
     listener.updateHASS = AsyncMock()
 
     msg = _make_s3_msg("99999", "Zd", fields=['z 001"Zone1'], raw="test")
+
+    await listener._handle_s3_event(msg)
+
+    listener.updateHASS.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_handle_s3_event_empty_account_fallback():
+    """Empty account should fall back to single panel."""
+    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+    panel, mock_zone = _make_panel_with_zone()
+    listener._panels = {"12345": panel}
+    listener.updateHASS = AsyncMock()
+
+    msg = _make_s3_msg("     ", "Zd", fields=['z 001"Zone1'], raw="test")
+
+    await listener._handle_s3_event(msg)
+
+    mock_zone.update_state.assert_called_once_with("L")
+    listener.updateHASS.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_handle_s3_event_empty_account_no_fallback():
+    """Empty account with multiple panels should warn and return."""
+    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+    panel1, _ = _make_panel_with_zone()
+    panel2, _ = _make_panel_with_zone()
+    panel2.getAccountNumber.return_value = "67890"
+    listener._panels = {"12345": panel1, "67890": panel2}
+    listener.updateHASS = AsyncMock()
+
+    msg = _make_s3_msg("     ", "Zd", fields=['z 001"Zone1'], raw="test")
 
     await listener._handle_s3_event(msg)
 
@@ -429,8 +426,8 @@ def test_listener_panel_management():
 
 
 @pytest.mark.asyncio
-async def test_listener_updateStatus_with_short_status():
-    """Test updateStatus handles 'Short' status for open/close zones."""
+async def test_listener_updateStatus():
+    """Test updateStatus reads from pyDMP zones and areas."""
     mock_pydmp = Mock()
     mock_pydmp.update_status = AsyncMock()
 
@@ -453,11 +450,6 @@ async def test_listener_updateStatus_with_short_status():
 
     panel = Mock()
     panel.getAccountNumber.return_value = "12345"
-    panel._open_close_zones = {"001": {}, "002": {}}
-    panel._bypass_zones = {}
-    panel._trouble_zones = {}
-    panel._battery_zones = {}
-    panel.updateOpenCloseZone = Mock()
 
     listener._panels = {"12345": panel}
     listener.setStatusAttributes = Mock()
@@ -465,109 +457,7 @@ async def test_listener_updateStatus_with_short_status():
 
     await listener.updateStatus()
 
-    panel.updateOpenCloseZone.assert_any_call(
-        "001", {"zoneNumber": "001", "zoneState": True}
-    )
-    panel.updateOpenCloseZone.assert_any_call(
-        "002", {"zoneNumber": "002", "zoneState": False}
-    )
-
-
-@pytest.mark.asyncio
-async def test_listener_updateStatus_all_zones():
-    """Handle status updates for all zone types."""
-    mock_pydmp = Mock()
-    mock_pydmp.update_status = AsyncMock()
-
-    mock_zones = {
-        1: Mock(state="X", name="Front", number=1),  # Bypassed
-        2: Mock(state="M", name="Back", number=2),  # Missing
-        3: Mock(state="L", name="Batt", number=3),  # Low Battery
-        4: Mock(state="N", name="Door", number=4),  # Normal
-    }
-    mock_pydmp._zones = mock_zones
-    mock_pydmp._areas = {1: Mock(state="A", name="Main", number=1)}
-
-    listener = DMPListener(
-        Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"}, pydmp_panel=mock_pydmp
-    )
-
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel._open_close_zones = {"004": {}}
-    panel._bypass_zones = {"001": {}}
-    panel._trouble_zones = {"002": {}}
-    panel._battery_zones = {"003": {}}
-    panel.updateOpenCloseZone = Mock()
-    panel.updateBypassZone = Mock()
-    panel.updateTroubleZone = Mock()
-    panel.updateBatteryZone = Mock()
-
-    listener._panels = {"12345": panel}
-    listener.setStatusAttributes = Mock()
-    listener.updateHASS = AsyncMock()
-
-    await listener.updateStatus()
-
-    panel.updateBypassZone.assert_called_with(
-        "001", {"zoneNumber": "001", "zoneState": True}
-    )
-    panel.updateTroubleZone.assert_called_with(
-        "002", {"zoneNumber": "002", "zoneState": True}
-    )
-    panel.updateBatteryZone.assert_called_with(
-        "003", {"zoneNumber": "003", "zoneState": True}
-    )
-    panel.updateOpenCloseZone.assert_called_with(
-        "004", {"zoneNumber": "004", "zoneState": False}
-    )
-    listener.setStatusAttributes.assert_called_once()
-    listener.updateHASS.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_listener_updateStatus_clearing():
-    """Clear zones when status reports all normal."""
-    mock_pydmp = Mock()
-    mock_pydmp.update_status = AsyncMock()
-
-    mock_zones = {
-        1: Mock(state="N", name="Front", number=1),
-        2: Mock(state="N", name="Back", number=2),
-        3: Mock(state="N", name="Batt", number=3),
-    }
-    mock_pydmp._zones = mock_zones
-    mock_pydmp._areas = {1: Mock(state="A", name="Main", number=1)}
-
-    listener = DMPListener(
-        Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"}, pydmp_panel=mock_pydmp
-    )
-
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel._open_close_zones = {}
-    panel._bypass_zones = {"001": {}}
-    panel._trouble_zones = {"002": {}}
-    panel._battery_zones = {"003": {}}
-    panel.updateBypassZone = Mock()
-    panel.updateTroubleZone = Mock()
-    panel.updateBatteryZone = Mock()
-
-    listener._panels = {"12345": panel}
-    listener.setStatusAttributes = Mock()
-    listener.updateHASS = AsyncMock()
-
-    await listener.updateStatus()
-
-    panel.updateBypassZone.assert_called_with(
-        "001", {"zoneNumber": "001", "zoneState": False}
-    )
-    panel.updateTroubleZone.assert_called_with(
-        "002", {"zoneNumber": "002", "zoneState": False}
-    )
-    panel.updateBatteryZone.assert_called_with(
-        "003", {"zoneNumber": "003", "zoneState": False}
-    )
+    mock_pydmp.update_status.assert_awaited_once()
     listener.setStatusAttributes.assert_called_once()
     listener.updateHASS.assert_called_once()
 
@@ -576,15 +466,12 @@ async def test_listener_updateStatus_clearing():
 async def test_handle_s3_event_held_open_and_forced_open():
     """Handle HO (held open) and FO (forced open) device status events."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-    panel.updateOpenCloseZone = Mock()
-    panel.updateContactTime = Mock()
+    panel, mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
     for type_code in ["HO", "FO"]:
-        panel.updateOpenCloseZone.reset_mock()
+        mock_zone.update_state.reset_mock()
         msg = _make_s3_msg(
             "12345",
             "Zc",
@@ -593,6 +480,4 @@ async def test_handle_s3_event_held_open_and_forced_open():
             raw="test",
         )
         await listener._handle_s3_event(msg)
-        panel.updateOpenCloseZone.assert_called_with(
-            "007", {"zoneNumber": "007", "zoneState": True}
-        )
+        mock_zone.update_state.assert_called_with("O")

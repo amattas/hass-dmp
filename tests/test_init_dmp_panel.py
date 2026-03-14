@@ -12,6 +12,11 @@ from custom_components.dmp.const import (
 )
 
 
+def _make_panel(pydmp_panel=None):
+    config = {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "192.168.1.100"}
+    return DMPPanel(Mock(), config, pydmp_panel=pydmp_panel)
+
+
 def test_panel_initialization_with_defaults():
     """Test panel initialization with missing optional fields."""
     config = {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "192.168.1.100"}
@@ -48,9 +53,7 @@ def test_panel_str_representation():
 
 def test_panel_contact_time_methods():
     """Test contact time update and retrieval."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
+    panel = _make_panel()
 
     test_time = datetime.now()
     panel.updateContactTime(test_time)
@@ -59,66 +62,24 @@ def test_panel_contact_time_methods():
 
 def test_panel_area_methods():
     """Test area update and retrieval."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
+    panel = _make_panel()
 
     area_obj = {"areaName": "Main", "areaState": AlarmControlPanelState.ARMED_AWAY}
     panel.updateArea(area_obj)
     assert panel.getArea() == area_obj
 
 
-def test_panel_get_all_zone_collections():
-    """Test getting all zone collections."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
+def test_panel_alarm_zone_methods():
+    """Test alarm zone set/get/clear methods."""
+    panel = _make_panel()
 
-    panel._open_close_zones = {"001": {"state": "open"}}
-    panel._battery_zones = {"002": {"state": "low"}}
-    panel._trouble_zones = {"003": {"state": "trouble"}}
-    panel._bypass_zones = {"004": {"state": "bypassed"}}
-    panel._alarm_zones = {"005": {"state": "alarm"}}
-    panel._status_zones = {"006": {"state": "ready"}}
+    assert panel.get_alarm("001") is False
 
-    assert panel.getOpenCloseZones() == {"001": {"state": "open"}}
-    assert panel.getBatteryZones() == {"002": {"state": "low"}}
-    assert panel.getTroubleZones() == {"003": {"state": "trouble"}}
-    assert panel.getBypassZones() == {"004": {"state": "bypassed"}}
-    assert panel.getAlarmZones() == {"005": {"state": "alarm"}}
-    assert panel.getStatusZones() == {"006": {"state": "ready"}}
+    panel.set_alarm("001")
+    assert panel.get_alarm("001") is True
 
-
-@pytest.mark.parametrize(
-    "update_method,get_method,container",
-    [
-        ("updateOpenCloseZone", "getOpenCloseZone", "_open_close_zones"),
-        ("updateBatteryZone", "getBatteryZone", "_battery_zones"),
-        ("updateTroubleZone", "getTroubleZone", "_trouble_zones"),
-        ("updateBypassZone", "getBypassZone", "_bypass_zones"),
-        ("updateAlarmZone", "getAlarmZone", "_alarm_zones"),
-    ],
-)
-def test_panel_zone_update_preserves_existing_data(
-    update_method, get_method, container
-):
-    """Zone updates should preserve previously stored attributes."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
-
-    getattr(panel, container)["001"] = {
-        "zoneState": False,
-        "zoneName": "Front Door",
-        "extra": "keep",
-    }
-
-    getattr(panel, update_method)("001", {"zoneState": True})
-
-    zone = getattr(panel, get_method)("001")
-    assert zone["zoneState"] is True
-    assert zone["zoneName"] == "Front Door"
-    assert zone["extra"] == "keep"
+    panel.clear_alarm("001")
+    assert panel.get_alarm("001") is False
 
 
 def test_panel_initialization_with_pydmp_panel():
@@ -132,69 +93,35 @@ def test_panel_initialization_with_pydmp_panel():
     assert panel._pydmp_panel == mock_pydmp
 
 
-@pytest.mark.parametrize(
-    "getter",
-    [
-        "getOpenCloseZone",
-        "getBatteryZone",
-        "getTroubleZone",
-        "getBypassZone",
-        "getAlarmZone",
-    ],
-)
-def test_panel_getters_return_none_when_empty(getter):
-    """Zone getter methods return None when the zone does not exist."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
+def test_panel_ensure_zone_creates_new():
+    """Test ensure_zone creates a new pyDMP Zone when not present."""
+    mock_pydmp = Mock()
+    mock_pydmp._zones = {}
 
-    assert getattr(panel, getter)("999") is None
+    panel = _make_panel(pydmp_panel=mock_pydmp)
+    zone = panel.ensure_zone("001")
+
+    assert 1 in mock_pydmp._zones
+    assert zone is not None
 
 
-def test_panel_get_status_zone_raises():
-    """getStatusZone should raise KeyError when zone is missing."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
+def test_panel_ensure_zone_returns_existing():
+    """Test ensure_zone returns existing pyDMP Zone."""
+    mock_pydmp = Mock()
+    mock_zone = Mock()
+    mock_pydmp._zones = {1: mock_zone}
 
-    with pytest.raises(KeyError):
-        panel.getStatusZone("999")
+    panel = _make_panel(pydmp_panel=mock_pydmp)
+    zone = panel.ensure_zone("001")
 
-
-def test_panel_status_zones_default():
-    """Status zones should be empty on initialization."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
-    assert panel.getStatusZones() == {}
+    assert zone is mock_zone
 
 
-@pytest.mark.parametrize(
-    "update_method,get_method,zone_dict",
-    [
-        ("updateOpenCloseZone", "getOpenCloseZone", "_open_close_zones"),
-        ("updateBatteryZone", "getBatteryZone", "_battery_zones"),
-        ("updateTroubleZone", "getTroubleZone", "_trouble_zones"),
-        ("updateBypassZone", "getBypassZone", "_bypass_zones"),
-        ("updateAlarmZone", "getAlarmZone", "_alarm_zones"),
-    ],
-)
-def test_panel_zone_state_updates(update_method, get_method, zone_dict):
-    """Test zone state update methods for all zone types."""
-    panel = DMPPanel(
-        Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_PANEL_IP: "1.1.1.1"}
-    )
-
-    panel.updateStatusZone = Mock()
-    zone_data = {"zoneState": True, "zoneName": "Test Zone"}
-
-    getattr(panel, update_method)("001", zone_data)
-
-    assert "001" in getattr(panel, zone_dict)
-    panel.updateStatusZone.assert_called_with("001", zone_data)
-
-    result = getattr(panel, get_method)("001")
-    assert result["zoneState"] is True
+def test_panel_ensure_zone_no_pydmp():
+    """Test ensure_zone returns None when no pyDMP panel."""
+    panel = _make_panel()
+    zone = panel.ensure_zone("001")
+    assert zone is None
 
 
 @pytest.mark.asyncio

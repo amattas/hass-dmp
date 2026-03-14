@@ -1,18 +1,28 @@
 """Platform for DMP Alarm Panel integration"""
+
 import logging
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.components.sensor import (
-    SensorEntity
+from homeassistant.components.sensor import SensorEntity
+from . import ZONE_STATE_TO_STATUS
+from .const import (
+    DOMAIN,
+    LISTENER,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_ZONE_NAME,
+    CONF_ZONE_NUMBER,
+    CONF_ZONE_CLASS,
+    CONF_ZONES,
 )
-from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
-                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONE_CLASS,
-                    CONF_ZONES)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities,):
+async def async_setup_entry(
+    hass,
+    config_entry,
+    async_add_entities,
+):
     """Setup sensors from a config entry created in the integrations UI."""
     _LOGGER.debug("Setting up sensors.")
     hass.data.setdefault(DOMAIN, {})
@@ -20,9 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities,):
     _LOGGER.debug("Sensor config: %s" % config)
     # Add all zones to trouble zones
     statusZones = [
-        DMPZoneStatus(
-            hass, config_entry, zone
-            ) for zone in config[CONF_ZONES]
+        DMPZoneStatus(hass, config_entry, zone) for zone in config[CONF_ZONES]
     ]
     async_add_entities(statusZones, update_before_add=True)
 
@@ -48,13 +56,8 @@ class DMPZoneStatus(SensorEntity):
             self._device_class = "motion"
         else:
             self._device_class = "default"
-        self._state = 'Ready'
-        zoneStatusObj = {
-            "zoneName": self._device_name,
-            "zoneNumber": str(self._number),
-            "zoneState": self._state
-            }
-        self._panel.updateStatusZone(str(self._number), zoneStatusObj)
+        self._zone = self._panel.ensure_zone(self._number)
+        self._state = "Ready"
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneStatus Callback")
@@ -68,19 +71,21 @@ class DMPZoneStatus(SensorEntity):
         device_registry = dr.async_get(self._hass)
         device_identifiers = list(self.device_info["identifiers"])
         entity_devices = dr.async_entries_for_config_entry(
-            device_registry,
-            self._config_entry.entry_id
-            )
+            device_registry, self._config_entry.entry_id
+        )
         for e in entity_devices:
             for i in e.identifiers:
                 if i in device_identifiers:
                     device_registry.async_remove_device(e.id)
         # for i in device_identifiers:
-            # item = device_registry.async_get_device(i)
+        # item = device_registry.async_get_device(i)
 
     async def process_zone_callback(self):
-        # _LOGGER.debug("DMPZoneStatus Callback Executed")
-        self._state = self._panel.getStatusZone(self._number)["zoneState"]
+        if self._panel.get_alarm(self._number):
+            self._state = "Alarm"
+        else:
+            zone_state = self._zone.state if self._zone else "N"
+            self._state = ZONE_STATE_TO_STATUS.get(zone_state, "Ready")
         self.async_write_ha_state()
 
     @property
@@ -120,39 +125,33 @@ class DMPZoneStatus(SensorEntity):
         """Icon to show for status"""
         state = self.state
         device_class = self._device_class
-        if state == 'Alarm':
-            return 'mdi:alarm-bell'
-        elif state == 'Trouble':
-            return 'mdi:alert'
-        elif state == 'Bypass':
-            return 'mdi:alert'
-        elif state == 'Low Battery':
-            return 'mdi:battery-alert-variant-outline'
-        elif state == 'Open':
+        if state == "Alarm":
+            return "mdi:alarm-bell"
+        elif state == "Trouble":
+            return "mdi:alert"
+        elif state == "Bypass":
+            return "mdi:alert"
+        elif state == "Low Battery":
+            return "mdi:battery-alert-variant-outline"
+        elif state == "Open":
             if device_class == "window":
-                return 'mdi:window-open'
+                return "mdi:window-open"
             else:
-                return 'mdi:door-open'
-        elif state == 'Ready':
-            return 'mdi:check'
+                return "mdi:door-open"
+        elif state == "Ready":
+            return "mdi:check"
 
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-zone-%s-status" % (
-            self._accountNum,
-            self._number
-            )
+        return "dmp-%s-zone-%s-status" % (self._accountNum, self._number)
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, "dmp-%s-zone-%s" % (self._accountNum,
-                                             self._number))
-            },
+            identifiers={(DOMAIN, "dmp-%s-zone-%s" % (self._accountNum, self._number))},
             name=self.device_name,
-            manufacturer='Digital Monitoring Products',
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum))
+            manufacturer="Digital Monitoring Products",
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum)),
         )
