@@ -44,13 +44,8 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._device_class = "switch"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
+        self._zone = self._panel.ensure_zone(self._number)
         self._state = False
-        zoneBypassObj = {
-            "zoneName": self._device_name,
-            "zoneNumber": str(self._number),
-            "zoneState": self._state,
-        }
-        self._panel.updateBypassZone(str(self._number), zoneBypassObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneBypassSwitch Callback")
@@ -61,7 +56,7 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        self._state = self._panel.getBypassZone(self._number)["zoneState"]
+        self._state = self._zone.is_bypassed
         self.async_write_ha_state()
 
     @property

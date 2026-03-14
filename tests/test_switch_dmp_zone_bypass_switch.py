@@ -23,8 +23,9 @@ def mock_listener_panel():
     listener = Mock()
     panel = Mock()
     panel.getAccountNumber.return_value = "12345"
-    panel.getBypassZone.return_value = {"zoneState": False}
-    panel.updateBypassZone = Mock()
+    mock_zone = Mock()
+    mock_zone.is_bypassed = False
+    panel.ensure_zone = Mock(return_value=mock_zone)
     panel.bypass_zone = AsyncMock()
     panel.restore_zone = AsyncMock()
 
@@ -123,7 +124,7 @@ async def test_async_turn_on_off(
         ("Back Window", "002", "battery_window"),
     ],
 )
-def test_initial_update_calls_panel_update(
+def test_initial_ensure_zone_called(
     hass: HomeAssistant,
     mock_config_entry,
     mock_listener_panel,
@@ -131,7 +132,7 @@ def test_initial_update_calls_panel_update(
     zone_number,
     zone_class,
 ):
-    """Init should call panel.updateBypassZone with initial state."""
+    """Init should call panel.ensure_zone."""
     listener, panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: zone_name,
@@ -139,13 +140,7 @@ def test_initial_update_calls_panel_update(
         CONF_ZONE_CLASS: zone_class,
     }
     DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-    panel.updateBypassZone.assert_called_once()
-    args = panel.updateBypassZone.call_args[0]
-    assert args[0] == zone_number
-    init_obj = args[1]
-    assert init_obj["zoneName"] == zone_name
-    assert init_obj["zoneNumber"] == zone_number
-    assert init_obj["zoneState"] is False
+    panel.ensure_zone.assert_called_with(zone_number)
 
 
 def test_device_info_and_poll(
@@ -179,7 +174,7 @@ async def test_process_zone_callback_and_callbacks(
     }
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
     switch.async_write_ha_state = Mock()
-    panel.getBypassZone.return_value = {"zoneState": True}
+    switch._zone.is_bypassed = True
     await switch.process_zone_callback()
     assert switch._state is True
     switch.async_write_ha_state.assert_called_once()
@@ -233,17 +228,18 @@ def test_device_info_missing_name(
 
 
 @pytest.mark.asyncio
-async def test_process_zone_callback_zone_not_found(
+async def test_process_zone_callback_zone_bypassed(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
-    """Test process_zone_callback when zone is not found."""
+    """Test process_zone_callback reads from pyDMP Zone."""
     listener, panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
-        CONF_ZONE_NUMBER: "999",
+        CONF_ZONE_NUMBER: "001",
         CONF_ZONE_CLASS: "wired_door",
     }
-    panel.getBypassZone.return_value = None
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-    with pytest.raises(TypeError):
-        await switch.process_zone_callback()
+    switch.async_write_ha_state = Mock()
+    switch._zone.is_bypassed = True
+    await switch.process_zone_callback()
+    assert switch._state is True
