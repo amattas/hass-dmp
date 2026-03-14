@@ -3,8 +3,6 @@
 from datetime import datetime, timezone
 import logging
 
-from copy import deepcopy
-
 from homeassistant.helpers import entity_registry as er
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.const import Platform
@@ -38,7 +36,7 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
 ]
 
-# Maps pyDMP single-char zone state to HA status string
+# Maps pyDMP single-char zone state to HA status string (for status attributes display)
 ZONE_STATUS_MAP = {
     "N": "Normal",
     "O": "Open",
@@ -46,6 +44,16 @@ ZONE_STATUS_MAP = {
     "X": "Bypassed",
     "L": "Low Battery",
     "M": "Missing",
+}
+
+# Maps pyDMP single-char zone state to sensor status string (for DMPZoneStatus entity)
+ZONE_STATE_TO_STATUS = {
+    "N": "Ready",
+    "O": "Open",
+    "S": "Trouble",
+    "X": "Bypass",
+    "L": "Low Battery",
+    "M": "Trouble",
 }
 
 # Maps pyDMP single-char area state to HA status string
@@ -155,12 +163,7 @@ class DMPPanel:
         self._panel_last_contact = None
         self._area = AlarmControlPanelState.DISARMED  # Default Value
         self._pydmp_panel = pydmp_panel
-        self._open_close_zones = {}
-        self._battery_zones = {}
-        self._trouble_zones = {}
-        self._bypass_zones = {}
         self._alarm_zones = {}
-        self._status_zones = {}
 
     def __str__(self):
         return "DMP Panel with account number %s at addr %s" % (
@@ -181,142 +184,22 @@ class DMPPanel:
     def getArea(self):
         return self._area
 
-    def getOpenCloseZone(self, zoneNumber):
-        if zoneNumber in self._open_close_zones:
-            return self._open_close_zones[zoneNumber]
-        else:
-            return None
+    def set_alarm(self, zone_number):
+        self._alarm_zones[zone_number] = True
 
-    def getOpenCloseZones(self):
-        return self._open_close_zones
+    def clear_alarm(self, zone_number):
+        self._alarm_zones[zone_number] = False
 
-    def updateOpenCloseZone(self, zoneNum, eventObj):
-        if zoneNum in self._open_close_zones:
-            zone = self._open_close_zones[zoneNum]
-            zone.update({"zoneState": eventObj["zoneState"]})
-            self._open_close_zones[zoneNum] = zone
-        else:
-            self._open_close_zones[zoneNum] = eventObj
-        _LOGGER.debug(
-            "Open Close Zone %s has been updated to %s", zoneNum, eventObj["zoneState"]
-        )
-        self.updateStatusZone(zoneNum, eventObj)
+    def get_alarm(self, zone_number):
+        return self._alarm_zones.get(zone_number, False)
 
-    def getBatteryZone(self, zoneNumber):
-        if zoneNumber in self._battery_zones:
-            return self._battery_zones[zoneNumber]
-        else:
-            return None
-
-    def getBatteryZones(self):
-        return self._battery_zones
-
-    def updateBatteryZone(self, zoneNum, eventObj):
-        if zoneNum in self._battery_zones:
-            zone = self._battery_zones[zoneNum]
-            zone.update({"zoneState": eventObj["zoneState"]})
-            self._battery_zones[zoneNum] = zone
-        else:
-            self._battery_zones[zoneNum] = eventObj
-        _LOGGER.debug(
-            "Battery Zone %s has been updated to %s", zoneNum, eventObj["zoneState"]
-        )
-        self.updateStatusZone(zoneNum, eventObj)
-
-    def getTroubleZone(self, zoneNumber):
-        if zoneNumber in self._trouble_zones:
-            return self._trouble_zones[zoneNumber]
-        else:
-            return None
-
-    def getTroubleZones(self):
-        return self._trouble_zones
-
-    def updateTroubleZone(self, zoneNum, eventObj):
-        if zoneNum in self._trouble_zones:
-            zone = self._trouble_zones[zoneNum]
-            zone.update({"zoneState": eventObj["zoneState"]})
-            self._trouble_zones[zoneNum] = zone
-        else:
-            self._trouble_zones[zoneNum] = eventObj
-        _LOGGER.debug(
-            "Trouble Zone %s has been updated to %s", zoneNum, eventObj["zoneState"]
-        )
-        self.updateStatusZone(zoneNum, eventObj)
-
-    def getBypassZone(self, zoneNumber):
-        if zoneNumber in self._bypass_zones:
-            return self._bypass_zones[zoneNumber]
-        else:
-            return None
-
-    def getBypassZones(self):
-        return self._bypass_zones
-
-    def updateBypassZone(self, zoneNum, eventObj):
-        if zoneNum in self._bypass_zones:
-            zone = self._bypass_zones[zoneNum]
-            zone.update({"zoneState": eventObj["zoneState"]})
-            self._bypass_zones[zoneNum] = zone
-        else:
-            self._bypass_zones[zoneNum] = eventObj
-        _LOGGER.debug(
-            "Bypass Zone %s has been updated to %s", zoneNum, eventObj["zoneState"]
-        )
-        self.updateStatusZone(zoneNum, eventObj)
-
-    def getAlarmZone(self, zoneNumber):
-        if zoneNumber in self._alarm_zones:
-            return self._alarm_zones[zoneNumber]
-        else:
-            return None
-
-    def getAlarmZones(self):
-        return self._alarm_zones
-
-    def updateAlarmZone(self, zoneNum, eventObj):
-        if zoneNum in self._alarm_zones:
-            zone = self._alarm_zones[zoneNum]
-            zone.update({"zoneState": eventObj["zoneState"]})
-            self._alarm_zones[zoneNum] = zone
-        else:
-            self._alarm_zones[zoneNum] = eventObj
-        _LOGGER.debug(
-            "Alarm Zone %s has been updated to %s", zoneNum, eventObj["zoneState"]
-        )
-        self.updateStatusZone(zoneNum, eventObj)
-
-    def getStatusZone(self, zoneNumber):
-        return self._status_zones[zoneNumber]
-
-    def getStatusZones(self):
-        return self._status_zones
-
-    def updateStatusZone(self, zoneNum, eventObj):
-        statusObj = deepcopy(eventObj)
-        zone_state = "Ready"
-        if self.getAlarmZone(zoneNum) and self.getAlarmZone(zoneNum)["zoneState"]:
-            zone_state = "Alarm"
-        elif self.getTroubleZone(zoneNum) and self.getTroubleZone(zoneNum)["zoneState"]:
-            zone_state = "Trouble"
-        elif self.getBypassZone(zoneNum) and self.getBypassZone(zoneNum)["zoneState"]:
-            zone_state = "Bypass"
-        elif self.getBatteryZone(zoneNum) and self.getBatteryZone(zoneNum)["zoneState"]:
-            zone_state = "Low Battery"
-        elif (
-            self.getOpenCloseZone(zoneNum)
-            and self.getOpenCloseZone(zoneNum)["zoneState"]
-        ):
-            zone_state = "Open"
-        if zoneNum in self._status_zones:
-            zone = self._status_zones[zoneNum]
-            zone.update({"zoneState": zone_state})
-            self._status_zones[zoneNum] = zone
-        else:
-            statusObj.update({"zoneState": zone_state})
-            self._status_zones[zoneNum] = statusObj
-
-        _LOGGER.debug("Status Zone %s has been updated to %s", zoneNum, zone_state)
+    def ensure_zone(self, zone_num):
+        zone_int = int(zone_num)
+        if self._pydmp_panel is not None:
+            if zone_int not in self._pydmp_panel._zones:
+                self._pydmp_panel._zones[zone_int] = Zone(self._pydmp_panel, zone_int)
+            return self._pydmp_panel._zones[zone_int]
+        return None
 
     def getAccountNumber(self):
         return self._accountNumber
@@ -383,6 +266,11 @@ class DMPListener:
             return
 
         account = event.account.strip()
+
+        # Fallback: if account empty and single panel, use it
+        if not account and len(self._panels) == 1:
+            account = next(iter(self._panels))
+
         try:
             panel = self._panels[account]
         except KeyError:
@@ -397,13 +285,18 @@ class DMPListener:
         zone_number = event.zone
         type_code = event.type_code
 
+        # Ensure pyDMP Zone object exists for zone events
+        zone = None
+        if zone_number:
+            zone = panel.ensure_zone(zone_number)
+
         if category == DMPEventType.WIRELESS_LOW_BATTERY:  # Zd
-            zoneObj = {"zoneNumber": zone_number, "zoneState": True}
-            panel.updateBatteryZone(zone_number, zoneObj)
+            if zone:
+                zone.update_state("L")
 
         elif category == DMPEventType.ZONE_BYPASS:  # Zx
-            zoneObj = {"zoneNumber": zone_number, "zoneState": True}
-            panel.updateBypassZone(zone_number, zoneObj)
+            if zone:
+                zone.update_state("X")
 
         elif category in (
             DMPEventType.ZONE_FAIL,  # Zf
@@ -411,25 +304,25 @@ class DMPListener:
             DMPEventType.ZONE_TROUBLE,  # Zt
             DMPEventType.ZONE_FAULT,  # Zw
         ):
-            zoneObj = {"zoneNumber": zone_number, "zoneState": True}
-            panel.updateTroubleZone(zone_number, zoneObj)
+            if zone:
+                if category == DMPEventType.WIRELESS_ZONE_MISSING:
+                    zone.update_state("M")
+                else:
+                    zone.update_state("S")
 
         elif category in (
             DMPEventType.ZONE_RESET,  # Zy
             DMPEventType.ZONE_RESTORE,  # Zr
         ):
-            zoneObj = {"zoneNumber": zone_number, "zoneState": False}
-            panel.updateTroubleZone(zone_number, zoneObj)
-            panel.updateBatteryZone(zone_number, zoneObj)
-            panel.updateBypassZone(zone_number, zoneObj)
-            panel.updateAlarmZone(zone_number, zoneObj)
+            if zone:
+                zone.update_state("N")
+            panel.clear_alarm(zone_number)
 
         elif category in (
             DMPEventType.ZONE_ALARM,  # Za
             DMPEventType.ZONE_FORCE_ARM,  # Zb
         ):
-            zoneObj = {"zoneNumber": zone_number, "zoneState": True}
-            panel.updateAlarmZone(zone_number, zoneObj)
+            panel.set_alarm(zone_number)
             areaObj = {
                 "areaName": event.area_name or "",
                 "areaState": AlarmControlPanelState.TRIGGERED,
@@ -465,12 +358,11 @@ class DMPListener:
             panel.updateArea(areaObj)
 
         elif category == DMPEventType.REAL_TIME_STATUS:  # Zc
-            if type_code in ("DO", "HO", "FO"):
-                zoneObj = {"zoneNumber": zone_number, "zoneState": True}
-                panel.updateOpenCloseZone(zone_number, zoneObj)
-            elif type_code == "DC":
-                zoneObj = {"zoneNumber": zone_number, "zoneState": False}
-                panel.updateOpenCloseZone(zone_number, zoneObj)
+            if zone:
+                if type_code in ("DO", "HO", "FO"):
+                    zone.update_state("O")
+                elif type_code == "DC":
+                    zone.update_state("N")
 
         elif category in (
             DMPEventType.SYSTEM_MESSAGE,  # Zs
@@ -508,31 +400,6 @@ class DMPListener:
                     "status": area_status_str,
                 }
 
-            # Update HA zone state dicts based on status
-            for zone, zoneData in zoneStatus.items():
-                faultZone = {"zoneNumber": zone, "zoneState": True}
-                clearZone = {"zoneNumber": zone, "zoneState": False}
-
-                if zone in panel._open_close_zones:
-                    if zoneData["status"] == "Open" or zoneData["status"] == "Short":
-                        panel.updateOpenCloseZone(zone, faultZone)
-                    elif zoneData["status"] == "Normal":
-                        panel.updateOpenCloseZone(zone, clearZone)
-                if zone in panel._bypass_zones:
-                    if zoneData["status"] == "Bypassed":
-                        panel.updateBypassZone(zone, faultZone)
-                    else:
-                        panel.updateBypassZone(zone, clearZone)
-                if zone in panel._trouble_zones:
-                    if zoneData["status"] == "Missing" or zoneData["status"] == "Short":
-                        panel.updateTroubleZone(zone, faultZone)
-                    elif zoneData["status"] == "Normal":
-                        panel.updateTroubleZone(zone, clearZone)
-                if zone in panel._battery_zones:
-                    if zoneData["status"] == "Low Battery":
-                        panel.updateBatteryZone(zone, faultZone)
-                    elif zoneData["status"] == "Normal":
-                        panel.updateBatteryZone(zone, clearZone)
         self.setStatusAttributes(areaStatus, zoneStatus)
         await self.updateHASS()
 
