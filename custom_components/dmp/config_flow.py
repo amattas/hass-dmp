@@ -90,8 +90,12 @@ PANEL_SCHEMA = vol.Schema(
 
 AREA_SCHEMA = vol.Schema(
     {
-        vol.Optional(CONF_HOME_AREA, default="01"): cv.string,
-        vol.Optional(CONF_AWAY_AREA, default="02"): cv.string,
+        vol.Optional(CONF_HOME_AREA, default="01"): vol.All(
+            cv.string, vol.Match(r"^\d+$", msg="Area number must be numeric")
+        ),
+        vol.Optional(CONF_AWAY_AREA, default="02"): vol.All(
+            cv.string, vol.Match(r"^\d+$", msg="Area number must be numeric")
+        ),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -100,7 +104,9 @@ AREA_SCHEMA = vol.Schema(
 ZONE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_ZONE_NAME): cv.string,
-        vol.Required(CONF_ZONE_NUMBER): cv.string,
+        vol.Required(CONF_ZONE_NUMBER): vol.All(
+            cv.string, vol.Match(r"^\d+$", msg="Zone number must be numeric")
+        ),
         vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
         vol.Optional(CONF_ADD_ANOTHER): cv.boolean,
     },
@@ -152,14 +158,11 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: Dict[str, Any] = None
@@ -204,7 +207,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_ZONES, default=list(zones_dict.keys())
                 ): cv.multi_select(zones_dict),
                 vol.Optional(CONF_ZONE_NAME): cv.string,
-                vol.Optional(CONF_ZONE_NUMBER): cv.string,
+                vol.Optional(CONF_ZONE_NUMBER): vol.All(
+                    cv.string,
+                    vol.Match(r"^\d+$", msg="Zone number must be numeric"),
+                ),
                 vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
             }
         )

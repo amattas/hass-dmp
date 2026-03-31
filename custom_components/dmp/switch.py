@@ -1,31 +1,36 @@
-from homeassistant.components.switch import (
-    SwitchEntity
-)
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import DeviceInfo
 
-from .const import (DOMAIN, LISTENER, CONF_PANEL_ACCOUNT_NUMBER,
-                    CONF_ZONE_NAME, CONF_ZONE_NUMBER, CONF_ZONES)
+from .const import (
+    DOMAIN,
+    LISTENER,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_ZONE_NAME,
+    CONF_ZONE_NUMBER,
+    CONF_ZONES,
+)
 import logging
-
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, config_entry, async_add_entities,):
+
+async def async_setup_entry(
+    hass,
+    config_entry,
+    async_add_entities,
+):
     _LOGGER.debug("Setting up bypass switches")
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][config_entry.entry_id]
     # broken out from binary_sensor
     bypassZones = []
     for zone in config[CONF_ZONES]:
-        # allow all zones to be bypassed 
-        bypassZones.append(
-            DMPZoneBypassSwitch(
-                hass, config_entry, zone
-            )
-        )
+        # allow all zones to be bypassed
+        bypassZones.append(DMPZoneBypassSwitch(hass, config_entry, zone))
     # Don't update before add or you have a race condition with the
     # status zone.
     async_add_entities(bypassZones, update_before_add=False)
+
 
 class DMPZoneBypassSwitch(SwitchEntity):
     def __init__(self, hass, config_entry, entity_config):
@@ -39,13 +44,8 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._device_class = "switch"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
+        self._zone = self._panel.ensure_zone(self._number)
         self._state = False
-        zoneBypassObj = {
-            "zoneName": self._device_name,
-            "zoneNumber": str(self._number),
-            "zoneState": self._state
-            }
-        self._panel.updateBypassZone(str(self._number), zoneBypassObj)
 
     async def async_added_to_hass(self):
         _LOGGER.debug("Registering DMPZoneBypassSwitch Callback")
@@ -56,7 +56,7 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._listener.remove_callback(self.process_zone_callback)
 
     async def process_zone_callback(self):
-        self._state = self._panel.getBypassZone(self._number)["zoneState"]
+        self._state = self._zone.is_bypassed
         self.async_write_ha_state()
 
     @property
@@ -84,15 +84,12 @@ class DMPZoneBypassSwitch(SwitchEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, "dmp-%s-zone-%s" % (self._accountNum,
-                                             self._number))
-            },
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum))
+            identifiers={(DOMAIN, "dmp-%s-zone-%s" % (self._accountNum, self._number))},
+            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum)),
         )
 
     async def async_turn_on(self):
-        await self._panel._dmpSender.setBypass(self._number, True)
+        await self._panel.bypass_zone(self._number)
 
     async def async_turn_off(self):
-        await self._panel._dmpSender.setBypass(self._number, False)
+        await self._panel.restore_zone(self._number)
