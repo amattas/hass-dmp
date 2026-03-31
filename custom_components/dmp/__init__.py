@@ -150,7 +150,7 @@ async def options_update_listener(hass, entry):
 
         # Get and replace zones config
         _LOGGER.debug("Current config zones: %s" % config[CONF_ZONES])
-        _LOGGER.debug("New config zones: %s" % config[CONF_ZONES])
+        _LOGGER.debug("New config zones: %s" % options[CONF_ZONES])
         config[CONF_ZONES] = options[CONF_ZONES]
         hass.config_entries.async_update_entry(entry, data=config, options={})
         await hass.config_entries.async_reload(entry.entry_id)
@@ -194,7 +194,11 @@ class DMPPanel:
         return self._alarm_zones.get(zone_number, False)
 
     def ensure_zone(self, zone_num):
-        zone_int = int(zone_num)
+        try:
+            zone_int = int(zone_num)
+        except (ValueError, TypeError):
+            _LOGGER.error("Invalid zone number: %s", zone_num)
+            return None
         if self._pydmp_panel is not None:
             if zone_int not in self._pydmp_panel._zones:
                 self._pydmp_panel._zones[zone_int] = Zone(self._pydmp_panel, zone_int)
