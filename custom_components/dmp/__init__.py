@@ -209,7 +209,11 @@ class DMPPanel:
         return self._accountNumber
 
     async def _zone_command(self, zone_num, command):
-        zone_int = int(zone_num)
+        try:
+            zone_int = int(zone_num)
+        except (ValueError, TypeError):
+            _LOGGER.error("Invalid zone number for %s command: %s", command, zone_num)
+            return
         if zone_int in self._pydmp_panel._zones:
             await getattr(self._pydmp_panel._zones[zone_int], command)()
         else:
