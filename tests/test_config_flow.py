@@ -3,8 +3,10 @@
 import pytest
 from unittest.mock import patch, PropertyMock, Mock
 from homeassistant import config_entries
+import homeassistant.helpers.config_validation as cv
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+import voluptuous_serialize
 
 from custom_components.dmp.config_flow import DMPCustomConfigFlow, OptionsFlowHandler
 from custom_components.dmp.const import (
@@ -20,6 +22,11 @@ from custom_components.dmp.const import (
 pytestmark = pytest.mark.asyncio
 
 
+def _assert_schema_serializes(schema):
+    """Assert Home Assistant can serialize a flow schema for the frontend."""
+    voluptuous_serialize.convert(schema, custom_serializer=cv.custom_serializer)
+
+
 async def test_form_user_step(hass: HomeAssistant):
     """Test we get the user form."""
     flow = DMPCustomConfigFlow()
@@ -30,6 +37,20 @@ async def test_form_user_step(hass: HomeAssistant):
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {}
     assert result["step_id"] == "user"
+    _assert_schema_serializes(result["data_schema"])
+
+
+async def test_form_schemas_serialize(hass: HomeAssistant):
+    """Test config flow schemas can be serialized for the frontend."""
+    flow = DMPCustomConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_areas()
+    _assert_schema_serializes(result["data_schema"])
+
+    flow.data = {"panel_name": "Test Panel", CONF_ZONES: []}
+    result = await flow.async_step_zones()
+    _assert_schema_serializes(result["data_schema"])
 
 
 async def test_form_user_to_areas(hass: HomeAssistant):
@@ -82,6 +103,22 @@ async def test_form_areas_add_another(hass: HomeAssistant):
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "areas"
     assert CONF_ADD_ANOTHER not in flow.data
+
+
+async def test_form_areas_invalid_numbers(hass: HomeAssistant):
+    """Test areas input rejects non-numeric area numbers."""
+    flow = DMPCustomConfigFlow()
+    flow.hass = hass
+    flow.data = {"existing": "data", CONF_ZONES: []}
+
+    result = await flow.async_step_areas(
+        {CONF_HOME_AREA: "home", CONF_AWAY_AREA: "02"}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "areas"
+    assert result["errors"] == {CONF_HOME_AREA: "invalid_area_number"}
+    assert CONF_HOME_AREA not in flow.data
 
 
 async def test_form_zones_creates_entry(hass: HomeAssistant):
@@ -159,6 +196,26 @@ async def test_form_zones_multiple_zones(hass: HomeAssistant):
     assert len(flow.data[CONF_ZONES]) == 2
 
 
+async def test_form_zones_invalid_number(hass: HomeAssistant):
+    """Test zones input rejects non-numeric zone numbers."""
+    flow = DMPCustomConfigFlow()
+    flow.hass = hass
+    flow.data = {"panel_name": "Test Panel", CONF_ZONES: []}
+
+    result = await flow.async_step_zones(
+        {
+            CONF_ZONE_NAME: "Front Door",
+            CONF_ZONE_NUMBER: "front",
+            CONF_ZONE_CLASS: "wired_door",
+        }
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "zones"
+    assert result["errors"] == {CONF_ZONE_NUMBER: "invalid_zone_number"}
+    assert flow.data[CONF_ZONES] == []
+
+
 @pytest.fixture
 def mock_config_entry():
     """Create a mock config entry."""
@@ -220,6 +277,7 @@ async def test_options_flow_init(
 
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "init"
+        _assert_schema_serializes(result["data_schema"])
 
 
 async def test_options_flow_remove_zone(
@@ -278,6 +336,113 @@ async def test_options_flow_add_zone(
             )
             assert new_zone[CONF_ZONE_NAME] == "Back Door"
             assert new_zone[CONF_ZONE_CLASS] == "wired_door"
+
+
+async def test_options_flow_add_zone_invalid_number(
+    hass: HomeAssistant, options_flow, mock_entity_registry
+):
+    """Test options flow rejects non-numeric zone numbers."""
+    user_input = {
+        CONF_ZONES: ["001", "002"],
+        CONF_ZONE_NAME: "Back Door",
+        CONF_ZONE_NUMBER: "back",
+        CONF_ZONE_CLASS: "wired_door",
+    }
+
+    with patch(
+        "homeassistant.helpers.entity_registry.async_entries_for_config_entry"
+    ) as mock_entries:
+        mock_entries.return_value = []
+
+        with patch.object(
+            options_flow, "async_create_entry", return_value=None
+        ) as mock_create:
+            result = await options_flow.async_step_init(user_input)
+
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "init"
+            assert result["errors"] == {CONF_ZONE_NUMBER: "invalid_zone_number"}
+            mock_create.assert_not_called()
+
+
+async def test_options_flow_add_zone_missing_number(
+    hass: HomeAssistant, options_flow, mock_entity_registry
+):
+    """Test options flow rejects missing zone numbers when adding a zone."""
+    user_input = {
+        CONF_ZONES: ["001", "002"],
+        CONF_ZONE_NAME: "Back Door",
+        CONF_ZONE_NUMBER: "",
+        CONF_ZONE_CLASS: "wired_door",
+    }
+
+    with patch(
+        "homeassistant.helpers.entity_registry.async_entries_for_config_entry"
+    ) as mock_entries:
+        mock_entries.return_value = []
+
+        with patch.object(
+            options_flow, "async_create_entry", return_value=None
+        ) as mock_create:
+            result = await options_flow.async_step_init(user_input)
+
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "init"
+            assert result["errors"] == {CONF_ZONE_NUMBER: "missing_zone_number"}
+            mock_create.assert_not_called()
+
+
+async def test_options_flow_add_zone_missing_number_key_absent(
+    hass: HomeAssistant, options_flow, mock_entity_registry
+):
+    """Test options flow rejects omitted zone numbers when adding a zone."""
+    user_input = {
+        CONF_ZONES: ["001", "002"],
+        CONF_ZONE_NAME: "Back Door",
+        CONF_ZONE_CLASS: "wired_door",
+    }
+
+    with patch(
+        "homeassistant.helpers.entity_registry.async_entries_for_config_entry"
+    ) as mock_entries:
+        mock_entries.return_value = []
+
+        with patch.object(
+            options_flow, "async_create_entry", return_value=None
+        ) as mock_create:
+            result = await options_flow.async_step_init(user_input)
+
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "init"
+            assert result["errors"] == {CONF_ZONE_NUMBER: "missing_zone_number"}
+            mock_create.assert_not_called()
+
+
+async def test_options_flow_default_zone_class_invalid_number(
+    hass: HomeAssistant, options_flow, mock_entity_registry
+):
+    """Test options flow rejects typed invalid zone numbers without a new class."""
+    user_input = {
+        CONF_ZONES: ["001", "002"],
+        CONF_ZONE_NAME: "",
+        CONF_ZONE_NUMBER: "back",
+        CONF_ZONE_CLASS: "default",
+    }
+
+    with patch(
+        "homeassistant.helpers.entity_registry.async_entries_for_config_entry"
+    ) as mock_entries:
+        mock_entries.return_value = []
+
+        with patch.object(
+            options_flow, "async_create_entry", return_value=None
+        ) as mock_create:
+            result = await options_flow.async_step_init(user_input)
+
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "init"
+            assert result["errors"] == {CONF_ZONE_NUMBER: "invalid_zone_number"}
+            mock_create.assert_not_called()
 
 
 async def test_options_flow_no_changes(

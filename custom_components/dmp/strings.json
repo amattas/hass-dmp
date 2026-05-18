@@ -30,6 +30,10 @@
         "description": "Add a zone to your DMP panel.",
         "title": "DMP Zone Configuration"
       }
+    },
+    "error": {
+      "invalid_area_number": "Area number must contain only digits.",
+      "invalid_zone_number": "Zone number must contain only digits."
     }
   },
   "options": {
@@ -44,6 +48,11 @@
         },
         "description": "Remove existing zones or add a new zone."
       }
+    },
+    "error": {
+      "invalid_zone_number": "Zone number must contain only digits.",
+      "missing_zone_number": "Enter a zone number.",
+      "missing_zone_name": "Enter a zone name."
     }
   }
 }

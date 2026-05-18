@@ -5,3 +5,4 @@ pytest
 pytest-cov
 pytest-homeassistant-custom-component
 ruff
+voluptuous-serialize
