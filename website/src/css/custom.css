@@ -1,0 +1,289 @@
+/**
+ * Starter-kit docs design system (proven on pydmp).
+ * IBM Plex Sans/Mono · cool neutrals + blue accent · full dark mode.
+ * Copy to: website/src/css/custom.css
+ *
+ * CUSTOMIZE: per-repo identity = swap the two --ifm-color-primary scales
+ * (light :root + dark) and the logo accent; everything else is structural.
+ * (The .pd- class prefix is historical — it matches the deployed pydmp site,
+ * keeping kit and consumers byte-comparable.)
+ */
+
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+:root {
+  /* keypad blue (DMP panels are blue-lit), dark enough for AA on paper */
+  --ifm-color-primary: #155fb8;
+  --ifm-color-primary-dark: #1356a6;
+  --ifm-color-primary-darker: #12519c;
+  --ifm-color-primary-darkest: #0f4381;
+  --ifm-color-primary-light: #1769ca;
+  --ifm-color-primary-lighter: #186dd3;
+  --ifm-color-primary-lightest: #2b7fe4;
+
+  --pd-ink: #16191d;
+  --pd-paper: #f6f7f9;
+  --pd-panel: #ffffff;
+  --pd-hairline: #dde2e9;
+  --pd-led: #2da44e;
+  --pd-grid-line: rgba(22, 25, 29, 0.045);
+
+  --ifm-background-color: var(--pd-paper);
+  --ifm-font-color-base: var(--pd-ink);
+  --ifm-font-family-base: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  --ifm-code-font-size: 0.9em;
+  --ifm-font-size-base: 15.5px;
+  --ifm-line-height-base: 1.72;
+
+  --ifm-heading-font-weight: 600;
+  --ifm-h1-font-size: 2.1rem;
+  --ifm-h2-font-size: 1.45rem;
+  --ifm-h3-font-size: 1.15rem;
+
+  --ifm-global-radius: 6px;
+  --ifm-code-border-radius: 4px;
+
+  --ifm-navbar-background-color: rgba(246, 247, 249, 0.86);
+  --ifm-navbar-height: 3.6rem;
+  --ifm-navbar-shadow: none;
+
+  --ifm-toc-border-color: var(--pd-hairline);
+  --ifm-table-border-color: var(--pd-hairline);
+  --ifm-blockquote-border-left-width: 2px;
+
+  --ifm-menu-color-background-active: rgba(21, 95, 184, 0.07);
+  --ifm-menu-color-background-hover: rgba(22, 25, 29, 0.04);
+
+  --docusaurus-highlighted-code-line-bg: rgba(21, 95, 184, 0.09);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #5ba8f5;
+  --ifm-color-primary-dark: #4a9ef4;
+  --ifm-color-primary-darker: #4299f3;
+  --ifm-color-primary-darkest: #1f7fe8;
+  --ifm-color-primary-light: #6cb2f6;
+  --ifm-color-primary-lighter: #7dbbf7;
+  --ifm-color-primary-lightest: #a0cdf9;
+
+  --pd-ink: #e8e6e1;
+  --pd-paper: #0f1318;
+  --pd-panel: #161b22;
+  --pd-hairline: #262d36;
+  --pd-led: #3fb950;
+  --pd-grid-line: rgba(232, 230, 225, 0.035);
+
+  --ifm-background-color: var(--pd-paper);
+  --ifm-background-surface-color: var(--pd-panel);
+  --ifm-font-color-base: var(--pd-ink);
+  --ifm-navbar-background-color: rgba(15, 19, 24, 0.85);
+
+  --ifm-menu-color-background-active: rgba(91, 168, 245, 0.08);
+  --ifm-menu-color-background-hover: rgba(232, 230, 225, 0.05);
+
+  --docusaurus-highlighted-code-line-bg: rgba(91, 168, 245, 0.12);
+}
+
+/* ---------------------------------------------------------------- chrome */
+
+.navbar {
+  border-bottom: 1px solid var(--pd-hairline);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.navbar__link {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* local-search input — mono, panel-like */
+.navbar__search-input {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--pd-hairline);
+  background-color: var(--pd-panel);
+}
+
+/* ---------------------------------------------------------------- sidebar */
+
+.menu {
+  font-size: 0.88rem;
+  padding: 0.75rem !important;
+}
+
+.menu__list-item-collapsible > .menu__link,
+.theme-doc-sidebar-item-category > .menu__list-item-collapsible .menu__link {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.menu__link {
+  border-left: 2px solid transparent;
+  border-radius: 0 4px 4px 0;
+  padding-left: 0.75rem;
+}
+
+.menu__link--active:not(.menu__list-item-collapsible .menu__link) {
+  border-left-color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- content */
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  letter-spacing: -0.015em;
+}
+
+.markdown h2 {
+  margin-top: 2.4rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--pd-hairline);
+}
+
+.markdown code {
+  border: 1px solid var(--pd-hairline);
+  background-color: var(--pd-panel);
+  padding: 0.12em 0.35em;
+}
+
+.theme-code-block {
+  border: 1px solid var(--pd-hairline);
+  box-shadow: none !important;
+}
+
+.markdown table {
+  font-size: 0.9rem;
+}
+
+.markdown table th {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.alert {
+  border-radius: 4px;
+  border-left-width: 3px;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link--active {
+  font-weight: 600;
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--pd-hairline);
+  border-radius: 6px;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+/* ---------------------------------------------------------------- landing */
+
+/* card grid */
+.pd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.9rem;
+  margin: 1.25rem 0 2.25rem;
+}
+
+.pd-card {
+  position: relative;
+  display: block;
+  padding: 1.05rem 1.1rem 1rem;
+  border: 1px solid var(--pd-hairline);
+  border-radius: 8px;
+  background-color: var(--pd-panel);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+
+.pd-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--ifm-color-primary);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.pd-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+.pd-card:hover::before {
+  opacity: 1;
+}
+
+.pd-card-kicker {
+  display: block;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.35rem;
+}
+
+.pd-card-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.98rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.pd-card-desc {
+  display: block;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  opacity: 0.75;
+}
+
+/* ---------------------------------------------------------------- misc */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--pd-hairline);
+  border-radius: 5px;
+  border: 2px solid var(--ifm-background-color);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

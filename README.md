@@ -1,4 +1,4 @@
-[![Python package](https://github.com/amattas/hass-dmp/actions/workflows/pythonpackage.yaml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/pythonpackage.yaml) [![Validate with hassfest](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml)
+[![CI](https://github.com/amattas/hass-dmp/actions/workflows/ci.yml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/ci.yml) [![Docs](https://github.com/amattas/hass-dmp/actions/workflows/docs.yml/badge.svg)](https://amattas.github.io/hass-dmp/) [![Validate with hassfest](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/amattas/hass-dmp/actions/workflows/hassfest.yaml)
 
 # DMP Integration for Home Assistant
 
