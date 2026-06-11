@@ -119,3 +119,8 @@ $RECYCLE.BIN/
 /custom_components/dmp/__pycache__
 /tests/__pycache__
 .coverage
+
+# Docusaurus site (website/)
+website/node_modules/
+website/build/
+website/.docusaurus/

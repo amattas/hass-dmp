@@ -1,0 +1,28 @@
+# CI — every PR and push to the default branch. (Starter kit: amattas/aviato/starter)
+# Keep the job id `ci` — the branch ruleset requires a check context named "ci".
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: python -m pip install -r requirements.test.txt
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: python -m pytest -q

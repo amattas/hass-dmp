@@ -1,0 +1,53 @@
+# Release — fires when you push a SemVer tag. Releasing is:
+#   git tag 1.0.1 && git push origin 1.0.1
+# Bump "version" in custom_components/dmp/manifest.json FIRST; the workflow
+# refuses a mismatched tag. GitHub release only — HACS installs from releases.
+# (Starter kit python-app variant + a manifest.json version gate.)
+name: Release
+
+on:
+  push:
+    # Only digit-initiated tags: version-shaped tags (including malformed ones,
+    # which fail validation LOUDLY — a typo'd release tag must not be a silent
+    # no-op) trigger; v-prefixed legacy tags and non-version tags don't.
+    tags: ["[0-9]*"]
+
+permissions: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub release
+    steps:
+      - name: Validate tag format
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s\n' "${TAG}" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta)[0-9]+)?$'; then
+            echo "::error::Tag '${TAG}' is not X.Y.Z (optionally -alphaN/-betaN)"
+            exit 1
+          fi
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify tag matches the manifest version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="$(python3 -c 'import json; print(json.load(open("custom_components/dmp/manifest.json"))["version"])')"
+          if [ "${version}" != "${TAG}" ]; then
+            echo "::error::manifest.json version ${version} != tag ${TAG} — bump the manifest first"
+            exit 1
+          fi
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          args=(--generate-notes --verify-tag)
+          case "${TAG}" in *-alpha*|*-beta*) args+=(--prerelease) ;; esac
+          gh release create "${TAG}" "${args[@]}"
