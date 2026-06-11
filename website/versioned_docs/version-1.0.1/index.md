@@ -13,10 +13,9 @@ Serial 3 push protocol (powered by [pydmp](https://amattas.github.io/pydmp/)).
 
 :::caution
 
-This integration is in **beta** — things may break or become unreliable. It is
-not designed to replace monitoring by a UL-certified monitoring center; it
-exists to make the panel's supervised sensors easy to integrate with other
-platforms.
+This integration is not designed to replace monitoring by a UL-certified
+monitoring center; it exists to make the panel's supervised sensors easy to
+integrate with other platforms.
 
 :::
 

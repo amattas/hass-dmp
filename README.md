@@ -5,7 +5,7 @@
 Integrate your DMP XR series alarn panel with Home Assistant. This integration provides arming control along with zone monitoring. 
 
 ## Important Info
-This integration is currently is in BETA. This means things may break or become unreliable. **Please Note: This integration is not designed to replace monitoring of your DMP panel by a UL certified monitoring center, and is solely designed to increase the ease of integrating the supervised sensors with other platforms**
+**Please Note: This integration is not designed to replace monitoring of your DMP panel by a UL certified monitoring center, and is solely designed to increase the ease of integrating the supervised sensors with other platforms.**
 
 ## Currently Supported Features
 
