@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 # Installation
 
 The integration implements a Home Assistant configuration flow, so setup is a
