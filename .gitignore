@@ -120,7 +120,6 @@ $RECYCLE.BIN/
 /tests/__pycache__
 .coverage
 
-# Docusaurus site (website/)
-website/node_modules/
-website/build/
-website/.docusaurus/
+# Zensical build output
+/site/
+/scripts/__pycache__

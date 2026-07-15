@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # Panel configuration
 
 The config flow asks for a few values that live in the panel's programming.

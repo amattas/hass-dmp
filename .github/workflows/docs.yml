@@ -1,71 +1,47 @@
-# Docs — build and deploy to GitHub Pages on every push to the default branch.
-# Deliberately NOT tied to release tags: docs ship when they merge.
-# Copy to: .github/workflows/docs.yml
-# One-time: repo Settings → Pages → Source: GitHub Actions.
-#
-# CUSTOMIZE:
-#  - DOCS_DIR if the Docusaurus site doesn't live in website/
-#  - node-version
+# Docs — build every documented release with Zensical and publish the
+# versioned site (mike) to the gh-pages branch.
+# One-time: repo Settings → Pages → Source: Deploy from a branch → gh-pages.
 name: Docs
 
 on:
   push:
     branches: [main]
+    tags:
+      - '*.*.*'
+      - 'v*.*.*'
+    paths:
+      - 'docs/**'
+      - 'scripts/docs_versioning.py'
+      - 'scripts/publish_versioned_docs.py'
+      - 'zensical.toml'
+      - 'requirements-docs.txt'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
-
-env:
-  DOCS_DIR: website
+  contents: write
 
 concurrency:
-  group: pages
+  group: docs-gh-pages
   cancel-in-progress: false
 
 jobs:
   docs:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          persist-credentials: false
-      # PYTHON API DOCS (optional): generate an API reference from docstrings
-      # before the site build — uncomment and set PACKAGE/-I path. The
-      # `mdx.format: md` front matter is load-bearing: generated markdown
-      # contains braces MDX treats as JSX expressions, failing the build.
-      # Gitignore `website/docs/api/reference.md`; versioned snapshots commit
-      # their own frozen copy when you cut a docs version.
-      # - uses: actions/setup-python@v6
-      #   with:
-      #     python-version: "3.12"
-      # - name: Generate API reference from docstrings
-      #   run: |
-      #     python -m pip install --quiet -e . "pydoc-markdown==4.8.2"
-      #     mkdir -p website/docs/api
-      #     {
-      #       printf -- '---\ntitle: API Reference\nmdx:\n  format: md\n---\n\n'
-      #       pydoc-markdown -I src -p PACKAGE
-      #     } > website/docs/api/reference.md
-      - uses: actions/setup-node@v6
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: ${{ env.DOCS_DIR }}/package-lock.json
-      - name: Build
-        working-directory: ${{ env.DOCS_DIR }}
+          python-version: "3.13"
+      - name: Install documentation tools
         run: |
-          npm ci
-          npm run build
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: ${{ env.DOCS_DIR }}/build
-      - uses: actions/deploy-pages@v5
-        id: deployment
+          python -m pip install --disable-pip-version-check -r requirements-docs.txt
+      - name: Configure Git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Publish
+        run: python scripts/publish_versioned_docs.py --push
