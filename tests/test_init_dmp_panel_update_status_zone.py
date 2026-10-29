@@ -1,8 +1,10 @@
 """Test zone state to status mapping and alarm tracking in DMPPanel."""
 
-import pytest
 from unittest.mock import Mock
-from custom_components.dmp import DMPPanel, ZONE_STATE_TO_STATUS
+
+import pytest
+
+from custom_components.dmp import ZONE_STATE_TO_STATUS, DMPPanel
 
 
 def test_zone_state_to_status_mapping():

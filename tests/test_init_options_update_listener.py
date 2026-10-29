@@ -1,20 +1,20 @@
 """Test the options update listener function."""
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp import options_update_listener
 from custom_components.dmp.const import (
+    CONF_ZONE_CLASS,
+    CONF_ZONE_NAME,
+    CONF_ZONE_NUMBER,
+    CONF_ZONES,
     DOMAIN,
     LISTENER,
-    CONF_ZONES,
-    CONF_ZONE_NUMBER,
-    CONF_ZONE_NAME,
-    CONF_ZONE_CLASS,
 )
-
 
 pytestmark = pytest.mark.asyncio
 

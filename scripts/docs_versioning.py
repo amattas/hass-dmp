@@ -99,6 +99,7 @@ def _git_path_exists(tag: str, path: str) -> bool:
         cwd=REPO_ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        check=False,
     )
     return result.returncode == 0
 

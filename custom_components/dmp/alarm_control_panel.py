@@ -2,20 +2,20 @@
 
 import logging
 
-from homeassistant.helpers.entity import DeviceInfo
-
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,
     AlarmControlPanelState,
 )
+from homeassistant.helpers.entity import DeviceInfo
+
 from .const import (
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_NAME,
     DOMAIN,
     LISTENER,
-    CONF_PANEL_NAME,
-    CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def async_setup_entry(
     """Setup sensors from a config entry created in the integrations UI."""
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][entry.entry_id]
-    _LOGGER.debug("Alarm control panel config: %s" % config)
+    _LOGGER.debug(f"Alarm control panel config: {config}")
     listener = hass.data[DOMAIN][LISTENER]
     area = DMPArea(listener, config)
     areas = []
@@ -42,7 +42,7 @@ class DMPArea(AlarmControlPanelEntity):
     def __init__(self, listener, config):
         self._listener = listener
         self._panel_name = config.get(CONF_PANEL_NAME)
-        self._name = "%s Arming Control" % self._panel_name
+        self._name = f"{self._panel_name} Arming Control"
         self._account_number = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._number = config.get(CONF_HOME_AREA)
         self._panel = listener.getPanels()[str(self._account_number)]
@@ -102,13 +102,13 @@ class DMPArea(AlarmControlPanelEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-panel-arming" % self._account_number
+        return f"dmp-{self._account_number}-panel-arming"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, "dmp-%s-panel" % self._account_number)},
+            identifiers={(DOMAIN, f"dmp-{self._account_number}-panel")},
             name=self._panel_name,
             manufacturer="Digital Monitoring Products",
         )

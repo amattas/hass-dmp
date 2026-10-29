@@ -1,18 +1,19 @@
 """Test alarm control panel entity for DMP integration."""
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
-from homeassistant.core import HomeAssistant
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.alarm_control_panel import DMPArea, async_setup_entry
 from custom_components.dmp.const import (
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
     DOMAIN,
     LISTENER,
-    CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
 )
 
 
@@ -55,7 +56,7 @@ async def test_async_setup_entry_creates_area_entity(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test that async_setup_entry adds a DMPArea entity."""
-    listener, panel = mock_listener_panel
+    listener, _panel = mock_listener_panel
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][LISTENER] = listener
     hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
@@ -143,7 +144,7 @@ def setup_area(mock_config_entry, mock_listener_panel):
 )
 def test_properties(setup_area, prop, expected):
     """Ensure DMPArea properties return configured values."""
-    area, panel = setup_area
+    area, _panel = setup_area
     assert getattr(area, prop) == expected
 
 

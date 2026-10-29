@@ -1,20 +1,21 @@
 """Test DMPZoneStatus sensor initialization and basic functionality."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.dmp.sensor import DMPZoneStatus
 from custom_components.dmp.const import (
-    DOMAIN,
-    LISTENER,
     CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_ZONES,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
+    CONF_ZONES,
+    DOMAIN,
+    LISTENER,
 )
+from custom_components.dmp.sensor import DMPZoneStatus
 
 pytestmark = pytest.mark.usefixtures("init_integration")
 
@@ -63,7 +64,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Ensure DMPZoneStatus initializes with default state."""
-        listener, panel = mock_listener_panel
+        _listener, panel = mock_listener_panel
 
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
@@ -75,7 +76,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Verify icon, unique_id and attributes are set properly."""
-        listener, panel = mock_listener_panel
+        _listener, _panel = mock_listener_panel
 
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
@@ -92,7 +93,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Callbacks are registered and unregistered correctly."""
-        listener, panel = mock_listener_panel
+        listener, _panel = mock_listener_panel
 
         sensor = DMPZoneStatus(
             hass, mock_config_entry, mock_config_entry.data[CONF_ZONES][0]
@@ -106,7 +107,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Test native_value returns None."""
-        listener, panel = mock_listener_panel
+        _listener, _panel = mock_listener_panel
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         assert sensor.native_value is None
@@ -115,7 +116,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Test device_name property."""
-        listener, panel = mock_listener_panel
+        _listener, _panel = mock_listener_panel
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         assert sensor.device_name == "Test Zone"
@@ -190,7 +191,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Test that process_zone_callback updates state from pyDMP zone and writes state."""
-        listener, panel = mock_listener_panel
+        listener, _panel = mock_listener_panel
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][LISTENER] = listener
         hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
@@ -225,7 +226,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """Test device removal when sensor is removed from hass."""
-        listener, panel = mock_listener_panel
+        listener, _panel = mock_listener_panel
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][LISTENER] = listener
         hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
@@ -253,7 +254,7 @@ class TestDMPZoneStatus:
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
         """should_poll should always return False."""
-        listener, panel = mock_listener_panel
+        _listener, _panel = mock_listener_panel
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         assert sensor.should_poll is False

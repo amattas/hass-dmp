@@ -1,18 +1,19 @@
 """Test async_setup_entry for switch platform."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.const import (
-    DOMAIN,
-    LISTENER,
     CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_ZONES,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
+    CONF_ZONES,
+    DOMAIN,
+    LISTENER,
 )
 
 
@@ -64,7 +65,7 @@ async def test_async_setup_entry_zones(
     hass: HomeAssistant, zones, expected_count, expected_names
 ):
     """Test async_setup_entry creates bypass switches as expected."""
-    from custom_components.dmp.switch import async_setup_entry, DMPZoneBypassSwitch
+    from custom_components.dmp.switch import DMPZoneBypassSwitch, async_setup_entry
 
     listener = Mock()
     panel = Mock()

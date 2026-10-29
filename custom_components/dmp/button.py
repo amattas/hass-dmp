@@ -1,11 +1,9 @@
 import logging
 
+from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import DeviceInfo
 
-from homeassistant.components.button import ButtonEntity
-
-from .const import (DOMAIN, LISTENER, CONF_PANEL_NAME,
-                    CONF_PANEL_ACCOUNT_NUMBER)
+from .const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_NAME, DOMAIN, LISTENER
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,14 +44,14 @@ class DMPRefreshStatusButton(ButtonEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-panel-refresh-status" % self._accountNum
+        return f"dmp-{self._accountNum}-panel-refresh-status"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                (DOMAIN, "dmp-%s-panel" % self._accountNum)
+                (DOMAIN, f"dmp-{self._accountNum}-panel")
             },
             name=self._panel_name,
             manufacturer='Digital Monitoring Products',

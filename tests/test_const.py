@@ -1,7 +1,8 @@
 """Test constants module."""
 
 import pytest
-import custom_components.dmp.const as const
+
+from custom_components.dmp import const
 
 
 @pytest.mark.parametrize(

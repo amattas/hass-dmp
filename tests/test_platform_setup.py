@@ -1,22 +1,24 @@
 """Generic async_setup_entry smoke tests for DMP integration platforms."""
 
 import importlib
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from unittest.mock import Mock
+
+import pytest
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.dmp.const import (
-    DOMAIN,
-    LISTENER,
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
     CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_ZONES,
+    CONF_PANEL_NAME,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
-    CONF_PANEL_NAME,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
+    CONF_ZONES,
+    DOMAIN,
+    LISTENER,
 )
-from homeassistant.core import HomeAssistant
 
 
 def _make_panel_mock():
@@ -143,7 +145,7 @@ async def test_platform_async_setup_entry(
 ):
     """Test async_setup_entry for each DMP platform creates correct entities."""
     module = importlib.import_module(f"custom_components.dmp.{module_name}")
-    async_setup_entry = getattr(module, "async_setup_entry")
+    async_setup_entry = module.async_setup_entry
 
     entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry")
 
