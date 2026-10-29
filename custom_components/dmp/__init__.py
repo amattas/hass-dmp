@@ -1,27 +1,27 @@
 """The DMP Integration Component"""
 
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
 
-from homeassistant.helpers import entity_registry as er
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.const import Platform
-
-from pydmp import DMPPanel as PyDMPPanel, DMPStatusServer, parse_s3_message, Zone
+from homeassistant.helpers import entity_registry as er
+from pydmp import DMPPanel as PyDMPPanel
+from pydmp import DMPStatusServer, Zone, parse_s3_message
 from pydmp.const.events import DMPEventType
 
 from .const import (
-    CONF_PANEL_IP,
-    LISTENER,
-    CONF_PANEL_LISTEN_PORT,
-    CONF_PANEL_REMOTE_PORT,
-    CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_PANEL_REMOTE_KEY,
-    CONF_HOME_AREA,
     CONF_AWAY_AREA,
-    DOMAIN,
-    CONF_ZONES,
+    CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_IP,
+    CONF_PANEL_LISTEN_PORT,
+    CONF_PANEL_REMOTE_KEY,
+    CONF_PANEL_REMOTE_PORT,
     CONF_ZONE_NUMBER,
+    CONF_ZONES,
+    DOMAIN,
+    LISTENER,
     PYDMP_PANEL,
     STATUS_SERVER,
 )
@@ -131,26 +131,26 @@ async def options_update_listener(hass, entry):
     config = dict(entry.data)
     options = dict(entry.options)
     if options:
-        _LOGGER.debug("Updated options found: %s" % options)
+        _LOGGER.debug(f"Updated options found: {options}")
         """Handle options update."""
         # Remove Entities
         entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
         entry_map = {e.entity_id: e for e in entries}
         active_zones = [z[CONF_ZONE_NUMBER] for z in options[CONF_ZONES]]
-        _LOGGER.debug("Zones found in options: %s" % active_zones)
+        _LOGGER.debug(f"Zones found in options: {active_zones}")
         deleted_entries = []
-        for emk in entry_map.keys():
+        for emk in entry_map:
             if entry_map[emk].unique_id.split("-")[2] == "zone" and (
                 entry_map[emk].unique_id.split("-")[3] not in active_zones
             ):
                 deleted_entries.append(emk)
-        _LOGGER.debug("Zone entities to be deleted: %s" % deleted_entries)
+        _LOGGER.debug(f"Zone entities to be deleted: {deleted_entries}")
         for de in deleted_entries:
             entity_registry.async_remove(de)
 
         # Get and replace zones config
-        _LOGGER.debug("Current config zones: %s" % config[CONF_ZONES])
-        _LOGGER.debug("New config zones: %s" % options[CONF_ZONES])
+        _LOGGER.debug(f"Current config zones: {config[CONF_ZONES]}")
+        _LOGGER.debug(f"New config zones: {options[CONF_ZONES]}")
         config[CONF_ZONES] = options[CONF_ZONES]
         hass.config_entries.async_update_entry(entry, data=config, options={})
         await hass.config_entries.async_reload(entry.entry_id)
@@ -166,10 +166,7 @@ class DMPPanel:
         self._alarm_zones = {}
 
     def __str__(self):
-        return "DMP Panel with account number %s at addr %s" % (
-            self._accountNumber,
-            self._ipAddress,
-        )
+        return f"DMP Panel with account number {self._accountNumber} at addr {self._ipAddress}"
 
     def updateContactTime(self, contactTime):
         self._panel_last_contact = contactTime
@@ -246,7 +243,7 @@ class DMPListener:
             status_server.register_callback(self._handle_s3_event)
 
     def __str__(self):
-        return "DMP Listener on port %s" % (self._port)
+        return f"DMP Listener on port {self._port}"
 
     def register_callback(self, callback):
         """Allow callbacks to be registered for when dict entries change"""
@@ -266,7 +263,7 @@ class DMPListener:
         """Handle incoming S3 event from DMPStatusServer."""
         try:
             event = parse_s3_message(msg)
-        except Exception:
+        except Exception:  # noqa: BLE001
             _LOGGER.warning(
                 "Failed to parse S3 message: %s",
                 msg.raw if hasattr(msg, "raw") else msg,
@@ -362,7 +359,7 @@ class DMPListener:
                 _LOGGER.warning("Unknown arming type_code: %s, ignoring", type_code)
                 return
             areaObj = {"areaName": area_name, "areaState": areaState}
-            _LOGGER.debug("Updated area: %s" % areaObj)
+            _LOGGER.debug(f"Updated area: {areaObj}")
             panel.updateArea(areaObj)
 
         elif category == DMPEventType.REAL_TIME_STATUS:  # Zc
@@ -382,7 +379,7 @@ class DMPListener:
             _LOGGER.warning("%s: Unhandled event category - %s", account, category)
 
         # update contact time on successful message
-        panel.updateContactTime(datetime.now(timezone.utc))
+        panel.updateContactTime(datetime.now(UTC))
         await self.updateHASS()
 
     async def updateStatus(self):

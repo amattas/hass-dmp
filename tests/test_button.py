@@ -1,11 +1,16 @@
 """Test DMPRefreshStatusButton entity and async_setup_entry."""
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.dmp.button import async_setup_entry, DMPRefreshStatusButton
-from custom_components.dmp.const import DOMAIN, CONF_PANEL_NAME, CONF_PANEL_ACCOUNT_NUMBER
+from custom_components.dmp.button import DMPRefreshStatusButton, async_setup_entry
+from custom_components.dmp.const import (
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_NAME,
+    DOMAIN,
+)
 
 pytestmark = pytest.mark.usefixtures("init_integration")
 

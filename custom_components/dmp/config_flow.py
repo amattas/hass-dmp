@@ -1,27 +1,27 @@
-from copy import deepcopy
 import logging
-from typing import Any, Dict, Optional
+from copy import deepcopy
+from typing import Any
 
-from homeassistant import config_entries
-
-from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.selector import selector
 import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.core import callback
+from homeassistant.helpers.selector import selector
 
 from .const import (
-    CONF_PANEL_NAME,
+    CONF_ADD_ANOTHER,
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
     CONF_PANEL_IP,
     CONF_PANEL_LISTEN_PORT,
-    CONF_PANEL_REMOTE_PORT,
-    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_NAME,
     CONF_PANEL_REMOTE_KEY,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
+    CONF_PANEL_REMOTE_PORT,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
-    CONF_ADD_ANOTHER,
+    CONF_ZONES,
     DEV_TYPE_BATTERY_DOOR,
     DEV_TYPE_BATTERY_GLASSBREAK,
     DEV_TYPE_BATTERY_MOTION,
@@ -33,9 +33,8 @@ from .const import (
     DEV_TYPE_WIRED_MOTION,
     DEV_TYPE_WIRED_SMOKE,
     DEV_TYPE_WIRED_WINDOW,
+    DOMAIN,
 )
-
-from .const import CONF_ZONES, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -116,10 +115,10 @@ def _is_numeric(value: Any) -> bool:
 class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """DMP Custom config flow."""
 
-    data: Optional[Dict[str, Any]]
+    data: dict[str, Any] | None
 
-    async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None):
-        errors: Dict[str, str] = {}
+    async def async_step_user(self, user_input: dict[str, Any] | None = None):
+        errors: dict[str, str] = {}
         if user_input is not None:
             self.data = user_input
             self.data[CONF_ZONES] = []
@@ -128,8 +127,8 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=PANEL_SCHEMA, errors=errors
         )
 
-    async def async_step_areas(self, user_input: Optional[Dict[str, Any]] = None):
-        errors: Dict[str, str] = {}
+    async def async_step_areas(self, user_input: dict[str, Any] | None = None):
+        errors: dict[str, str] = {}
         if user_input is not None:
             if not _is_numeric(user_input[CONF_HOME_AREA]):
                 errors[CONF_HOME_AREA] = "invalid_area_number"
@@ -149,8 +148,8 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="areas", data_schema=AREA_SCHEMA, errors=errors
         )
 
-    async def async_step_zones(self, user_input: Optional[Dict[str, Any]] = None):
-        errors: Dict[str, str] = {}
+    async def async_step_zones(self, user_input: dict[str, Any] | None = None):
+        errors: dict[str, str] = {}
         if user_input is not None:
             if not _is_numeric(user_input[CONF_ZONE_NUMBER]):
                 errors[CONF_ZONE_NUMBER] = "invalid_zone_number"
@@ -180,10 +179,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
 
     async def async_step_init(
-        self, user_input: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, user_input: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Manage the options for the custom component."""
-        errors: Dict[str, str] = {}
+        errors: dict[str, str] = {}
         # Get a list of zones for the UI since each zone has multiple
         # sensors.
         zones = dict(self.config_entry.data)[CONF_ZONES]

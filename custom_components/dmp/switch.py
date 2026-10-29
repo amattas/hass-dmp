@@ -1,15 +1,16 @@
+import logging
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import DeviceInfo
 
 from .const import (
-    DOMAIN,
-    LISTENER,
     CONF_PANEL_ACCOUNT_NUMBER,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DOMAIN,
+    LISTENER,
 )
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class DMPZoneBypassSwitch(SwitchEntity):
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
         self._device_name = entity_config.get(CONF_ZONE_NAME)
-        self._name = "%s Bypass" % entity_config.get(CONF_ZONE_NAME)
+        self._name = f"{entity_config.get(CONF_ZONE_NAME)} Bypass"
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._device_class = "switch"
         self._panel = self._listener.getPanels()[str(self._accountNum)]
@@ -78,14 +79,14 @@ class DMPZoneBypassSwitch(SwitchEntity):
 
     @property
     def unique_id(self):
-        return "dmp-%s-zone-%s-bypass-switch" % (self._accountNum, self._number)
+        return f"dmp-{self._accountNum}-zone-{self._number}-bypass-switch"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, "dmp-%s-zone-%s" % (self._accountNum, self._number))},
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum)),
+            identifiers={(DOMAIN, f"dmp-{self._accountNum}-zone-{self._number}")},
+            via_device=(DOMAIN, f"dmp-{self._accountNum}-panel"),
         )
 
     async def async_turn_on(self):

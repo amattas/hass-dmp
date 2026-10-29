@@ -1,22 +1,23 @@
 """Test config flow for DMP integration."""
 
-import pytest
-from unittest.mock import patch, PropertyMock, Mock
-from homeassistant import config_entries
+from unittest.mock import Mock, PropertyMock, patch
+
 import homeassistant.helpers.config_validation as cv
+import pytest
+import voluptuous_serialize
+from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-import voluptuous_serialize
 
 from custom_components.dmp.config_flow import DMPCustomConfigFlow, OptionsFlowHandler
 from custom_components.dmp.const import (
-    CONF_ZONES,
+    CONF_ADD_ANOTHER,
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
-    CONF_ADD_ANOTHER,
+    CONF_ZONES,
 )
 
 pytestmark = pytest.mark.asyncio

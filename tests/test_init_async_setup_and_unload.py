@@ -1,7 +1,8 @@
 """Test async_setup_entry and async_unload_entry."""
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.dmp as dmp_module
@@ -11,18 +12,18 @@ from custom_components.dmp import (
     options_update_listener,
 )
 from custom_components.dmp.const import (
+    CONF_AWAY_AREA,
+    CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_IP,
+    CONF_PANEL_LISTEN_PORT,
+    CONF_PANEL_NAME,
+    CONF_PANEL_REMOTE_KEY,
+    CONF_PANEL_REMOTE_PORT,
     DOMAIN,
     LISTENER,
     PYDMP_PANEL,
     STATUS_SERVER,
-    CONF_PANEL_NAME,
-    CONF_PANEL_IP,
-    CONF_PANEL_LISTEN_PORT,
-    CONF_PANEL_REMOTE_PORT,
-    CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_PANEL_REMOTE_KEY,
-    CONF_HOME_AREA,
-    CONF_AWAY_AREA,
 )
 
 

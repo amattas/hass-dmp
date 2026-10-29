@@ -1,18 +1,19 @@
 """Test DMPZoneBypassSwitch entity."""
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.dmp.switch import DMPZoneBypassSwitch
 from custom_components.dmp.const import (
-    DOMAIN,
     CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
+    DOMAIN,
 )
+from custom_components.dmp.switch import DMPZoneBypassSwitch
 
 pytestmark = pytest.mark.usefixtures("init_integration")
 
@@ -75,7 +76,7 @@ def test_basic_properties(
     expected_unique,
 ):
     """Check basic switch initialization and properties."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: zone_name,
         CONF_ZONE_NUMBER: zone_number,
@@ -106,7 +107,7 @@ async def test_async_turn_on_off(
     expected_call,
 ):
     """Test bypass switch on/off calls panel.bypass_zone/restore_zone."""
-    listener, panel = mock_listener_panel
+    _listener, panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -133,7 +134,7 @@ def test_initial_ensure_zone_called(
     zone_class,
 ):
     """Init should call panel.ensure_zone."""
-    listener, panel = mock_listener_panel
+    _listener, panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: zone_name,
         CONF_ZONE_NUMBER: zone_number,
@@ -147,7 +148,7 @@ def test_device_info_and_poll(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test device_info identifiers and default should_poll property."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -166,7 +167,7 @@ async def test_process_zone_callback_and_callbacks(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test process_zone_callback updates state and register/unregister callbacks."""
-    listener, panel = mock_listener_panel
+    listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -186,7 +187,7 @@ async def test_process_zone_callback_and_callbacks(
 
 def test_is_on_property(hass: HomeAssistant, mock_config_entry, mock_listener_panel):
     """Test is_on property returns current state."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -202,7 +203,7 @@ def test_device_name_property(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test device_name property."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -216,7 +217,7 @@ def test_device_info_missing_name(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test device_info does not include a name attribute."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",
@@ -232,7 +233,7 @@ async def test_process_zone_callback_zone_bypassed(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
     """Test process_zone_callback reads from pyDMP Zone."""
-    listener, panel = mock_listener_panel
+    _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
         CONF_ZONE_NUMBER: "001",

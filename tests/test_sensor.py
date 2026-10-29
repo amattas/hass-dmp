@@ -1,16 +1,17 @@
 """Test sensor module for DMP integration."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.const import (
-    DOMAIN,
     CONF_PANEL_ACCOUNT_NUMBER,
-    CONF_ZONES,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
+    CONF_ZONES,
+    DOMAIN,
 )
 
 

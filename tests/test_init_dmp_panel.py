@@ -1,14 +1,16 @@
 """Complete tests for DMPPanel class."""
 
-import pytest
-from unittest.mock import Mock, AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
+from pydmp.exceptions import DMPZoneError
 
 from custom_components.dmp import DMPPanel
 from custom_components.dmp.const import (
-    CONF_PANEL_IP,
     CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_IP,
 )
 
 
@@ -154,7 +156,7 @@ async def test_bypass_zone_not_cached():
         pydmp_panel=mock_pydmp,
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(DMPZoneError):
         # Zone.bypass will try to send a command, which will fail on Mock panel
         await panel.bypass_zone("001")
 

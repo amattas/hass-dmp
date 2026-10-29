@@ -1,18 +1,20 @@
 """Platform for DMP Alarm Panel integration"""
 
 import logging
+
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.components.sensor import SensorEntity
+
 from . import ZONE_STATE_TO_STATUS
 from .const import (
-    DOMAIN,
-    LISTENER,
     CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
     CONF_ZONES,
+    DOMAIN,
+    LISTENER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ async def async_setup_entry(
     _LOGGER.debug("Setting up sensors.")
     hass.data.setdefault(DOMAIN, {})
     config = hass.data[DOMAIN][config_entry.entry_id]
-    _LOGGER.debug("Sensor config: %s" % config)
+    _LOGGER.debug(f"Sensor config: {config}")
     # Add all zones to trouble zones
     statusZones = [
         DMPZoneStatus(hass, config_entry, zone) for zone in config[CONF_ZONES]
@@ -40,10 +42,10 @@ class DMPZoneStatus(SensorEntity):
         self._hass = hass
         self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
-        _LOGGER.debug("Config is: %s" % entity_config)
+        _LOGGER.debug(f"Config is: {entity_config}")
         self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
         self._listener = self._hass.data[DOMAIN][LISTENER]
-        self._name = "%s Status" % entity_config.get(CONF_ZONE_NAME)
+        self._name = f"{entity_config.get(CONF_ZONE_NAME)} Status"
         self._device_name = entity_config.get(CONF_ZONE_NAME)
         self._number = entity_config.get(CONF_ZONE_NUMBER)
         self._panel = self._listener.getPanels()[str(self._accountNum)]
@@ -127,9 +129,7 @@ class DMPZoneStatus(SensorEntity):
         device_class = self._device_class
         if state == "Alarm":
             return "mdi:alarm-bell"
-        elif state == "Trouble":
-            return "mdi:alert"
-        elif state == "Bypass":
+        elif state == "Trouble" or state == "Bypass":
             return "mdi:alert"
         elif state == "Low Battery":
             return "mdi:battery-alert-variant-outline"
@@ -144,14 +144,14 @@ class DMPZoneStatus(SensorEntity):
     @property
     def unique_id(self):
         """Return unique ID"""
-        return "dmp-%s-zone-%s-status" % (self._accountNum, self._number)
+        return f"dmp-{self._accountNum}-zone-{self._number}-status"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, "dmp-%s-zone-%s" % (self._accountNum, self._number))},
+            identifiers={(DOMAIN, f"dmp-{self._accountNum}-zone-{self._number}")},
             name=self.device_name,
             manufacturer="Digital Monitoring Products",
-            via_device=(DOMAIN, "dmp-%s-panel" % (self._accountNum)),
+            via_device=(DOMAIN, f"dmp-{self._accountNum}-panel"),
         )

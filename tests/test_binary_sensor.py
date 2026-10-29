@@ -1,23 +1,25 @@
 """Test binary sensor module for DMP integration."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.dmp.binary_sensor import (
-    DMPZoneOpenClose,
-    DMPZoneBattery,
-    DMPZoneTrouble,
     DMPZoneAlarm,
+    DMPZoneBattery,
     DMPZoneBypass,
+    DMPZoneOpenClose,
+    DMPZoneTrouble,
 )
 from custom_components.dmp.const import (
-    DOMAIN,
-    LISTENER,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
-    CONF_ZONE_CLASS,
-    CONF_PANEL_ACCOUNT_NUMBER,
+    DOMAIN,
+    LISTENER,
 )
 
 pytestmark = pytest.mark.usefixtures("init_integration")
@@ -111,7 +113,7 @@ def test_device_class_mapping(
     setup_sensor, mock_config_entry, zone_class, expected_device_class
 ):
     """Verify zone class maps to the correct device class."""
-    hass, panel = setup_sensor
+    hass, _panel = setup_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Zone",
         CONF_ZONE_NUMBER: "001",
@@ -136,7 +138,7 @@ def test_icon_mapping(
     setup_sensor, mock_config_entry, zone_class, state, expected_icon
 ):
     """Confirm icon selection based on device class and state."""
-    hass, panel = setup_sensor
+    hass, _panel = setup_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Zone",
         CONF_ZONE_NUMBER: "001",
@@ -175,7 +177,7 @@ def test_battery_sensor_initialization(setup_battery_sensor, mock_config_entry):
 )
 def test_battery_icon(setup_battery_sensor, mock_config_entry, state, icon):
     """Ensure battery sensor icon reflects state."""
-    hass, panel = setup_battery_sensor
+    hass, _panel = setup_battery_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Battery",
         CONF_ZONE_NUMBER: "010",
@@ -217,7 +219,7 @@ def test_trouble_sensor_initialization(setup_trouble_sensor, mock_config_entry):
 )
 def test_trouble_icon(setup_trouble_sensor, mock_config_entry, state, icon):
     """Ensure trouble sensor icon reflects state."""
-    hass, panel = setup_trouble_sensor
+    hass, _panel = setup_trouble_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Trouble",
         CONF_ZONE_NUMBER: "011",
@@ -259,7 +261,7 @@ def test_bypass_sensor_initialization(setup_bypass_sensor, mock_config_entry):
 )
 def test_bypass_icon(setup_bypass_sensor, mock_config_entry, state, icon):
     """Ensure bypass sensor icon reflects state."""
-    hass, panel = setup_bypass_sensor
+    hass, _panel = setup_bypass_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Bypass",
         CONF_ZONE_NUMBER: "013",
@@ -283,7 +285,7 @@ def setup_alarm_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
 
 def test_alarm_sensor_initialization(setup_alarm_sensor, mock_config_entry):
     """Validate alarm sensor initialization settings."""
-    hass, panel = setup_alarm_sensor
+    hass, _panel = setup_alarm_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Alarm",
         CONF_ZONE_NUMBER: "012",
@@ -298,7 +300,7 @@ def test_alarm_sensor_initialization(setup_alarm_sensor, mock_config_entry):
 @pytest.mark.parametrize("state,icon", [(False, "mdi:check"), (True, "mdi:alarm-bell")])
 def test_alarm_icon(setup_alarm_sensor, mock_config_entry, state, icon):
     """Ensure alarm sensor icon reflects state."""
-    hass, panel = setup_alarm_sensor
+    hass, _panel = setup_alarm_sensor
     zone_config = {
         CONF_ZONE_NAME: "Test Alarm",
         CONF_ZONE_NUMBER: "012",

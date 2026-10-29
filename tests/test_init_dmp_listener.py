@@ -1,17 +1,17 @@
 """Complete tests for DMPListener class."""
 
-import pytest
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock
 
+import pytest
+from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from pydmp import S3Message
 
 from custom_components.dmp import DMPListener
 from custom_components.dmp.const import (
-    CONF_HOME_AREA,
     CONF_AWAY_AREA,
+    CONF_HOME_AREA,
     CONF_PANEL_LISTEN_PORT,
 )
-from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 
 
 @pytest.fixture
@@ -195,7 +195,7 @@ async def test_handle_s3_event_restore():
 async def test_handle_s3_event_alarm():
     """Handle alarm event sets alarm flag and area to TRIGGERED."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel, mock_zone = _make_panel_with_zone()
+    panel, _mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -219,7 +219,7 @@ async def test_handle_s3_event_alarm():
 async def test_handle_s3_event_arming_disarm():
     """Handle arming status disarm event."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel, mock_zone = _make_panel_with_zone()
+    panel, _mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
     listener._hass.async_create_task = Mock()
@@ -244,7 +244,7 @@ async def test_handle_s3_event_arming_disarm():
 async def test_handle_s3_event_arming_arm_home():
     """Handle arming status CL event for home area."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel, mock_zone = _make_panel_with_zone()
+    panel, _mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -266,7 +266,7 @@ async def test_handle_s3_event_arming_arm_home():
 async def test_handle_s3_event_arming_arm_away():
     """Handle arming status CL event for away area."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel, mock_zone = _make_panel_with_zone()
+    panel, _mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -288,7 +288,7 @@ async def test_handle_s3_event_arming_arm_away():
 async def test_handle_s3_event_arming_unknown_type_code():
     """Unknown arming type codes should not change area state."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-    panel, mock_zone = _make_panel_with_zone()
+    panel, _mock_zone = _make_panel_with_zone()
     listener._panels = {"12345": panel}
     listener.updateHASS = AsyncMock()
 
@@ -331,7 +331,7 @@ async def test_handle_s3_event_ignored_events():
     """Ignored events (Zs, Zj, Zl) should not update zones."""
     for event_code in ["Zs", "Zj", "Zl"]:
         listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
-        panel, mock_zone = _make_panel_with_zone()
+        panel, _mock_zone = _make_panel_with_zone()
         listener._panels = {"12345": panel}
         listener.updateHASS = AsyncMock()
 
