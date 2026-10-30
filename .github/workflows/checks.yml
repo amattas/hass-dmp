@@ -43,7 +43,6 @@ jobs:
       typecheck: ""
       build: false
       audit: "off"
-      codeql: false # CodeQL default setup is configured on the repository
 
   hacs:
     needs: approve
