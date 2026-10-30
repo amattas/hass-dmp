@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Configuation Constants
 DOMAIN = "dmp"
 LISTENER = "dmp_listener"

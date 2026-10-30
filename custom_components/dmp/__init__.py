@@ -1,5 +1,7 @@
 """The DMP Integration Component"""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -214,7 +216,7 @@ class DMPPanel:
     def ensure_zone(self, zone_num: str | int) -> Zone | None:
         try:
             zone_int = int(zone_num)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             _LOGGER.error("Invalid zone number: %s", zone_num)
             return None
         if self._pydmp_panel is not None:
@@ -229,7 +231,7 @@ class DMPPanel:
     async def _zone_command(self, zone_num: str | int, command: str) -> None:
         try:
             zone_int = int(zone_num)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             _LOGGER.error("Invalid zone number for %s command: %s", command, zone_num)
             return
         if self._pydmp_panel is None:

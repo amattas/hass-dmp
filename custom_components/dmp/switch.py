@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.components.switch.const import SwitchDeviceClass
+from homeassistant.components.switch import (  # type: ignore[attr-defined]  # HA 2024.11 has no SwitchDeviceClass in switch.const
+    SwitchDeviceClass,
+    SwitchEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo

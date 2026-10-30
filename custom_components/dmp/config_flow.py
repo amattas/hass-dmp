@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import logging
 from copy import deepcopy
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import probatio
+
+# Home Assistant 2026.10 aliases voluptuous to probatio at runtime but types
+# data_schema as probatio.Schema; voluptuous keeps HA 2024.11 (hacs.json) working,
+# hence the arg-type ignores on data_schema below.
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -76,35 +82,35 @@ SENSOR_TYPES = selector(
 )
 
 
-PANEL_SCHEMA = probatio.Schema(
+PANEL_SCHEMA = vol.Schema(
     {
-        probatio.Required(CONF_PANEL_NAME, default="DMP XR150"): cv.string,
-        probatio.Required(CONF_PANEL_IP, default="192.168.1.2"): cv.string,
-        probatio.Optional(CONF_PANEL_REMOTE_PORT, default=8011): cv.port,
-        probatio.Optional(CONF_PANEL_LISTEN_PORT, default=8001): cv.port,
-        probatio.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
-        probatio.Optional(CONF_PANEL_REMOTE_KEY): cv.string,
+        vol.Required(CONF_PANEL_NAME, default="DMP XR150"): cv.string,
+        vol.Required(CONF_PANEL_IP, default="192.168.1.2"): cv.string,
+        vol.Optional(CONF_PANEL_REMOTE_PORT, default=8011): cv.port,
+        vol.Optional(CONF_PANEL_LISTEN_PORT, default=8001): cv.port,
+        vol.Required(CONF_PANEL_ACCOUNT_NUMBER): cv.string,
+        vol.Optional(CONF_PANEL_REMOTE_KEY): cv.string,
     }
 )
 
 
-AREA_SCHEMA = probatio.Schema(
+AREA_SCHEMA = vol.Schema(
     {
-        probatio.Optional(CONF_HOME_AREA, default="01"): cv.string,
-        probatio.Optional(CONF_AWAY_AREA, default="02"): cv.string,
+        vol.Optional(CONF_HOME_AREA, default="01"): cv.string,
+        vol.Optional(CONF_AWAY_AREA, default="02"): cv.string,
     },
-    extra=probatio.ALLOW_EXTRA,
+    extra=vol.ALLOW_EXTRA,
 )
 
 
-ZONE_SCHEMA = probatio.Schema(
+ZONE_SCHEMA = vol.Schema(
     {
-        probatio.Required(CONF_ZONE_NAME): cv.string,
-        probatio.Required(CONF_ZONE_NUMBER): cv.string,
-        probatio.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
-        probatio.Optional(CONF_ADD_ANOTHER): cv.boolean,
+        vol.Required(CONF_ZONE_NAME): cv.string,
+        vol.Required(CONF_ZONE_NUMBER): cv.string,
+        vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
+        vol.Optional(CONF_ADD_ANOTHER): cv.boolean,
     },
-    extra=probatio.ALLOW_EXTRA,
+    extra=vol.ALLOW_EXTRA,
 )
 
 
@@ -127,7 +133,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data[CONF_ZONES] = []
             return await self.async_step_areas()
         return self.async_show_form(
-            step_id="user", data_schema=PANEL_SCHEMA, errors=errors
+            step_id="user",
+            data_schema=PANEL_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
     async def async_step_areas(
@@ -141,7 +149,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_AWAY_AREA] = "invalid_area_number"
             if errors:
                 return self.async_show_form(
-                    step_id="areas", data_schema=AREA_SCHEMA, errors=errors
+                    step_id="areas",
+                    data_schema=AREA_SCHEMA,  # type: ignore[arg-type]
+                    errors=errors,
                 )
 
             self.data[CONF_HOME_AREA] = user_input[CONF_HOME_AREA]
@@ -150,7 +160,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_areas()
             return await self.async_step_zones()
         return self.async_show_form(
-            step_id="areas", data_schema=AREA_SCHEMA, errors=errors
+            step_id="areas",
+            data_schema=AREA_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
     async def async_step_zones(
@@ -162,7 +174,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_ZONE_NUMBER] = "invalid_zone_number"
             if errors:
                 return self.async_show_form(
-                    step_id="zones", data_schema=ZONE_SCHEMA, errors=errors
+                    step_id="zones",
+                    data_schema=ZONE_SCHEMA,  # type: ignore[arg-type]
+                    errors=errors,
                 )
 
             self.data[CONF_ZONES].append(user_input)
@@ -172,7 +186,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=self.data[CONF_PANEL_NAME], data=self.data
             )
         return self.async_show_form(
-            step_id="zones", data_schema=ZONE_SCHEMA, errors=errors
+            step_id="zones",
+            data_schema=ZONE_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
     @staticmethod
@@ -235,16 +251,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     data={CONF_ZONES: updated_zones},
                 )
 
-        options_schema = probatio.Schema(
+        options_schema = vol.Schema(
             {
-                probatio.Optional(
+                vol.Optional(
                     CONF_ZONES, default=list(zones_dict.keys())
                 ): cv.multi_select(zones_dict),
-                probatio.Optional(CONF_ZONE_NAME): cv.string,
-                probatio.Optional(CONF_ZONE_NUMBER): cv.string,
-                probatio.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
+                vol.Optional(CONF_ZONE_NAME): cv.string,
+                vol.Optional(CONF_ZONE_NUMBER): cv.string,
+                vol.Optional(CONF_ZONE_CLASS, default="default"): SENSOR_TYPES,
             }
         )
         return self.async_show_form(
-            step_id="init", data_schema=options_schema, errors=errors
+            step_id="init",
+            data_schema=options_schema,  # type: ignore[arg-type]
+            errors=errors,
         )

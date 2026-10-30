@@ -1,10 +1,14 @@
 """Platform for DMP Alarm Panel integration"""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
+from homeassistant.components.binary_sensor import (  # type: ignore[attr-defined]  # HA 2024.11 has no binary_sensor.const
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
