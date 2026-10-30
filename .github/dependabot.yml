@@ -1,10 +1,25 @@
+# Standard Dependabot config (mattas-net security standard): monthly, 7-day cooldown,
+# one grouped PR per ecosystem. Security updates are separate and stay immediate.
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: pip
-    directory: /
-    schedule:
-      interval: weekly
+- package-ecosystem: pip
+  directory: /
+  schedule:
+    interval: monthly
+  cooldown:
+    default-days: 7
+  groups:
+    pip:
+      patterns:
+      - '*'
+
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: monthly
+  cooldown:
+    default-days: 7
+  groups:
+    github-actions:
+      patterns:
+      - '*'
