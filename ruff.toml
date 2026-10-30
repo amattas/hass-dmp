@@ -1,0 +1,3 @@
+# Ruff is the linter and formatter (Home Assistant core's toolset).
+# 88 is the line length black used here (its default).
+line-length = 88

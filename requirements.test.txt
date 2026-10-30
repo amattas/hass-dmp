@@ -4,5 +4,5 @@ pydmp==1.1.0
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
-ruff
+ruff==0.17.2
 voluptuous-serialize

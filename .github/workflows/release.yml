@@ -11,16 +11,19 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   release:
-    uses: amattas/.github/.github/workflows/create-release.yml@main
+    uses: mattas-net/.github/.github/workflows/create-release.yml@main
     permissions:
       contents: write
       actions: read
     with:
       version: ${{ inputs.version }}
       manifest: custom_components/dmp/manifest.json
-      require-workflow: CI
+      require-workflow: Checks
   docs:
     needs: release
     uses: ./.github/workflows/docs.yml

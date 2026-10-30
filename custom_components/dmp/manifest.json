@@ -7,6 +7,7 @@
   "documentation": "https://amattas.github.io/hass-dmp/",
   "integration_type": "hub",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/amattas/hass-dmp/issues",
   "requirements": ["pydmp==1.0.1"],
   "version": "1.0.1"
 }
