@@ -46,9 +46,7 @@ def test_select_documented_releases_skips_tags_without_docs(monkeypatch):
         "scripts.docs_versioning._git_path_exists",
         lambda tag, path: tag == "1.0.1" and path == "website/docs/index.md",
     )
-    releases = select_documented_releases(
-        ["v0.4.0", "v0.5.5", "1.0.1"]
-    )
+    releases = select_documented_releases(["v0.4.0", "v0.5.5", "1.0.1"])
     assert [r.tag for r in releases] == ["1.0.1"]
 
 

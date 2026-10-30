@@ -112,9 +112,7 @@ async def test_form_areas_invalid_numbers(hass: HomeAssistant):
     flow.hass = hass
     flow.data = {"existing": "data", CONF_ZONES: []}
 
-    result = await flow.async_step_areas(
-        {CONF_HOME_AREA: "home", CONF_AWAY_AREA: "02"}
-    )
+    result = await flow.async_step_areas({CONF_HOME_AREA: "home", CONF_AWAY_AREA: "02"})
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "areas"

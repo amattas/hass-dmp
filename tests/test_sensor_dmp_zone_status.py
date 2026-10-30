@@ -237,12 +237,15 @@ class TestDMPZoneStatus:
         mock_device.id = "device_id"
         mock_device.identifiers = {(DOMAIN, "dmp-12345-zone-001")}
         mock_entity_devices = [mock_device]
-        with patch(
-            "custom_components.dmp.sensor.dr.async_get",
-            return_value=mock_device_registry,
-        ), patch(
-            "custom_components.dmp.sensor.dr.async_entries_for_config_entry",
-            return_value=mock_entity_devices,
+        with (
+            patch(
+                "custom_components.dmp.sensor.dr.async_get",
+                return_value=mock_device_registry,
+            ),
+            patch(
+                "custom_components.dmp.sensor.dr.async_entries_for_config_entry",
+                return_value=mock_entity_devices,
+            ),
         ):
             sensor._device_info = {"identifiers": {(DOMAIN, "dmp-12345-zone-001")}}
             await sensor.async_will_remove_from_hass()

@@ -1,4 +1,5 @@
 """Test DMPRefreshStatusButton entity and async_setup_entry."""
+
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -14,18 +15,17 @@ from custom_components.dmp.const import (
 
 pytestmark = pytest.mark.usefixtures("init_integration")
 
+
 @pytest.fixture
 def mock_config_entry():
     """Return a mock config entry for button tests."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={
-            CONF_PANEL_NAME: "Test Panel",
-            CONF_PANEL_ACCOUNT_NUMBER: "12345"
-        },
-        entry_id="test_entry_id"
+        data={CONF_PANEL_NAME: "Test Panel", CONF_PANEL_ACCOUNT_NUMBER: "12345"},
+        entry_id="test_entry_id",
     )
     return entry
+
 
 @pytest.fixture
 def mock_listener():
@@ -37,11 +37,12 @@ def mock_listener():
     listener.getStatusAttributes = Mock(return_value={"foo": "bar"})
     return listener
 
+
 @pytest.mark.asyncio
 async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Ensure async_setup_entry registers a refresh button entity."""
     entities = []
-    
+
     def async_add(new_entities, update_before_add=False):
         """Async callback to append new entities to list."""
         entities.extend(new_entities)
@@ -49,6 +50,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_li
     await async_setup_entry(hass, mock_config_entry, async_add)
     assert len(entities) == 1
     assert isinstance(entities[0], DMPRefreshStatusButton)
+
 
 def test_button_properties(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Verify DMPRefreshStatusButton exposes expected properties."""
@@ -61,8 +63,11 @@ def test_button_properties(hass: HomeAssistant, mock_config_entry, mock_listener
     assert device_info["name"] == "Test Panel"
     assert btn.extra_state_attributes == {"foo": "bar"}
 
+
 @pytest.mark.asyncio
-async def test_async_press_and_callbacks(hass: HomeAssistant, mock_config_entry, mock_listener):
+async def test_async_press_and_callbacks(
+    hass: HomeAssistant, mock_config_entry, mock_listener
+):
     """Test button press triggers update and manages callbacks."""
 
     btn = DMPRefreshStatusButton(hass, mock_config_entry)
@@ -75,11 +80,13 @@ async def test_async_press_and_callbacks(hass: HomeAssistant, mock_config_entry,
     await btn.async_press()
     mock_listener.updateStatus.assert_awaited_once()
 
+
 @pytest.mark.asyncio
-async def test_process_zone_callback(hass: HomeAssistant, mock_config_entry, mock_listener):
+async def test_process_zone_callback(
+    hass: HomeAssistant, mock_config_entry, mock_listener
+):
     """Confirm process_zone_callback writes state."""
     btn = DMPRefreshStatusButton(hass, mock_config_entry)
     btn.async_write_ha_state = Mock()
     await btn.process_zone_callback()
     btn.async_write_ha_state.assert_called_once()
-

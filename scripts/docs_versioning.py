@@ -111,11 +111,7 @@ def _git_files(tag: str, prefix: str) -> list[str]:
         check=True,
         stdout=subprocess.PIPE,
     )
-    return [
-        item.decode("utf-8")
-        for item in result.stdout.split(b"\0")
-        if item
-    ]
+    return [item.decode("utf-8") for item in result.stdout.split(b"\0") if item]
 
 
 def _git_file(tag: str, path: str) -> bytes:
@@ -168,9 +164,7 @@ def _legacy_index(release: ReleaseVersion, files: Sequence[Path]) -> str:
     is replaced by this generated page rather than exported as-is.
     """
     pages = sorted(
-        path
-        for path in files
-        if path.suffix == ".md" and path != Path("index.md")
+        path for path in files if path.suffix == ".md" and path != Path("index.md")
     )
     links = [f"- [{_display_name(path)}]({path.as_posix()})" for path in pages]
 

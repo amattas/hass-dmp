@@ -7,12 +7,18 @@ from .const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_NAME, DOMAIN, LISTENER
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, config_entry, async_add_entities,):
+
+async def async_setup_entry(
+    hass,
+    config_entry,
+    async_add_entities,
+):
     _LOGGER.info("Setting up alarm refresh button")
     hass.data.setdefault(DOMAIN, {})
     refreshButtons = []
     refreshButtons.append(DMPRefreshStatusButton(hass, config_entry))
     async_add_entities(refreshButtons, update_before_add=False)
+
 
 class DMPRefreshStatusButton(ButtonEntity):
     def __init__(self, hass, config_entry):
@@ -50,11 +56,9 @@ class DMPRefreshStatusButton(ButtonEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, f"dmp-{self._accountNum}-panel")
-            },
+            identifiers={(DOMAIN, f"dmp-{self._accountNum}-panel")},
             name=self._panel_name,
-            manufacturer='Digital Monitoring Products',
+            manufacturer="Digital Monitoring Products",
         )
 
     @property
