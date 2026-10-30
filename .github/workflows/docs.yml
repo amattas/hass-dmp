@@ -1,48 +1,28 @@
-# Docs — build every documented release with Zensical and publish the
-# versioned site (mike) to the gh-pages branch.
-# One-time: repo Settings → Pages → Source: Deploy from a branch → gh-pages.
 name: Docs
 
+# Docs: build every documented version with Zensical and publish the versioned site (mike) to the
+# gh-pages branch with the shared mattas-net/.github docs.yml (scripts/publish_versioned_docs.py):
+#   dev = main, X.Y = newest patch tag of each documented minor line, latest = highest stable release.
+# Public repos serve gh-pages with Pages; private repos build gh-pages and keep Pages disabled.
+# Triggers: push to main, manual dispatch, and workflow_call (release.yml calls it after tagging).
 on:
   push:
     branches: [main]
-    tags:
-      - '*.*.*'
-      - 'v*.*.*'
-    paths:
-      - 'docs/**'
-      - 'scripts/docs_versioning.py'
-      - 'scripts/publish_versioned_docs.py'
-      - 'zensical.toml'
-      - 'requirements-docs.txt'
-      - '.github/workflows/docs.yml'
   workflow_dispatch:
   workflow_call:
+    inputs:
+      version:
+        description: Release version that triggered the publish (informational)
+        type: string
+        default: ""
 
 permissions:
-  contents: write
-
-concurrency:
-  group: docs-gh-pages
-  cancel-in-progress: false
+  contents: read
 
 jobs:
   docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-          ref: main
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version: "3.13"
-      - name: Install documentation tools
-        run: |
-          python -m pip install --disable-pip-version-check -r requirements-docs.txt
-      - name: Configure Git author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Publish
-        run: python scripts/publish_versioned_docs.py --push
+    uses: mattas-net/.github/.github/workflows/docs.yml@main
+    permissions:
+      contents: write # the publish script pushes the gh-pages branch
+    with:
+      version: ${{ inputs.version }}

@@ -1,3 +1,8 @@
+# Zensical configuration — https://zensical.org/docs/setup/basics/
+# Docs versioning is handled by the Zensical fork of mike via
+# scripts/publish_versioned_docs.py: versions live on the gh-pages branch,
+# "dev" is main, and "latest" (the default) aliases the highest stable release.
+
 [project]
 site_name = "DMP for Home Assistant"
 site_description = "DMP alarm panel integration for Home Assistant."

@@ -106,11 +106,11 @@ class TestDMPZoneStatus:
     def test_native_value_property(
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel
     ):
-        """Test native_value returns None."""
+        """Test native_value is the zone status (the entity state)."""
         _listener, _panel = mock_listener_panel
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
-        assert sensor.native_value is None
+        assert sensor.native_value == "Ready"
 
     def test_device_name_property(
         self, hass: HomeAssistant, mock_config_entry, mock_listener_panel

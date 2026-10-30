@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.alarm_control_panel import DMPArea, async_setup_entry
@@ -96,6 +97,18 @@ async def test_alarm_disarm(mock_config_entry, mock_listener_panel):
     area = DMPArea(listener, mock_config_entry.data)
     await area.async_alarm_disarm()
     panel._pydmp_panel.disarm_areas.assert_awaited_once_with([1, 2, 3])
+
+
+@pytest.mark.asyncio
+async def test_alarm_command_without_panel_connection(
+    mock_config_entry, mock_listener_panel
+):
+    """Arming commands raise a Home Assistant error when the panel is not connected."""
+    listener, panel = mock_listener_panel
+    panel._pydmp_panel = None
+    area = DMPArea(listener, mock_config_entry.data)
+    with pytest.raises(HomeAssistantError, match="not connected"):
+        await area.async_alarm_disarm()
 
 
 @pytest.mark.asyncio
