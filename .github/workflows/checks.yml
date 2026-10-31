@@ -3,8 +3,7 @@
 # a reviewer approves it in the `approval` environment. The Release workflow
 # requires a successful run of this workflow on main HEAD.
 #
-# Required checks (default-branch ruleset): "python / checks (3.14)",
-# "python / security", "hacs / hassfest" and "hacs / hacs".
+# Required checks (default-branch ruleset): "checks" and "security". See mattas-net/.github STANDARD.md.
 name: Checks
 
 on:
@@ -26,6 +25,7 @@ jobs:
   approve:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     environment: approval
     steps:
       - run: echo "Checks approved by ${GITHUB_TRIGGERING_ACTOR}"
@@ -47,3 +47,29 @@ jobs:
     uses: mattas-net/.github/.github/workflows/hacs-ci.yml@main
     permissions:
       contents: read
+
+  # Aliases: rulesets require exactly "checks" and "security" (STANDARD.md). The `if: always()`
+  # matters: a skipped required check counts as passing, so always run and assert.
+  checks:
+    needs: [python, hacs]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the shared checks jobs
+        env:
+          PYTHON_RESULT: ${{ needs.python.outputs.checks-result }}
+          HACS_RESULT: ${{ needs.hacs.outputs.checks-result }}
+        run: test "$PYTHON_RESULT" = success && test "$HACS_RESULT" = success
+
+  security:
+    needs: [python, hacs]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the shared security jobs
+        env:
+          PYTHON_RESULT: ${{ needs.python.outputs.security-result }}
+          HACS_RESULT: ${{ needs.hacs.outputs.security-result }}
+        run: test "$PYTHON_RESULT" = success && test "$HACS_RESULT" = success
