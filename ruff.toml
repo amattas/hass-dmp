@@ -1,3 +1,4 @@
 # Ruff is the linter and formatter (Home Assistant core's toolset).
 # 88 is the line length black used here (its default).
 line-length = 88
+target-version = "py312" # Python of the oldest supported Home Assistant (hacs.json 2024.11.0)

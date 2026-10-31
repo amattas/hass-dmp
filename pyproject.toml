@@ -1,0 +1,53 @@
+# Development tooling only. Home Assistant and HACS install the integration from
+# custom_components/dmp (manifest.json carries its version and runtime requirements),
+# so this project packages no modules: `python -m pip install -e ".[dev]"` installs
+# the test, lint and type-check tools that CI (mattas-net/.github python-ci.yml) runs.
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hass-dmp"
+version = "0.0.0"
+description = "Development tooling for the DMP Home Assistant integration."
+requires-python = ">=3.14.2"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "bandit",
+    "homeassistant",
+    "mypy==2.4.1",
+    "pydmp==1.1.0",
+    "pytest",
+    "pytest-cov",
+    "pytest-homeassistant-custom-component",
+    "ruff==0.17.2",
+    "voluptuous-serialize",
+]
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov=custom_components.dmp --cov-report=term-missing:skip-covered"
+
+[tool.coverage.report]
+fail_under = 98
+
+[tool.mypy]
+python_version = "3.14"
+files = ["custom_components/dmp"]
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# pydmp is fully annotated but ships no py.typed marker.
+module = ["pydmp", "pydmp.*"]
+follow_untyped_imports = true

@@ -28,7 +28,10 @@ def test_panel_initialization_with_defaults():
     assert panel._accountNumber == "12345"
     assert panel._ipAddress == "192.168.1.100"
     assert panel._panel_last_contact is None
-    assert panel._area == AlarmControlPanelState.DISARMED
+    assert panel.getArea() == {
+        "areaName": "",
+        "areaState": AlarmControlPanelState.DISARMED,
+    }
 
 
 def test_panel_initialization_with_all_fields():
@@ -124,6 +127,15 @@ def test_panel_ensure_zone_no_pydmp():
     panel = _make_panel()
     zone = panel.ensure_zone("001")
     assert zone is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", ["bypass_zone", "restore_zone"])
+async def test_zone_command_without_panel_connection(command, caplog):
+    """Zone commands log an error instead of failing when there is no pyDMP panel."""
+    panel = _make_panel()
+    await getattr(panel, command)("001")
+    assert "No panel connection" in caplog.text
 
 
 @pytest.mark.asyncio

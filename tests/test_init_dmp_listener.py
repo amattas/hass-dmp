@@ -463,6 +463,20 @@ async def test_listener_updateStatus():
 
 
 @pytest.mark.asyncio
+async def test_listener_updateStatus_without_panel_connection(caplog):
+    """updateStatus logs an error and leaves attributes alone without a pyDMP panel."""
+    listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})
+    listener._panels = {"12345": Mock()}
+    listener.updateHASS = AsyncMock()
+
+    await listener.updateStatus()
+
+    assert "No panel connection" in caplog.text
+    assert listener.getStatusAttributes() == {}
+    listener.updateHASS.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_handle_s3_event_held_open_and_forced_open():
     """Handle HO (held open) and FO (forced open) device status events."""
     listener = DMPListener(Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"})

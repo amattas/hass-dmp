@@ -1,5 +1,5 @@
 # Release: bump "version" in custom_components/dmp/manifest.json, merge to main,
-# then Actions -> Release -> enter that version (bare semver, e.g. 1.0.1).
+# then Actions -> Release -> enter that version (bare semver, e.g. 1.4.2).
 # Tags main, creates the GitHub release (HACS installs from releases), then publishes docs.
 name: Release
 
@@ -24,8 +24,11 @@ jobs:
       version: ${{ inputs.version }}
       manifest: custom_components/dmp/manifest.json
       require-workflow: Checks
+
   docs:
     needs: release
-    uses: ./.github/workflows/docs.yml
     permissions:
-      contents: write
+      contents: write # docs.yml: the publish script pushes the gh-pages branch
+    uses: ./.github/workflows/docs.yml
+    with:
+      version: ${{ inputs.version }}

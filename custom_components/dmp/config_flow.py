@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 import logging
 from copy import deepcopy
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
+
+# Home Assistant 2026.10 aliases voluptuous to probatio at runtime but types
+# data_schema as probatio.Schema; voluptuous keeps HA 2024.11 (hacs.json) working,
+# hence the arg-type ignores on data_schema below.
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.helpers.selector import selector
 
@@ -115,19 +122,25 @@ def _is_numeric(value: Any) -> bool:
 class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """DMP Custom config flow."""
 
-    data: dict[str, Any] | None
+    data: dict[str, Any]
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None):
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             self.data = user_input
             self.data[CONF_ZONES] = []
             return await self.async_step_areas()
         return self.async_show_form(
-            step_id="user", data_schema=PANEL_SCHEMA, errors=errors
+            step_id="user",
+            data_schema=PANEL_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
-    async def async_step_areas(self, user_input: dict[str, Any] | None = None):
+    async def async_step_areas(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             if not _is_numeric(user_input[CONF_HOME_AREA]):
@@ -136,7 +149,9 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_AWAY_AREA] = "invalid_area_number"
             if errors:
                 return self.async_show_form(
-                    step_id="areas", data_schema=AREA_SCHEMA, errors=errors
+                    step_id="areas",
+                    data_schema=AREA_SCHEMA,  # type: ignore[arg-type]
+                    errors=errors,
                 )
 
             self.data[CONF_HOME_AREA] = user_input[CONF_HOME_AREA]
@@ -145,17 +160,23 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_areas()
             return await self.async_step_zones()
         return self.async_show_form(
-            step_id="areas", data_schema=AREA_SCHEMA, errors=errors
+            step_id="areas",
+            data_schema=AREA_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
-    async def async_step_zones(self, user_input: dict[str, Any] | None = None):
+    async def async_step_zones(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             if not _is_numeric(user_input[CONF_ZONE_NUMBER]):
                 errors[CONF_ZONE_NUMBER] = "invalid_zone_number"
             if errors:
                 return self.async_show_form(
-                    step_id="zones", data_schema=ZONE_SCHEMA, errors=errors
+                    step_id="zones",
+                    data_schema=ZONE_SCHEMA,  # type: ignore[arg-type]
+                    errors=errors,
                 )
 
             self.data[CONF_ZONES].append(user_input)
@@ -165,12 +186,16 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=self.data[CONF_PANEL_NAME], data=self.data
             )
         return self.async_show_form(
-            step_id="zones", data_schema=ZONE_SCHEMA, errors=errors
+            step_id="zones",
+            data_schema=ZONE_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
         )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
         return OptionsFlowHandler()
 
@@ -180,7 +205,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    ) -> ConfigFlowResult:
         """Manage the options for the custom component."""
         errors: dict[str, str] = {}
         # Get a list of zones for the UI since each zone has multiple
@@ -237,5 +262,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             }
         )
         return self.async_show_form(
-            step_id="init", data_schema=options_schema, errors=errors
+            step_id="init",
+            data_schema=options_schema,  # type: ignore[arg-type]
+            errors=errors,
         )

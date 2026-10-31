@@ -123,3 +123,6 @@ $RECYCLE.BIN/
 # Zensical build output
 /site/
 /scripts/__pycache__
+
+# Editable install metadata (pip install -e ".[dev]")
+*.egg-info/

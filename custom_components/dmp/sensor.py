@@ -1,12 +1,18 @@
 """Platform for DMP Alarm Panel integration"""
 
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import ZONE_STATE_TO_STATUS
+from . import ZONE_STATE_TO_STATUS, DMPListener
 from .const import (
     CONF_PANEL_ACCOUNT_NUMBER,
     CONF_ZONE_CLASS,
@@ -21,10 +27,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass,
-    config_entry,
-    async_add_entities,
-):
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Setup sensors from a config entry created in the integrations UI."""
     _LOGGER.debug("Setting up sensors.")
     hass.data.setdefault(DOMAIN, {})
@@ -38,34 +44,39 @@ async def async_setup_entry(
 
 
 class DMPZoneStatus(SensorEntity):
-    def __init__(self, hass, config_entry, entity_config):
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        entity_config: dict[str, Any],
+    ) -> None:
         self._hass = hass
         self._config_entry = config_entry
         config = hass.data[DOMAIN][config_entry.entry_id]
         _LOGGER.debug(f"Config is: {entity_config}")
-        self._accountNum = config.get(CONF_PANEL_ACCOUNT_NUMBER)
-        self._listener = self._hass.data[DOMAIN][LISTENER]
+        self._accountNum: str | None = config.get(CONF_PANEL_ACCOUNT_NUMBER)
+        self._listener: DMPListener = self._hass.data[DOMAIN][LISTENER]
         self._name = f"{entity_config.get(CONF_ZONE_NAME)} Status"
-        self._device_name = entity_config.get(CONF_ZONE_NAME)
-        self._number = entity_config.get(CONF_ZONE_NUMBER)
+        self._device_name: str | None = entity_config.get(CONF_ZONE_NAME)
+        self._number: str = entity_config.get(CONF_ZONE_NUMBER, "")
         self._panel = self._listener.getPanels()[str(self._accountNum)]
-        self._number = entity_config.get(CONF_ZONE_NUMBER)
-        if "door" in entity_config.get(CONF_ZONE_CLASS):
+        zone_class: str = entity_config.get(CONF_ZONE_CLASS) or ""
+        if "door" in zone_class:
             self._device_class = "door"
-        elif "window" in entity_config.get(CONF_ZONE_CLASS):
+        elif "window" in zone_class:
             self._device_class = "window"
-        elif "motion" in entity_config.get(CONF_ZONE_CLASS):
+        elif "motion" in zone_class:
             self._device_class = "motion"
         else:
             self._device_class = "default"
         self._zone = self._panel.ensure_zone(self._number)
         self._state = "Ready"
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         _LOGGER.debug("Registering DMPZoneStatus Callback")
         self._listener.register_callback(self.process_zone_callback)
 
-    async def async_will_remove_from_hass(self):
+    async def async_will_remove_from_hass(self) -> None:
         _LOGGER.debug("Removing DMPZoneStatus Callback")
         self._listener.remove_callback(self.process_zone_callback)
         # Removing linked device, since all zones have a status sensor this
@@ -82,7 +93,7 @@ class DMPZoneStatus(SensorEntity):
         # for i in device_identifiers:
         # item = device_registry.async_get_device(i)
 
-    async def process_zone_callback(self):
+    async def process_zone_callback(self) -> None:
         if self._panel.get_alarm(self._number):
             self._state = "Alarm"
         else:
@@ -91,39 +102,34 @@ class DMPZoneStatus(SensorEntity):
         self.async_write_ha_state()
 
     @property
-    def device_name(self):
+    def device_name(self) -> str | None:
         """Return the name of the device."""
         return self._device_name
 
     @property
-    def native_value(self):
-        """Return the native value of the device"""
-        return None
+    def native_value(self) -> str:
+        """Return the zone status (Ready, Open, Alarm, ...)."""
+        return self._state
 
     @property
-    def name(self):
+    def name(self) -> str | None:
         """Return the name of the device."""
         return self._name
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """Return the polling state."""
         return False
 
     @property
-    def state(self):
-        """Return the state of the device."""
-        return self._state
-
-    @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
             "last_contact": self._panel.getContactTime(),
         }
 
     @property
-    def icon(self):
+    def icon(self) -> str | None:
         """Icon to show for status"""
         state = self.state
         device_class = self._device_class
@@ -140,9 +146,10 @@ class DMPZoneStatus(SensorEntity):
                 return "mdi:door-open"
         elif state == "Ready":
             return "mdi:check"
+        return None
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return unique ID"""
         return f"dmp-{self._accountNum}-zone-{self._number}-status"
 
@@ -153,5 +160,6 @@ class DMPZoneStatus(SensorEntity):
             identifiers={(DOMAIN, f"dmp-{self._accountNum}-zone-{self._number}")},
             name=self.device_name,
             manufacturer="Digital Monitoring Products",
-            via_device=(DOMAIN, f"dmp-{self._accountNum}-panel"),
+            # HA 2026.8 deprecated via_device for via_device_id (removal in 2027.8)
+            via_device=(DOMAIN, f"dmp-{self._accountNum}-panel"),  # type: ignore[typeddict-unknown-key]
         )

@@ -1,13 +1,19 @@
 """The DMP Integration Component"""
 
-import logging
-from datetime import UTC, datetime
+from __future__ import annotations
 
-from homeassistant.components.alarm_control_panel import AlarmControlPanelState
+import logging
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
+from typing import Any, TypedDict
+
+from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pydmp import DMPPanel as PyDMPPanel
-from pydmp import DMPStatusServer, Zone, parse_s3_message
+from pydmp import DMPStatusServer, S3Message, Zone, parse_s3_message
 from pydmp.const.events import DMPEventType
 
 from .const import (
@@ -62,8 +68,17 @@ AREA_STATUS_MAP = {
     "D": "Disarmed",
 }
 
+UpdateCallback = Callable[[], Awaitable[None]]
 
-async def async_setup_entry(hass, entry) -> bool:
+
+class AreaStatus(TypedDict):
+    """Last known arming state of the panel's area."""
+
+    areaName: str
+    areaState: AlarmControlPanelState
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
@@ -74,14 +89,14 @@ async def async_setup_entry(hass, entry) -> bool:
     # Create pyDMP panel and connect
     panel_port = config.get(CONF_PANEL_REMOTE_PORT) or 2001
     pydmp_panel = PyDMPPanel(port=panel_port)
-    ip = config.get(CONF_PANEL_IP)
-    account = config.get(CONF_PANEL_ACCOUNT_NUMBER)
+    ip: str = config[CONF_PANEL_IP]
+    account: str = config[CONF_PANEL_ACCOUNT_NUMBER]
     remote_key = config.get(CONF_PANEL_REMOTE_KEY) or "                "
     await pydmp_panel.connect(ip, account, remote_key)
     await pydmp_panel.start_keepalive()
 
     # Create status server for realtime events
-    listen_port = config.get(CONF_PANEL_LISTEN_PORT)
+    listen_port: int = config[CONF_PANEL_LISTEN_PORT]
     status_server = DMPStatusServer("0.0.0.0", listen_port)
 
     # Create HA state container
@@ -107,7 +122,7 @@ async def async_setup_entry(hass, entry) -> bool:
     return True
 
 
-async def async_unload_entry(hass, entry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Unloading entry.")
     status_server = hass.data[DOMAIN][STATUS_SERVER]
     pydmp_panel = hass.data[DOMAIN][PYDMP_PANEL]
@@ -119,13 +134,13 @@ async def async_unload_entry(hass, entry):
     await pydmp_panel.stop_keepalive()
     await pydmp_panel.disconnect()
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
 
 
-async def options_update_listener(hass, entry):
+async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     _LOGGER.debug("Options flow completed.")
     entity_registry = er.async_get(hass)
     config = dict(entry.data)
@@ -157,40 +172,48 @@ async def options_update_listener(hass, entry):
 
 
 class DMPPanel:
-    def __init__(self, hass, config, pydmp_panel=None):
-        self._accountNumber = config.get(CONF_PANEL_ACCOUNT_NUMBER)
-        self._ipAddress = config.get(CONF_PANEL_IP)
-        self._panel_last_contact = None
-        self._area = AlarmControlPanelState.DISARMED  # Default Value
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config: dict[str, Any],
+        pydmp_panel: PyDMPPanel | None = None,
+    ) -> None:
+        self._accountNumber: str = config.get(CONF_PANEL_ACCOUNT_NUMBER, "")
+        self._ipAddress: str | None = config.get(CONF_PANEL_IP)
+        self._panel_last_contact: datetime | None = None
+        self._area: AreaStatus = {
+            "areaName": "",
+            "areaState": AlarmControlPanelState.DISARMED,  # Default Value
+        }
         self._pydmp_panel = pydmp_panel
-        self._alarm_zones = {}
+        self._alarm_zones: dict[str | None, bool] = {}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"DMP Panel with account number {self._accountNumber} at addr {self._ipAddress}"
 
-    def updateContactTime(self, contactTime):
+    def updateContactTime(self, contactTime: datetime) -> None:
         self._panel_last_contact = contactTime
 
-    def getContactTime(self):
+    def getContactTime(self) -> datetime | None:
         return self._panel_last_contact
 
-    def updateArea(self, eventObj):
+    def updateArea(self, eventObj: AreaStatus) -> None:
         self._area = eventObj
         _LOGGER.debug("Area has been updated to %s", eventObj["areaState"])
 
-    def getArea(self):
+    def getArea(self) -> AreaStatus:
         return self._area
 
-    def set_alarm(self, zone_number):
+    def set_alarm(self, zone_number: str | None) -> None:
         self._alarm_zones[zone_number] = True
 
-    def clear_alarm(self, zone_number):
+    def clear_alarm(self, zone_number: str | None) -> None:
         self._alarm_zones[zone_number] = False
 
-    def get_alarm(self, zone_number):
+    def get_alarm(self, zone_number: str) -> bool:
         return self._alarm_zones.get(zone_number, False)
 
-    def ensure_zone(self, zone_num):
+    def ensure_zone(self, zone_num: str | int) -> Zone | None:
         try:
             zone_int = int(zone_num)
         except (ValueError, TypeError):
@@ -202,14 +225,17 @@ class DMPPanel:
             return self._pydmp_panel._zones[zone_int]
         return None
 
-    def getAccountNumber(self):
+    def getAccountNumber(self) -> str:
         return self._accountNumber
 
-    async def _zone_command(self, zone_num, command):
+    async def _zone_command(self, zone_num: str | int, command: str) -> None:
         try:
             zone_int = int(zone_num)
         except (ValueError, TypeError):
             _LOGGER.error("Invalid zone number for %s command: %s", command, zone_num)
+            return
+        if self._pydmp_panel is None:
+            _LOGGER.error("No panel connection for %s command: %s", command, zone_num)
             return
         if zone_int in self._pydmp_panel._zones:
             await getattr(self._pydmp_panel._zones[zone_int], command)()
@@ -217,49 +243,55 @@ class DMPPanel:
             zone = Zone(self._pydmp_panel, zone_int)
             await getattr(zone, command)()
 
-    async def bypass_zone(self, zone_num):
+    async def bypass_zone(self, zone_num: str | int) -> None:
         await self._zone_command(zone_num, "bypass")
 
-    async def restore_zone(self, zone_num):
+    async def restore_zone(self, zone_num: str | int) -> None:
         await self._zone_command(zone_num, "restore")
 
 
 class DMPListener:
-    def __init__(self, hass, config, pydmp_panel=None, status_server=None):
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config: dict[str, Any],
+        pydmp_panel: PyDMPPanel | None = None,
+        status_server: DMPStatusServer | None = None,
+    ) -> None:
         self._hass = hass
         self._domain = config
-        self._home_area = config[CONF_HOME_AREA]
-        self._away_area = config[CONF_AWAY_AREA]
-        self._port = config.get(CONF_PANEL_LISTEN_PORT)
+        self._home_area: str = config[CONF_HOME_AREA]
+        self._away_area: str = config[CONF_AWAY_AREA]
+        self._port: int | None = config.get(CONF_PANEL_LISTEN_PORT)
         self._pydmp_panel = pydmp_panel
         self._status_server = status_server
-        self._panels = {}
-        self.statusAttributes = {}
+        self._panels: dict[str, DMPPanel] = {}
+        self.statusAttributes: dict[str, str] = {}
         # callbacks to call when an event gets posted in
-        self._callbacks = set()
+        self._callbacks: set[UpdateCallback] = set()
 
         # Register S3 event callback with status server
         if status_server is not None:
             status_server.register_callback(self._handle_s3_event)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"DMP Listener on port {self._port}"
 
-    def register_callback(self, callback):
+    def register_callback(self, callback: UpdateCallback) -> None:
         """Allow callbacks to be registered for when dict entries change"""
         self._callbacks.add(callback)
 
-    def remove_callback(self, callback):
+    def remove_callback(self, callback: UpdateCallback) -> None:
         """Allow callbacks to be de-registered"""
         self._callbacks.discard(callback)
 
-    def addPanel(self, panelToAdd):
+    def addPanel(self, panelToAdd: DMPPanel) -> None:
         self._panels[panelToAdd.getAccountNumber()] = panelToAdd
 
-    def getPanels(self):
+    def getPanels(self) -> dict[str, DMPPanel]:
         return self._panels
 
-    async def _handle_s3_event(self, msg):
+    async def _handle_s3_event(self, msg: S3Message) -> None:
         """Handle incoming S3 event from DMPStatusServer."""
         try:
             event = parse_s3_message(msg)
@@ -328,7 +360,7 @@ class DMPListener:
             DMPEventType.ZONE_FORCE_ARM,  # Zb
         ):
             panel.set_alarm(zone_number)
-            areaObj = {
+            areaObj: AreaStatus = {
                 "areaName": event.area_name or "",
                 "areaState": AlarmControlPanelState.TRIGGERED,
             }
@@ -358,7 +390,7 @@ class DMPListener:
             else:
                 _LOGGER.warning("Unknown arming type_code: %s, ignoring", type_code)
                 return
-            areaObj = {"areaName": area_name, "areaState": areaState}
+            areaObj = AreaStatus(areaName=area_name, areaState=areaState)
             _LOGGER.debug(f"Updated area: {areaObj}")
             panel.updateArea(areaObj)
 
@@ -382,8 +414,13 @@ class DMPListener:
         panel.updateContactTime(datetime.now(UTC))
         await self.updateHASS()
 
-    async def updateStatus(self):
-        for panelName, panel in self._panels.items():
+    async def updateStatus(self) -> None:
+        if self._pydmp_panel is None:
+            _LOGGER.error("No panel connection; cannot update status")
+            return
+        zoneStatus: dict[str, dict[str, str]] = {}
+        areaStatus: dict[str, dict[str, str]] = {}
+        for _panel in self._panels.values():
             await self._pydmp_panel.update_status()
             # Read zone states from pyDMP
             zoneStatus = {}
@@ -408,8 +445,12 @@ class DMPListener:
         self.setStatusAttributes(areaStatus, zoneStatus)
         await self.updateHASS()
 
-    def setStatusAttributes(self, areaStatus, zoneStatus):
-        attr = {}
+    def setStatusAttributes(
+        self,
+        areaStatus: dict[str, dict[str, str]],
+        zoneStatus: dict[str, dict[str, str]],
+    ) -> None:
+        attr: dict[str, str] = {}
         attr[datetime.now().strftime("%Y-%m-%d %H:%M:%S")] = ""
         attr["Areas:"] = ""
         for area in dict(sorted(areaStatus.items())):
@@ -423,10 +464,10 @@ class DMPListener:
             ]
         self.statusAttributes = attr
 
-    def getStatusAttributes(self):
+    def getStatusAttributes(self) -> dict[str, str]:
         return self.statusAttributes
 
-    async def updateHASS(self):
+    async def updateHASS(self) -> None:
         # call to update the hass object
         for callback in self._callbacks:
             await callback()

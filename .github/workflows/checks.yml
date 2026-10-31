@@ -1,10 +1,10 @@
-# Checks: lint, format, test (python-ci.yml) and hassfest + HACS validation
-# (hacs-ci.yml) from mattas-net/.github. Runs on push to main, nightly
-# (hassfest tracks the Home Assistant dev branch), on manual dispatch, and on
-# pull requests once the `approve` job is approved.
-# The Release workflow requires a successful run of this workflow on main HEAD.
-# When run on main (not the nightly schedule) and both jobs pass, the `docs`
-# job republishes the versioned docs (docs.yml).
+# Checks — automatic on push to main and nightly (hassfest tracks the Home
+# Assistant dev branch); on pull requests the run waits at the `approve` job until
+# a reviewer approves it in the `approval` environment. The Release workflow
+# requires a successful run of this workflow on main HEAD.
+#
+# Required checks (default-branch ruleset): "python / checks (3.14)",
+# "python / security", "hacs / hassfest" and "hacs / hacs".
 name: Checks
 
 on:
@@ -32,17 +32,14 @@ jobs:
 
   python:
     needs: approve
-    # Runs when approve passed or was skipped (push/dispatch/schedule); a rejected approval stops it.
     if: always() && needs.approve.result != 'failure' && needs.approve.result != 'cancelled'
     uses: mattas-net/.github/.github/workflows/python-ci.yml@main
     permissions:
       contents: read
     with:
-      python-versions: '["3.14"]' # homeassistant 2026.10 requires Python >=3.14.2
-      install: python -m pip install --quiet -r requirements.test.txt
-      typecheck: ""
-      build: false
-      audit: "off"
+      python-versions: '["3.14"]' # Home Assistant's Python (homeassistant 2026.10 requires >=3.14.2)
+      build: false # HACS installs custom_components/ from the release; there is no package to build
+      audit: "off" # Home Assistant pins the dependency tree; PR dependency review still runs
 
   hacs:
     needs: approve
@@ -50,13 +47,3 @@ jobs:
     uses: mattas-net/.github/.github/workflows/hacs-ci.yml@main
     permissions:
       contents: read
-
-  docs:
-    needs: [python, hacs]
-    # always() so the skipped approve job (push) does not skip docs; publish only on main after both pass.
-    if: >-
-      always() && github.ref == 'refs/heads/main' && github.event_name != 'schedule'
-      && needs.python.result == 'success' && needs.hacs.result == 'success'
-    permissions:
-      contents: write # docs.yml pushes the versioned site to gh-pages
-    uses: ./.github/workflows/docs.yml
