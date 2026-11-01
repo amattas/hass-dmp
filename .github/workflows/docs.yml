@@ -26,3 +26,4 @@ jobs:
       contents: write # the publish script pushes the gh-pages branch
     with:
       version: ${{ inputs.version }}
+      python-version: "3.14"

@@ -126,3 +126,7 @@ $RECYCLE.BIN/
 
 # Editable install metadata (pip install -e ".[dev]")
 *.egg-info/
+
+# Local tooling
+.DS_Store
+.vscode/
