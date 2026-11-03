@@ -125,3 +125,6 @@ $RECYCLE.BIN/
 # Local tooling
 .DS_Store
 .vscode/
+
+# Local AI tooling state (hygiene standard)
+.claude/
