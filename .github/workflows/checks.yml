@@ -3,7 +3,7 @@
 # a reviewer approves it in the `approval` environment. The Release workflow
 # requires a successful run of this workflow on main HEAD.
 #
-# Required checks (default-branch ruleset): "checks" and "security". See mattas-net/.github STANDARD.md.
+# Required checks (default-branch ruleset): "checks" and "security". See the fleet standard (mattas-net/standards, private; ci-cd/ci-workflows).
 name: Checks
 
 on:
@@ -48,7 +48,7 @@ jobs:
     permissions:
       contents: read
 
-  # Aliases: rulesets require exactly "checks" and "security" (STANDARD.md). The `if: always()`
+  # Aliases: rulesets require exactly "checks" and "security" (fleet standard (mattas-net/standards, private; ci-cd/ci-workflows)). The `if: always()`
   # matters: a skipped required check counts as passing, so always run and assert.
   checks:
     needs: [python, hacs]
