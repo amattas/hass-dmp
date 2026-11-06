@@ -240,8 +240,15 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ):
                 errors["base"] = error
             else:
+                # The key is optional: a cleared field is absent, not blank.
                 return self.async_update_reload_and_abort(
-                    entry, data_updates=user_input
+                    entry,
+                    data_updates={
+                        **user_input,
+                        CONF_PANEL_REMOTE_KEY: user_input.get(
+                            CONF_PANEL_REMOTE_KEY, ""
+                        ),
+                    },
                 )
         return self.async_show_form(
             step_id="reconfigure",

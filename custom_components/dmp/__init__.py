@@ -188,7 +188,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         data = entry.runtime_data
-        await data.listener.async_cancel_reconnect()
+        await data.listener.async_shutdown()
         await data.status_server.stop()
         await data.pydmp_panel.stop_keepalive()
         await data.pydmp_panel.disconnect()
@@ -288,6 +288,9 @@ class DMPPanel:
     def has_active_alarm(self) -> bool:
         return any(self._alarm_zones.values())
 
+    def clear_all_alarms(self) -> None:
+        self._alarm_zones.clear()
+
     def ensure_zone(self, zone_num: str | int) -> Zone | None:
         try:
             zone_int = int(zone_num)
@@ -340,6 +343,8 @@ class DMPListener:
         # Built once the panel is connected; cleared while a reconnect runs.
         self.connected = True
         self._reconnect_task: asyncio.Task[None] | None = None
+        # Set on unload; no reconnect may start (or finish) after it.
+        self._stopping = False
         self._home_area: str = config[CONF_HOME_AREA]
         self._away_area: str = config[CONF_AWAY_AREA]
         self._port: int | None = config.get(CONF_PANEL_LISTEN_PORT)
@@ -367,7 +372,7 @@ class DMPListener:
 
     async def handle_disconnect(self, exc: Exception) -> None:
         """Mark the panel unavailable and reconnect (pydmp keep-alive callback)."""
-        if not self.connected:
+        if self._stopping or not self.connected:
             return
         self.connected = False
         _LOGGER.warning(
@@ -378,8 +383,9 @@ class DMPListener:
             self._async_reconnect(), "dmp reconnect"
         )
 
-    async def async_cancel_reconnect(self) -> None:
-        """Stop a pending reconnect (on unload)."""
+    async def async_shutdown(self) -> None:
+        """Stop a pending reconnect and refuse new ones (on unload)."""
+        self._stopping = True
         task, self._reconnect_task = self._reconnect_task, None
         if task is not None and not task.done():
             task.cancel()
@@ -401,8 +407,11 @@ class DMPListener:
             await asyncio.sleep(delay)
             try:
                 await panel.connect(host, account, remote_key)
+                if self._stopping:
+                    await panel.disconnect()
+                    return
                 await panel.start_keepalive(on_disconnect=self.handle_disconnect)
-                await self.updateStatus()
+                await self._async_update_status()
             except DMPAuthenticationError:
                 await panel.disconnect()
                 _LOGGER.error(
@@ -509,7 +518,9 @@ class DMPListener:
             area_name = event.area_name or ""
             if type_code == "OP":  # Disarm
                 areaState = AlarmControlPanelState.DISARMED
-                # do a manual status query - bypassed zones are reset but no message for it
+                # A disarm ends the alarm condition; do a manual status query -
+                # bypassed zones are reset but no message for it
+                panel.clear_all_alarms()
                 self._hass.async_create_task(self.updateStatus())
             elif type_code == "CL":  # Arm
                 if area_number and area_number.strip().lstrip(
@@ -553,6 +564,17 @@ class DMPListener:
         await self.updateHASS()
 
     async def updateStatus(self) -> None:
+        """Query the panel's status; failures are logged (runs as a task)."""
+        try:
+            await self._async_update_status()
+        except (DMPError, OSError, TimeoutError) as err:
+            _LOGGER.warning(
+                "Status update from DMP panel %s failed: %s",
+                self._domain.get(CONF_PANEL_IP),
+                err,
+            )
+
+    async def _async_update_status(self) -> None:
         if self._pydmp_panel is None:
             _LOGGER.error("No panel connection; cannot update status")
             return
@@ -588,7 +610,9 @@ class DMPListener:
         home = by_number.get(int(self._home_area))
         away = by_number.get(int(self._away_area))
         source = home
-        if panel.has_active_alarm():
+        current = panel.getArea()["areaState"]
+        if panel.has_active_alarm() and current is AlarmControlPanelState.TRIGGERED:
+            # Keep an alarm reported by the panel; a status query never raises one.
             state = AlarmControlPanelState.TRIGGERED
         elif away is not None and away.state in ARMED_AREA_STATES:
             state = AlarmControlPanelState.ARMED_AWAY

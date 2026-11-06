@@ -19,6 +19,7 @@ from custom_components.dmp.config_flow import (
     OptionsFlowHandler,
 )
 from custom_components.dmp.const import (
+    BLANK_REMOTE_KEY,
     CONF_ADD_ANOTHER,
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
@@ -247,6 +248,11 @@ RECONFIGURE_INPUT = {
     [
         ({}, None, {"type": FlowResultType.ABORT, "reason": "reconfigure_successful"}),
         (
+            {CONF_PANEL_REMOTE_KEY: None},
+            None,
+            {"type": FlowResultType.ABORT, "reason": "reconfigure_successful"},
+        ),
+        (
             {CONF_PANEL_ACCOUNT_NUMBER: "99999"},
             None,
             {"type": FlowResultType.ABORT, "reason": "unique_id_mismatch"},
@@ -266,6 +272,7 @@ RECONFIGURE_INPUT = {
     ],
     ids=[
         "success",
+        "key_cleared",
         "account_mismatch",
         "listen_port_in_use",
         *(type(err).__name__ for err, _ in CONNECTION_ERRORS),
@@ -275,7 +282,8 @@ async def test_reconfigure_flow(
     hass: HomeAssistant, mock_pydmp, changes, connect_error, expected
 ):
     """Reconfigure pre-fills the entry's panel settings, tests the new ones with the
-    entry's own connection released, and updates and reloads the entry."""
+    entry's own connection released, and updates and reloads the entry. A change
+    to None leaves that field out of the form, as clearing the optional key does."""
     other = MockConfigEntry(
         domain=DOMAIN, data=make_entry_data("22222", 40002), unique_id="22222"
     )
@@ -302,8 +310,13 @@ async def test_reconfigure_flow(
                 raise connect_error
 
     mock_pydmp.connect_side_effect = record_state
+    submitted = {
+        key: value
+        for key, value in {**RECONFIGURE_INPUT, **changes}.items()
+        if value is not None
+    }
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {**RECONFIGURE_INPUT, **changes}
+        result["flow_id"], submitted
     )
     await hass.async_block_till_done()
 
@@ -313,16 +326,21 @@ async def test_reconfigure_flow(
         assert _suggested_values(result["data_schema"])[CONF_PANEL_IP] == (
             "192.168.1.200"
         )
-    if connect_error is None and not changes:
+    if expected.get("reason") == "reconfigure_successful":
         # The live connection was released before testing, then the entry
-        # reloaded with the new settings.
+        # reloaded with the new settings (a cleared key is saved blank).
+        key = submitted.get(CONF_PANEL_REMOTE_KEY, "")
         assert states_during_test[0] is ConfigEntryState.NOT_LOADED
         running_panel.disconnect.assert_awaited()
-        assert entry.data == {**make_entry_data(), **RECONFIGURE_INPUT}
+        assert entry.data == {
+            **make_entry_data(),
+            **RECONFIGURE_INPUT,
+            CONF_PANEL_REMOTE_KEY: key,
+        }
         assert entry.runtime_data.pydmp_panel.connect.await_args.args == (
             "192.168.1.200",
             "12345",
-            "newkey",
+            key or BLANK_REMOTE_KEY,
         )
     else:
         assert entry.data == make_entry_data()

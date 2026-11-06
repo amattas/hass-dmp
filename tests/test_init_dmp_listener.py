@@ -1,16 +1,19 @@
 """Complete tests for DMPListener class."""
 
+import asyncio
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from pydmp import S3Message
+from pydmp.exceptions import DMPError
 
 from custom_components.dmp import DMPListener, DMPPanel
 from custom_components.dmp.const import (
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
     CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_IP,
     CONF_PANEL_LISTEN_PORT,
 )
 
@@ -454,22 +457,35 @@ async def test_listener_updateStatus():
     listener.updateHASS.assert_awaited_once()
 
 
+TRIGGERED = AlarmControlPanelState.TRIGGERED
+DISARMED = AlarmControlPanelState.DISARMED
+
+
 @pytest.mark.parametrize(
-    ("area_states", "alarm_zone", "expected_state", "expected_name"),
+    ("area_states", "alarm_zone", "current", "expected_state", "expected_name"),
     [
-        ({1: "A", 2: "D"}, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
-        ({1: "A", 2: "A"}, None, AlarmControlPanelState.ARMED_AWAY, "Interior"),
-        ({1: "D", 2: "D"}, None, AlarmControlPanelState.DISARMED, "Perimeter"),
-        ({1: "S", 2: "D"}, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
-        ({1: "A", 2: "A"}, "005", AlarmControlPanelState.TRIGGERED, "Perimeter"),
+        ({1: "A", 2: "D"}, None, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
+        ({1: "A", 2: "A"}, None, None, AlarmControlPanelState.ARMED_AWAY, "Interior"),
+        ({1: "D", 2: "D"}, None, None, DISARMED, "Perimeter"),
+        ({1: "S", 2: "D"}, None, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
+        ({1: "A", 2: "A"}, "005", TRIGGERED, TRIGGERED, "Perimeter"),
+        ({1: "D", 2: "D"}, "005", DISARMED, DISARMED, "Perimeter"),
     ],
-    ids=["home_armed", "away_armed", "disarmed", "home_stay", "alarm_active"],
+    ids=[
+        "home_armed",
+        "away_armed",
+        "disarmed",
+        "home_stay",
+        "alarm_active",
+        "alarm_flag_but_disarmed",
+    ],
 )
 @pytest.mark.asyncio
 async def test_listener_updateStatus_sets_area_state(
-    area_states, alarm_zone, expected_state, expected_name
+    area_states, alarm_zone, current, expected_state, expected_name
 ):
-    """updateStatus derives the alarm panel state from the queried area states."""
+    """updateStatus derives the alarm panel state from the queried area states;
+    an active zone alarm only keeps an already-triggered state, never promotes."""
     names = {1: "Perimeter", 2: "Interior"}
     mock_pydmp = Mock()
     mock_pydmp.update_status = AsyncMock()
@@ -483,11 +499,70 @@ async def test_listener_updateStatus_sets_area_state(
     panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345"})
     if alarm_zone is not None:
         panel.set_alarm(alarm_zone)
+    if current is not None:
+        panel.updateArea({"areaName": "Main", "areaState": current})
     listener.addPanel(panel)
 
     await listener.updateStatus()
 
     assert panel.getArea() == {"areaName": expected_name, "areaState": expected_state}
+
+
+@pytest.mark.asyncio
+async def test_listener_alarm_then_disarm_ends_disarmed(hass):
+    """Za then Zq OP: the disarm clears zone alarms, so the status query that
+    follows (with real I/O ordering) leaves the panel disarmed."""
+
+    async def io():
+        await asyncio.sleep(0)
+
+    mock_pydmp = Mock()
+    mock_pydmp.update_status = AsyncMock(side_effect=io)
+    mock_pydmp.get_zones = AsyncMock(return_value=[])
+    mock_pydmp.get_areas = AsyncMock(
+        return_value=[FakeArea(1, "Perimeter", "D"), FakeArea(2, "Interior", "D")]
+    )
+    listener = DMPListener(
+        hass, {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"}, pydmp_panel=mock_pydmp
+    )
+    panel = DMPPanel(hass, {CONF_PANEL_ACCOUNT_NUMBER: "12345"})
+    listener.addPanel(panel)
+
+    await listener._handle_s3_event(
+        _make_s3_msg("12345", "Za", "BU", ['z 001"Front', 'a 001"Main', "t SBU"])
+    )
+    assert panel.getArea()["areaState"] is TRIGGERED
+    await listener._handle_s3_event(
+        _make_s3_msg("12345", "Zq", "OP", ['a 001"Main', "t SOP"])
+    )
+    await hass.async_block_till_done()
+
+    mock_pydmp.update_status.assert_awaited_once()
+    assert panel.getArea()["areaState"] is DISARMED
+    assert not panel.get_alarm("001")
+
+
+@pytest.mark.parametrize(
+    "error", [DMPError("bad"), OSError("reset"), TimeoutError("slow")]
+)
+@pytest.mark.asyncio
+async def test_listener_updateStatus_failure_is_logged(caplog, error):
+    """A failed status query (run as a fire-and-forget task) logs a warning
+    instead of raising."""
+    mock_pydmp = Mock()
+    mock_pydmp.update_status = AsyncMock(side_effect=error)
+    listener = DMPListener(
+        Mock(),
+        {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02", CONF_PANEL_IP: "10.0.0.1"},
+        pydmp_panel=mock_pydmp,
+    )
+    listener.addPanel(DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345"}))
+    listener.updateHASS = AsyncMock()
+
+    await listener.updateStatus()
+
+    assert f"Status update from DMP panel 10.0.0.1 failed: {error}" in caplog.text
+    listener.updateHASS.assert_not_awaited()
 
 
 @pytest.mark.asyncio

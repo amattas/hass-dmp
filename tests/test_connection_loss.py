@@ -98,10 +98,40 @@ async def test_connection_loss_and_recovery(
         [SOURCE_REAUTH] if reauth else []
     )
 
-    # Unloading stops any pending reconnect.
+    # Unloading stops any pending reconnect, and a keep-alive failure reported
+    # after unload (pydmp calls handle_disconnect) starts no new one.
     assert await hass.config_entries.async_unload(entry.entry_id)
+    await listener.handle_disconnect(OSError("connection reset"))
     panel.connect.side_effect = None
     freezer.tick(timedelta(seconds=BACKOFF[-1]))
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
     assert panel.connect.await_count == len(attempts)
+
+
+async def test_reconnect_finishing_after_shutdown_releases_connection(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_pydmp: SimpleNamespace,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A reconnect whose connect completes after shutdown began hands the
+    connection back instead of taking over the panel's single connection."""
+    entry = await setup_entry(hass, mock_config_entry)
+    listener = entry.runtime_data.listener
+    panel = entry.runtime_data.pydmp_panel
+    panel.start_keepalive.reset_mock()
+    panel.disconnect.reset_mock()
+
+    def shutdown_begins(*args: object) -> None:
+        listener._stopping = True  # async_shutdown ran while connect was in flight
+
+    panel.connect.side_effect = shutdown_begins
+    await listener.handle_disconnect(OSError("connection reset"))
+    freezer.tick(timedelta(seconds=BACKOFF[0]))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    panel.disconnect.assert_awaited_once()
+    panel.start_keepalive.assert_not_awaited()
+    assert listener.connected is False
