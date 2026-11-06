@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 
@@ -11,11 +12,15 @@ import homeassistant.helpers.config_validation as cv
 # hence the arg-type ignores on data_schema below.
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntryState, ConfigFlowResult
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.selector import selector
+from pydmp import DMPAuthenticationError
+from pydmp import DMPPanel as PyDMPPanel
+from pydmp.exceptions import DMPConnectionError
 
 from .const import (
+    BLANK_REMOTE_KEY,
     CONF_ADD_ANOTHER,
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
@@ -29,6 +34,7 @@ from .const import (
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DEFAULT_PANEL_REMOTE_PORT,
     DEV_TYPE_BATTERY_DOOR,
     DEV_TYPE_BATTERY_GLASSBREAK,
     DEV_TYPE_BATTERY_MOTION,
@@ -95,6 +101,9 @@ PANEL_SCHEMA = vol.Schema(
 )
 
 
+REAUTH_SCHEMA = vol.Schema({vol.Optional(CONF_PANEL_REMOTE_KEY): cv.string})
+
+
 AREA_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_HOME_AREA, default="01"): cv.string,
@@ -120,6 +129,43 @@ def _is_numeric(value: Any) -> bool:
     return isinstance(value, str) and value.isdecimal()
 
 
+async def _async_validate_connection(
+    hass: HomeAssistant, host: str, port: int, account: str, remote_key: str | None
+) -> None:
+    """Connect to and authenticate with the panel, then release the connection.
+
+    pydmp allows one connection per (host, port, account) at a time, so the test
+    connection is always closed, whether or not it succeeded.
+    """
+    panel = PyDMPPanel(port=port)
+    try:
+        await panel.connect(host, account, remote_key or BLANK_REMOTE_KEY)
+    finally:
+        await panel.disconnect()
+
+
+async def _async_connection_error(
+    hass: HomeAssistant, data: Mapping[str, Any]
+) -> str | None:
+    """Test the panel settings in data; return the flow error key, or None."""
+    try:
+        await _async_validate_connection(
+            hass,
+            data[CONF_PANEL_IP],
+            data.get(CONF_PANEL_REMOTE_PORT) or DEFAULT_PANEL_REMOTE_PORT,
+            data[CONF_PANEL_ACCOUNT_NUMBER],
+            data.get(CONF_PANEL_REMOTE_KEY),
+        )
+    except DMPAuthenticationError:
+        return "invalid_auth"
+    except (DMPConnectionError, OSError, TimeoutError):
+        return "cannot_connect"
+    except Exception:
+        _LOGGER.exception("Unexpected error testing the DMP panel connection")
+        return "unknown"
+    return None
+
+
 class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """DMP Custom config flow."""
 
@@ -132,20 +178,107 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             await self.async_set_unique_id(user_input[CONF_PANEL_ACCOUNT_NUMBER])
             self._abort_if_unique_id_configured()
-            listen_port = user_input.get(CONF_PANEL_LISTEN_PORT)
-            if any(
-                entry.data.get(CONF_PANEL_LISTEN_PORT) == listen_port
-                for entry in self._async_current_entries()
-            ):
+            if self._listen_port_in_use(user_input):
                 errors[CONF_PANEL_LISTEN_PORT] = "listen_port_in_use"
+            elif error := await _async_connection_error(self.hass, user_input):
+                errors["base"] = error
             else:
                 self.data = user_input
                 self.data[CONF_ZONES] = []
                 return await self.async_step_areas()
         return self.async_show_form(
             step_id="user",
-            data_schema=PANEL_SCHEMA,  # type: ignore[arg-type]
+            data_schema=self.add_suggested_values_to_schema(
+                PANEL_SCHEMA,  # type: ignore[arg-type]
+                user_input,
+            ),
             errors=errors,
+        )
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        """Start reauthentication after the panel rejected the remote key."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask for the panel's current remote key and test it."""
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            remote_key = user_input.get(CONF_PANEL_REMOTE_KEY, "")
+            if error := await _async_connection_error(
+                self.hass, {**entry.data, CONF_PANEL_REMOTE_KEY: remote_key}
+            ):
+                errors["base"] = error
+            else:
+                return self.async_update_reload_and_abort(
+                    entry, data_updates={CONF_PANEL_REMOTE_KEY: remote_key}
+                )
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=REAUTH_SCHEMA,  # type: ignore[arg-type]
+            errors=errors,
+            description_placeholders={"account": entry.data[CONF_PANEL_ACCOUNT_NUMBER]},
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change the panel connection settings of an existing entry."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            await self.async_set_unique_id(user_input[CONF_PANEL_ACCOUNT_NUMBER])
+            self._abort_if_unique_id_mismatch()
+            if self._listen_port_in_use(user_input, entry.entry_id):
+                errors[CONF_PANEL_LISTEN_PORT] = "listen_port_in_use"
+            elif error := await self._async_reconfigure_connection_error(
+                entry, user_input
+            ):
+                errors["base"] = error
+            else:
+                return self.async_update_reload_and_abort(
+                    entry, data_updates=user_input
+                )
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(
+                PANEL_SCHEMA,  # type: ignore[arg-type]
+                user_input or entry.data,
+            ),
+            errors=errors,
+        )
+
+    async def _async_reconfigure_connection_error(
+        self, entry: config_entries.ConfigEntry, user_input: dict[str, Any]
+    ) -> str | None:
+        """Test new settings while the entry's own panel connection is released.
+
+        The panel and pydmp each allow one connection per account, so a loaded
+        entry would make the test fail. It is unloaded for the test; on failure it
+        is set up again, on success the update reloads it.
+        """
+        loaded = entry.state is ConfigEntryState.LOADED
+        if loaded:
+            await self.hass.config_entries.async_unload(entry.entry_id)
+        error = await _async_connection_error(self.hass, user_input)
+        if error and loaded:
+            await self.hass.config_entries.async_setup(entry.entry_id)
+        return error
+
+    @callback
+    def _listen_port_in_use(
+        self, user_input: Mapping[str, Any], entry_id: str | None = None
+    ) -> bool:
+        """Return True when another entry already listens on the requested port."""
+        listen_port = user_input.get(CONF_PANEL_LISTEN_PORT)
+        return any(
+            entry.data.get(CONF_PANEL_LISTEN_PORT) == listen_port
+            for entry in self._async_current_entries()
+            if entry.entry_id != entry_id
         )
 
     async def async_step_areas(

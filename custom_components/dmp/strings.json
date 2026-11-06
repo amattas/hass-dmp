@@ -3,8 +3,9 @@
     "step": {
       "user": {
         "data": {
+          "panel_name": "Panel Name",
           "ip": "Panel Hostname/IP Address",
-          "port": "Panel Port",
+          "remote_port": "Panel Port",
           "listen_port": "Listener Port",
           "account_number": "Account Number",
           "remote_key": "Panel Key"
@@ -29,15 +30,40 @@
         },
         "description": "Add a zone to your DMP panel.",
         "title": "DMP Zone Configuration"
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate DMP Panel",
+        "description": "The panel rejected the remote key for account {account}. Enter the panel's current remote key, or leave it empty if the panel has none.",
+        "data": {
+          "remote_key": "Panel Key"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure DMP Panel",
+        "description": "Update the connection settings of this panel. The account number cannot change.",
+        "data": {
+          "panel_name": "Panel Name",
+          "ip": "Panel Hostname/IP Address",
+          "remote_port": "Panel Port",
+          "listen_port": "Listener Port",
+          "account_number": "Account Number",
+          "remote_key": "Panel Key"
+        }
       }
     },
     "error": {
       "invalid_area_number": "Area number must contain only digits.",
       "invalid_zone_number": "Zone number must contain only digits.",
-      "listen_port_in_use": "Another DMP panel already uses this listener port. Choose a different port."
+      "listen_port_in_use": "Another DMP panel already uses this listener port. Choose a different port.",
+      "cannot_connect": "Failed to connect. Check the hostname/IP address and port, and that no other client is connected to the panel.",
+      "invalid_auth": "Invalid authentication: the panel rejected the remote key.",
+      "unknown": "Unexpected error while connecting to the panel. Check the Home Assistant log."
     },
     "abort": {
-      "already_configured": "This panel account is already configured."
+      "already_configured": "This panel account is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful.",
+      "unique_id_mismatch": "The account number does not match this panel. Add a new panel to configure a different account."
     }
   },
   "options": {
@@ -98,6 +124,23 @@
       "bypass": {
         "name": "Bypass"
       }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "The DMP panel rejected the remote key."
+    },
+    "cannot_connect": {
+      "message": "Unable to connect to the DMP panel: {error}"
+    },
+    "listen_port_unavailable": {
+      "message": "The listener port {port} is already in use on this host."
+    },
+    "not_connected": {
+      "message": "The DMP panel is not connected."
+    },
+    "command_failed": {
+      "message": "The DMP panel command failed: {error}"
     }
   }
 }

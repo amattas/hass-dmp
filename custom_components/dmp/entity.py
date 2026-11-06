@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
+from pydmp.exceptions import DMPError
 
 from .const import (
     CONF_PANEL_NAME,
@@ -87,6 +90,26 @@ class DMPEntity(Entity):
     async def _async_listener_update(self) -> None:
         self._update_from_panel()
         self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return whether the panel connection is up."""
+        return self._listener.connected
+
+    async def _async_command(self, command: Callable[[], Awaitable[None]]) -> None:
+        """Run a panel command, raising translated errors when it cannot run."""
+        if not self._listener.connected:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="not_connected"
+            )
+        try:
+            await command()
+        except (DMPError, OSError, TimeoutError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="command_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

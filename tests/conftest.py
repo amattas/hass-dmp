@@ -76,14 +76,19 @@ def mock_pydmp() -> Generator[SimpleNamespace]:
     """Patch PyDMPPanel and DMPStatusServer with AsyncMock-based fakes.
 
     Each construction yields a fresh fake, recorded in ``panels``/``servers`` so
-    tests with several config entries can tell them apart. ``areas`` and
-    ``zones`` are what every fake panel's get_areas()/get_zones() return.
+    tests with several config entries can tell them apart; the config flow's
+    connection test builds its panels from the same factory. ``areas`` and
+    ``zones`` are what every fake panel's get_areas()/get_zones() return, and
+    ``connect_side_effect`` and ``start_side_effect`` become the side effects of
+    each new panel's connect() and each new server's start().
     """
     state = SimpleNamespace(
         panels=[],
         servers=[],
         areas=[FakeArea(1, "Perimeter"), FakeArea(2, "Interior")],
         zones=[FakeZone(1, "Front Door")],
+        connect_side_effect=None,
+        start_side_effect=None,
     )
 
     def make_panel(*args: Any, **kwargs: Any) -> MagicMock:
@@ -96,6 +101,7 @@ def mock_pydmp() -> Generator[SimpleNamespace]:
             "update_status",
         ):
             setattr(panel, method, AsyncMock())
+        panel.connect.side_effect = state.connect_side_effect
         panel.get_areas = AsyncMock(side_effect=lambda: list(state.areas))
         panel.get_zones = AsyncMock(side_effect=lambda: list(state.zones))
         panel._zones = {}
@@ -106,13 +112,14 @@ def mock_pydmp() -> Generator[SimpleNamespace]:
     def make_server(host: str, port: int) -> Mock:
         server = Mock(name=f"DMPStatusServer{len(state.servers)}")
         server.host, server.port = host, port
-        server.start = AsyncMock()
+        server.start = AsyncMock(side_effect=state.start_side_effect)
         server.stop = AsyncMock()
         state.servers.append(server)
         return server
 
     with (
         patch("custom_components.dmp.PyDMPPanel", side_effect=make_panel),
+        patch("custom_components.dmp.config_flow.PyDMPPanel", side_effect=make_panel),
         patch("custom_components.dmp.DMPStatusServer", side_effect=make_server),
     ):
         yield state

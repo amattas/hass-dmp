@@ -12,6 +12,8 @@ from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON, EntityCateg
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.entity_component import DATA_INSTANCES
+from pydmp.exceptions import DMPConnectionError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.const import (
@@ -343,73 +345,75 @@ async def test_refresh_button_exposes_status_attributes(
     assert state.attributes["Area: 01 - Perimeter"] == "Disarmed"
 
 
+ENTITY_COMMANDS = [
+    (
+        "alarm_control_panel",
+        "alarm_disarm",
+        "alarm_control_panel.test_panel_arming_control",
+        "pydmp",
+        "disarm_areas",
+        ([1, 2, 3],),
+        {},
+    ),
+    (
+        "alarm_control_panel",
+        "alarm_arm_away",
+        "alarm_control_panel.test_panel_arming_control",
+        "pydmp",
+        "arm_areas",
+        ([1, 2, 3],),
+        {},
+    ),
+    (
+        "alarm_control_panel",
+        "alarm_arm_home",
+        "alarm_control_panel.test_panel_arming_control",
+        "pydmp",
+        "arm_areas",
+        ([1],),
+        {},
+    ),
+    (
+        "alarm_control_panel",
+        "alarm_arm_night",
+        "alarm_control_panel.test_panel_arming_control",
+        "pydmp",
+        "arm_areas",
+        ([1],),
+        {"instant": True},
+    ),
+    (
+        "switch",
+        "turn_on",
+        "switch.front_door_bypass",
+        "panel",
+        "bypass_zone",
+        ("001",),
+        {},
+    ),
+    (
+        "switch",
+        "turn_off",
+        "switch.front_door_bypass",
+        "panel",
+        "restore_zone",
+        ("001",),
+        {},
+    ),
+    (
+        "button",
+        "press",
+        "button.test_panel_refresh_status",
+        "listener",
+        "updateStatus",
+        (),
+        {},
+    ),
+]
+
+
 @pytest.mark.parametrize(
-    "domain,service,entity_id,target,method,args,kwargs",
-    [
-        (
-            "alarm_control_panel",
-            "alarm_disarm",
-            "alarm_control_panel.test_panel_arming_control",
-            "pydmp",
-            "disarm_areas",
-            ([1, 2, 3],),
-            {},
-        ),
-        (
-            "alarm_control_panel",
-            "alarm_arm_away",
-            "alarm_control_panel.test_panel_arming_control",
-            "pydmp",
-            "arm_areas",
-            ([1, 2, 3],),
-            {},
-        ),
-        (
-            "alarm_control_panel",
-            "alarm_arm_home",
-            "alarm_control_panel.test_panel_arming_control",
-            "pydmp",
-            "arm_areas",
-            ([1],),
-            {},
-        ),
-        (
-            "alarm_control_panel",
-            "alarm_arm_night",
-            "alarm_control_panel.test_panel_arming_control",
-            "pydmp",
-            "arm_areas",
-            ([1],),
-            {"instant": True},
-        ),
-        (
-            "switch",
-            "turn_on",
-            "switch.front_door_bypass",
-            "panel",
-            "bypass_zone",
-            ("001",),
-            {},
-        ),
-        (
-            "switch",
-            "turn_off",
-            "switch.front_door_bypass",
-            "panel",
-            "restore_zone",
-            ("001",),
-            {},
-        ),
-        (
-            "button",
-            "press",
-            "button.test_panel_refresh_status",
-            "listener",
-            "updateStatus",
-            (),
-            {},
-        ),
-    ],
+    "domain,service,entity_id,target,method,args,kwargs", ENTITY_COMMANDS
 )
 async def test_entity_commands(
     hass: HomeAssistant,
@@ -430,6 +434,57 @@ async def test_entity_commands(
             domain, service, {ATTR_ENTITY_ID: entity_id}, blocking=True
         )
     call.assert_awaited_once_with(*args, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("connected", "error", "translation_key", "placeholders"),
+    [
+        (
+            True,
+            DMPConnectionError("timed out"),
+            "command_failed",
+            {"error": "timed out"},
+        ),
+        (False, None, "not_connected", None),
+    ],
+    ids=["command_failed", "not_connected"],
+)
+@pytest.mark.parametrize(
+    "domain,service,entity_id,target,method,args,kwargs", ENTITY_COMMANDS
+)
+async def test_entity_command_errors(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+    domain: str,
+    service: str,
+    entity_id: str,
+    target: str,
+    method: str,
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    connected: bool,
+    error: Exception | None,
+    translation_key: str,
+    placeholders: dict[str, str] | None,
+) -> None:
+    """A failed panel command, or one sent while the panel is disconnected,
+    raises a translated Home Assistant error."""
+    data = init_integration.runtime_data
+    obj = {"pydmp": data.pydmp_panel, "panel": data.panel, "listener": data.listener}
+    # Unavailable entities never receive service calls, so call the entity itself.
+    entity = hass.data[DATA_INSTANCES][domain].get_entity(entity_id)
+    assert entity is not None
+    data.listener.connected = connected
+    with (
+        patch.object(obj[target], method, new_callable=AsyncMock, side_effect=error),
+        pytest.raises(HomeAssistantError) as exc_info,
+    ):
+        await getattr(entity, f"async_{service}")()
+
+    assert exc_info.value.translation_domain == DOMAIN
+    assert exc_info.value.translation_key == translation_key
+    assert exc_info.value.translation_placeholders == placeholders
+    assert exc_info.value.__cause__ is error
 
 
 async def test_alarm_command_without_panel_connection(

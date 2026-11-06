@@ -50,3 +50,8 @@ BATTERY_LEVEL = "BatteryLevel"
 
 # Other Constants
 PANEL_ALL_AREAS = "010203"
+
+# Panel connection defaults
+DEFAULT_PANEL_REMOTE_PORT = 2001
+# The panel's remote key when none is programmed: 16 spaces.
+BLANK_REMOTE_KEY = " " * 16

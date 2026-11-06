@@ -6,8 +6,11 @@ import homeassistant.helpers.config_validation as cv
 import pytest
 import voluptuous_serialize
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pydmp import DMPAuthenticationError
+from pydmp.exceptions import DMPConnectionError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.config_flow import (
@@ -19,6 +22,10 @@ from custom_components.dmp.const import (
     CONF_ADD_ANOTHER,
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
+    CONF_PANEL_IP,
+    CONF_PANEL_LISTEN_PORT,
+    CONF_PANEL_REMOTE_KEY,
     CONF_ZONE_CLASS,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
@@ -26,6 +33,8 @@ from custom_components.dmp.const import (
     DEV_TYPE_WIRED_SIREN,
     DOMAIN,
 )
+
+from .conftest import make_entry_data, setup_entry
 
 pytestmark = pytest.mark.asyncio
 
@@ -68,34 +77,81 @@ USER_INPUT = {
     "remote_port": 40001,
     "account_number": "12345",
 }
+USER_ERRORS = [
+    {"base": "invalid_auth"},
+    {"base": "cannot_connect"},
+    {"base": "unknown"},
+]
+
+
+def _suggested_values(schema) -> dict:
+    """Return the suggested (pre-filled) value of every key of a flow schema."""
+    return {
+        str(key): key.description["suggested_value"]
+        for key in schema.schema
+        if key.description and "suggested_value" in key.description
+    }
 
 
 @pytest.mark.parametrize(
-    ("existing", "expected"),
+    ("existing", "connect_error", "expected"),
     [
-        (None, {"type": FlowResultType.FORM, "step_id": "areas", "errors": {}}),
+        (None, None, {"type": FlowResultType.FORM, "step_id": "areas", "errors": {}}),
         (
             {"account_number": "12345", "listen_port": 40099},
+            None,
             {"type": FlowResultType.ABORT, "reason": "already_configured"},
         ),
         (
             {"account_number": "99999", "listen_port": 40002},
+            None,
             {
                 "type": FlowResultType.FORM,
                 "step_id": "user",
                 "errors": {"listen_port": "listen_port_in_use"},
             },
         ),
+        (
+            None,
+            DMPAuthenticationError("rejected"),
+            {"type": FlowResultType.FORM, "step_id": "user", "errors": USER_ERRORS[0]},
+        ),
+        (
+            None,
+            DMPConnectionError("refused"),
+            {"type": FlowResultType.FORM, "step_id": "user", "errors": USER_ERRORS[1]},
+        ),
+        (
+            None,
+            OSError("unreachable"),
+            {"type": FlowResultType.FORM, "step_id": "user", "errors": USER_ERRORS[1]},
+        ),
+        (
+            None,
+            ValueError("boom"),
+            {"type": FlowResultType.FORM, "step_id": "user", "errors": USER_ERRORS[2]},
+        ),
     ],
-    ids=["new_panel", "duplicate_account", "listen_port_in_use"],
+    ids=[
+        "new_panel",
+        "duplicate_account",
+        "listen_port_in_use",
+        "invalid_auth",
+        "cannot_connect",
+        "os_error",
+        "unknown",
+    ],
 )
-async def test_form_user_submit(hass: HomeAssistant, existing, expected):
-    """Submitting the user step advances, aborts on a duplicate account, or
-    rejects a listen port another entry already uses."""
+async def test_form_user_submit(
+    hass: HomeAssistant, mock_pydmp, existing, connect_error, expected
+):
+    """Submitting the user step tests the connection before advancing, aborts on a
+    duplicate account, or rejects a listen port another entry already uses."""
     if existing is not None:
         MockConfigEntry(
             domain=DOMAIN, data=existing, unique_id=existing["account_number"]
         ).add_to_hass(hass)
+    mock_pydmp.connect_side_effect = connect_error
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -105,10 +161,172 @@ async def test_form_user_submit(hass: HomeAssistant, existing, expected):
     )
 
     assert {key: result.get(key) for key in expected} == expected
-    if expected["type"] is FlowResultType.FORM and expected["step_id"] == "areas":
+    if existing is not None:
+        assert mock_pydmp.panels == []  # rejected before touching the panel
+        return
+    # The connection test always releases the panel, even when it fails.
+    (panel,) = mock_pydmp.panels
+    assert panel.init_kwargs == {"port": 40001}
+    panel.connect.assert_awaited_once_with("192.168.1.100", "12345", " " * 16)
+    panel.disconnect.assert_awaited_once()
+    if result["type"] is FlowResultType.FORM and result["step_id"] == "areas":
         flow = hass.config_entries.flow._progress[result["flow_id"]]
         assert flow.unique_id == "12345"
         assert flow.data == {**USER_INPUT, CONF_ZONES: []}
+    else:
+        # The form keeps what the user typed.
+        assert _suggested_values(result["data_schema"]) == USER_INPUT
+
+
+CONNECTION_ERRORS = [
+    (DMPAuthenticationError("rejected"), "invalid_auth"),
+    (DMPConnectionError("refused"), "cannot_connect"),
+    (TimeoutError(), "cannot_connect"),
+    (ValueError("boom"), "unknown"),
+]
+
+
+@pytest.mark.parametrize(
+    ("connect_error", "error"),
+    CONNECTION_ERRORS,
+    ids=[type(err).__name__ for err, _ in CONNECTION_ERRORS],
+)
+async def test_reauth_flow(hass: HomeAssistant, mock_pydmp, connect_error, error):
+    """Reauth asks only for the remote key, tests it against the entry's panel,
+    shows the failure, and on success stores the key and reloads the entry."""
+    entry = MockConfigEntry(domain=DOMAIN, data=make_entry_data(), unique_id="12345")
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reauth_flow(hass)
+    assert (result["type"], result["step_id"]) == (
+        FlowResultType.FORM,
+        "reauth_confirm",
+    )
+    assert [str(key) for key in result["data_schema"].schema] == [CONF_PANEL_REMOTE_KEY]
+
+    mock_pydmp.connect_side_effect = connect_error
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PANEL_REMOTE_KEY: "wrongkey"}
+    )
+    assert (result["type"], result["step_id"]) == (
+        FlowResultType.FORM,
+        "reauth_confirm",
+    )
+    assert result["errors"] == {"base": error}
+
+    mock_pydmp.connect_side_effect = None
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PANEL_REMOTE_KEY: "newkey"}
+    )
+    await hass.async_block_till_done()
+
+    assert (result["type"], result["reason"]) == (
+        FlowResultType.ABORT,
+        "reauth_successful",
+    )
+    assert entry.data == make_entry_data(remote_key="newkey")
+    test_panels = mock_pydmp.panels[:2]
+    assert [p.init_kwargs for p in test_panels] == [{"port": 2001}] * 2
+    assert [p.connect.await_args.args for p in test_panels] == [
+        ("192.168.1.100", "12345", "wrongkey"),
+        ("192.168.1.100", "12345", "newkey"),
+    ]
+    assert all(p.disconnect.await_count == 1 for p in test_panels)
+    assert entry.state is ConfigEntryState.LOADED  # reloaded with the new key
+
+
+RECONFIGURE_INPUT = {
+    **{k: v for k, v in make_entry_data().items() if k in USER_INPUT},
+    CONF_PANEL_IP: "192.168.1.200",
+    CONF_PANEL_REMOTE_KEY: "newkey",
+}
+
+
+@pytest.mark.parametrize(
+    ("changes", "connect_error", "expected"),
+    [
+        ({}, None, {"type": FlowResultType.ABORT, "reason": "reconfigure_successful"}),
+        (
+            {CONF_PANEL_ACCOUNT_NUMBER: "99999"},
+            None,
+            {"type": FlowResultType.ABORT, "reason": "unique_id_mismatch"},
+        ),
+        (
+            {CONF_PANEL_LISTEN_PORT: 40002},
+            None,
+            {
+                "type": FlowResultType.FORM,
+                "errors": {"listen_port": "listen_port_in_use"},
+            },
+        ),
+        *(
+            ({}, err, {"type": FlowResultType.FORM, "errors": {"base": key}})
+            for err, key in CONNECTION_ERRORS
+        ),
+    ],
+    ids=[
+        "success",
+        "account_mismatch",
+        "listen_port_in_use",
+        *(type(err).__name__ for err, _ in CONNECTION_ERRORS),
+    ],
+)
+async def test_reconfigure_flow(
+    hass: HomeAssistant, mock_pydmp, changes, connect_error, expected
+):
+    """Reconfigure pre-fills the entry's panel settings, tests the new ones with the
+    entry's own connection released, and updates and reloads the entry."""
+    other = MockConfigEntry(
+        domain=DOMAIN, data=make_entry_data("22222", 40002), unique_id="22222"
+    )
+    other.add_to_hass(hass)
+    entry = await setup_entry(
+        hass, MockConfigEntry(domain=DOMAIN, data=make_entry_data(), unique_id="12345")
+    )
+    running_panel = entry.runtime_data.pydmp_panel
+
+    result = await entry.start_reconfigure_flow(hass)
+    assert (result["type"], result["step_id"]) == (FlowResultType.FORM, "reconfigure")
+    assert _suggested_values(result["data_schema"]) == {
+        key: value
+        for key, value in entry.data.items()
+        if key in {*USER_INPUT, CONF_PANEL_REMOTE_KEY}
+    }
+
+    states_during_test: list[ConfigEntryState] = []
+
+    def record_state(host, *args):
+        if host == RECONFIGURE_INPUT[CONF_PANEL_IP]:  # the test, not a re-setup
+            states_during_test.append(entry.state)
+            if connect_error is not None:
+                raise connect_error
+
+    mock_pydmp.connect_side_effect = record_state
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {**RECONFIGURE_INPUT, **changes}
+    )
+    await hass.async_block_till_done()
+
+    assert {key: result.get(key) for key in expected} == expected
+    if expected["type"] is FlowResultType.FORM:
+        assert result["step_id"] == "reconfigure"
+        assert _suggested_values(result["data_schema"])[CONF_PANEL_IP] == (
+            "192.168.1.200"
+        )
+    if connect_error is None and not changes:
+        # The live connection was released before testing, then the entry
+        # reloaded with the new settings.
+        assert states_during_test[0] is ConfigEntryState.NOT_LOADED
+        running_panel.disconnect.assert_awaited()
+        assert entry.data == {**make_entry_data(), **RECONFIGURE_INPUT}
+        assert entry.runtime_data.pydmp_panel.connect.await_args.args == (
+            "192.168.1.200",
+            "12345",
+            "newkey",
+        )
+    else:
+        assert entry.data == make_entry_data()
+    assert entry.state is ConfigEntryState.LOADED
 
 
 async def test_form_areas_to_zones(hass: HomeAssistant):

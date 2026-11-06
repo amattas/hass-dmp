@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -12,13 +13,23 @@ from homeassistant.components.alarm_control_panel.const import AlarmControlPanel
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from pydmp import Area, DMPStatusServer, S3Message, Zone, parse_s3_message
+from pydmp import (
+    Area,
+    DMPAuthenticationError,
+    DMPStatusServer,
+    S3Message,
+    Zone,
+    parse_s3_message,
+)
 from pydmp import DMPPanel as PyDMPPanel
 from pydmp.const.events import DMPEventType
+from pydmp.exceptions import DMPConnectionError, DMPError
 
 from .const import (
+    BLANK_REMOTE_KEY,
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
     CONF_PANEL_ACCOUNT_NUMBER,
@@ -28,6 +39,7 @@ from .const import (
     CONF_PANEL_REMOTE_PORT,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DEFAULT_PANEL_REMOTE_PORT,
     DOMAIN,
 )
 
@@ -73,6 +85,14 @@ ARMED_AREA_STATES = frozenset({"A", "S"})
 
 UpdateCallback = Callable[[], Awaitable[None]]
 
+# Errors that mean the panel could not be reached (DMPAuthenticationError, a
+# DMPConnectionError, is handled before these where it matters).
+CONNECTION_ERRORS = (DMPConnectionError, OSError, TimeoutError)
+
+# Reconnect backoff after the panel connection drops, in seconds.
+RECONNECT_INITIAL_DELAY = 10.0
+RECONNECT_MAX_DELAY = 300.0
+
 
 class AreaStatus(TypedDict):
     """Last known arming state of the panel's area."""
@@ -100,14 +120,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool:
     config = dict(entry.data)
     _LOGGER.debug("Loaded config %s", config)
 
+    account: str = config[CONF_PANEL_ACCOUNT_NUMBER]
+    # Entries created before unique IDs were set are identified by their account.
+    if entry.unique_id is None:
+        hass.config_entries.async_update_entry(entry, unique_id=account)
+
     # Create pyDMP panel and connect
-    panel_port = config.get(CONF_PANEL_REMOTE_PORT) or 2001
+    panel_port = config.get(CONF_PANEL_REMOTE_PORT) or DEFAULT_PANEL_REMOTE_PORT
     pydmp_panel = PyDMPPanel(port=panel_port)
     ip: str = config[CONF_PANEL_IP]
-    account: str = config[CONF_PANEL_ACCOUNT_NUMBER]
-    remote_key = config.get(CONF_PANEL_REMOTE_KEY) or "                "
-    await pydmp_panel.connect(ip, account, remote_key)
-    await pydmp_panel.start_keepalive()
+    remote_key = config.get(CONF_PANEL_REMOTE_KEY) or BLANK_REMOTE_KEY
+    try:
+        await pydmp_panel.connect(ip, account, remote_key)
+    except CONNECTION_ERRORS as err:
+        await pydmp_panel.disconnect()
+        if isinstance(err, DMPAuthenticationError):
+            raise ConfigEntryAuthFailed(
+                translation_domain=DOMAIN, translation_key="invalid_auth"
+            ) from err
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="cannot_connect",
+            translation_placeholders={"error": str(err)},
+        ) from err
 
     # Create status server for realtime events (one per entry, own listen port)
     listen_port: int = config[CONF_PANEL_LISTEN_PORT]
@@ -118,12 +153,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool:
     _LOGGER.debug("Panel account number: %s", panel.getAccountNumber())
 
     # Create listener and wire up S3 event callback
-    listener = DMPListener(hass, config, pydmp_panel, status_server)
+    listener = DMPListener(hass, config, pydmp_panel, status_server, entry=entry)
     listener.addPanel(panel)
     _LOGGER.debug("Panels attached to listener: %s", str(listener.getPanels()))
+    await pydmp_panel.start_keepalive(on_disconnect=listener.handle_disconnect)
 
     # Start status server
-    await status_server.start()
+    try:
+        await status_server.start()
+    except OSError as err:
+        await pydmp_panel.disconnect()
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="listen_port_unavailable",
+            translation_placeholders={"port": str(listen_port)},
+        ) from err
 
     entry.runtime_data = DMPRuntimeData(
         pydmp_panel=pydmp_panel,
@@ -144,6 +188,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         data = entry.runtime_data
+        await data.listener.async_cancel_reconnect()
         await data.status_server.stop()
         await data.pydmp_panel.stop_keepalive()
         await data.pydmp_panel.disconnect()
@@ -287,9 +332,14 @@ class DMPListener:
         config: dict[str, Any],
         pydmp_panel: PyDMPPanel | None = None,
         status_server: DMPStatusServer | None = None,
+        entry: ConfigEntry | None = None,
     ) -> None:
         self._hass = hass
         self._domain = config
+        self._entry = entry
+        # Built once the panel is connected; cleared while a reconnect runs.
+        self.connected = True
+        self._reconnect_task: asyncio.Task[None] | None = None
         self._home_area: str = config[CONF_HOME_AREA]
         self._away_area: str = config[CONF_AWAY_AREA]
         self._port: int | None = config.get(CONF_PANEL_LISTEN_PORT)
@@ -314,6 +364,64 @@ class DMPListener:
     def remove_callback(self, callback: UpdateCallback) -> None:
         """Allow callbacks to be de-registered"""
         self._callbacks.discard(callback)
+
+    async def handle_disconnect(self, exc: Exception) -> None:
+        """Mark the panel unavailable and reconnect (pydmp keep-alive callback)."""
+        if not self.connected:
+            return
+        self.connected = False
+        _LOGGER.warning(
+            "Connection to DMP panel %s lost: %s", self._domain.get(CONF_PANEL_IP), exc
+        )
+        await self.updateHASS()
+        self._reconnect_task = self._hass.async_create_background_task(
+            self._async_reconnect(), "dmp reconnect"
+        )
+
+    async def async_cancel_reconnect(self) -> None:
+        """Stop a pending reconnect (on unload)."""
+        task, self._reconnect_task = self._reconnect_task, None
+        if task is not None and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    async def _async_reconnect(self) -> None:
+        """Reconnect with exponential backoff until it works or the key is rejected."""
+        panel = self._pydmp_panel
+        if panel is None:
+            return
+        host: str = self._domain[CONF_PANEL_IP]
+        account: str = self._domain[CONF_PANEL_ACCOUNT_NUMBER]
+        remote_key = self._domain.get(CONF_PANEL_REMOTE_KEY) or BLANK_REMOTE_KEY
+        delay = RECONNECT_INITIAL_DELAY
+        while True:
+            await asyncio.sleep(delay)
+            try:
+                await panel.connect(host, account, remote_key)
+                await panel.start_keepalive(on_disconnect=self.handle_disconnect)
+                await self.updateStatus()
+            except DMPAuthenticationError:
+                await panel.disconnect()
+                _LOGGER.error(
+                    "DMP panel %s rejected the remote key; re-authentication needed",
+                    host,
+                )
+                if self._entry is not None:
+                    self._entry.async_start_reauth(self._hass)
+                return
+            except (DMPError, OSError, TimeoutError) as err:
+                await panel.disconnect()
+                _LOGGER.debug("Reconnecting to DMP panel %s failed: %s", host, err)
+                delay = min(delay * 2, RECONNECT_MAX_DELAY)
+                continue
+            break
+        self._reconnect_task = None
+        self.connected = True
+        _LOGGER.info("Connection to DMP panel %s restored", host)
+        await self.updateHASS()
 
     def addPanel(self, panelToAdd: DMPPanel) -> None:
         self._panels[panelToAdd.getAccountNumber()] = panelToAdd

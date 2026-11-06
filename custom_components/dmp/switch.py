@@ -55,7 +55,7 @@ class DMPZoneBypassSwitch(DMPZoneEntity, SwitchEntity):
         self._attr_is_on = self._zone is not None and self._zone.is_bypassed
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self._panel.bypass_zone(self._number)
+        await self._async_command(lambda: self._panel.bypass_zone(self._number))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self._panel.restore_zone(self._number)
+        await self._async_command(lambda: self._panel.restore_zone(self._number))

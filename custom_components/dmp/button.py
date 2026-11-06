@@ -46,7 +46,7 @@ class DMPRefreshStatusButton(DMPPanelEntity, ButtonEntity):
         self._attr_unique_id = f"dmp-{account}-panel-refresh-status"
 
     async def async_press(self) -> None:
-        await self._listener.updateStatus()
+        await self._async_command(self._listener.updateStatus)
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:

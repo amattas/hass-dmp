@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pydmp import DMPPanel as PyDMPPanel
 
 from . import DMPConfigEntry, DMPListener, DMPPanel
-from .const import CONF_HOME_AREA, CONF_PANEL_ACCOUNT_NUMBER
+from .const import CONF_HOME_AREA, CONF_PANEL_ACCOUNT_NUMBER, DOMAIN
 from .entity import DMPPanelEntity
 
 PARALLEL_UPDATES = 0
@@ -56,7 +56,9 @@ class DMPArea(DMPPanelEntity, AlarmControlPanelEntity):
         """Return the connected pyDMP panel."""
         pydmp_panel = self._panel._pydmp_panel
         if pydmp_panel is None:
-            raise HomeAssistantError("DMP panel is not connected")
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="not_connected"
+            )
         return pydmp_panel
 
     @callback
@@ -65,17 +67,21 @@ class DMPArea(DMPPanelEntity, AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
-        await self._pydmp_panel.disarm_areas([1, 2, 3])
+        await self._async_command(lambda: self._pydmp_panel.disarm_areas([1, 2, 3]))
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
-        await self._pydmp_panel.arm_areas([1, 2, 3])
+        await self._async_command(lambda: self._pydmp_panel.arm_areas([1, 2, 3]))
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
-        await self._pydmp_panel.arm_areas([self._home_area])
+        await self._async_command(
+            lambda: self._pydmp_panel.arm_areas([self._home_area])
+        )
 
     # arm night is just an arm home with no exit/entry delay
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send arm night command."""
-        await self._pydmp_panel.arm_areas([self._home_area], instant=True)
+        await self._async_command(
+            lambda: self._pydmp_panel.arm_areas([self._home_area], instant=True)
+        )

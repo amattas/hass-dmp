@@ -76,6 +76,28 @@ Add each panel zone you want entities for — the step repeats while
 | Zone Number | The zone number as programmed in the panel (digits only) |
 | Zone Device Class | Pick the device type — Door, Window, Motion Detector, Glass Break Detector, Siren, or Smoke Detector (each in wired or battery-powered variants). This controls which entities the zone gets. |
 
+Home Assistant connects to the panel when you submit step 1, before moving on,
+and shows **Failed to connect** or **Invalid authentication** if that fails
+(see [Troubleshooting](troubleshooting.md)).
+
+### Reconfiguring
+
+To change the panel's address, ports, name or remote key after setup, open the
+panel entry's **⋮** menu in **Settings → Devices & Services → DMP** and choose
+**Reconfigure**. The form starts with the current settings. Home Assistant
+releases its own panel connection, tests the new settings, then reloads the
+integration with them. If the test fails the integration keeps its old settings
+and reconnects. The account number cannot change; to use a different account,
+add a new panel. Zones and areas are kept.
+
+### Re-authenticating
+
+If the panel rejects the remote key (for example after the key was changed
+in panel programming), Home Assistant shows a **Re-authenticate** notification
+under **Settings → Devices & Services**. Enter the panel's current remote key,
+or leave it empty if the panel's key is blank. Home Assistant tests it and
+reloads the integration.
+
 ### Adding or removing zones later
 
 Open the integration's **Configure** option (Settings → Devices & Services →

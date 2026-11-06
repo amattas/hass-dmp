@@ -2,9 +2,12 @@
 
 from unittest.mock import patch
 
+import pytest
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
-from homeassistant.config_entries import ConfigEntryState
+from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
 from homeassistant.core import HomeAssistant
+from pydmp import DMPAuthenticationError
+from pydmp.exceptions import DMPConnectionError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp import DMPListener, DMPPanel, options_update_listener
@@ -14,20 +17,28 @@ from .common import FakeArea
 from .conftest import make_entry_data, setup_entry
 
 
-async def test_async_setup_entry_success(
-    hass: HomeAssistant, mock_config_entry, mock_pydmp
-):
-    """Setup connects, starts the status server and stores per-entry runtime_data."""
+@pytest.mark.parametrize("unique_id", ["12345", None], ids=["current", "pre_unique_id"])
+async def test_async_setup_entry_success(hass: HomeAssistant, mock_pydmp, unique_id):
+    """Setup connects, starts the status server and stores per-entry runtime_data.
+
+    Entries created before unique IDs were set get the account number as theirs.
+    """
     mock_pydmp.areas = [FakeArea(1, "Perimeter", "A"), FakeArea(2, "Interior", "D")]
 
-    entry = await setup_entry(hass, mock_config_entry)
+    entry = await setup_entry(
+        hass,
+        MockConfigEntry(domain=DOMAIN, data=make_entry_data(), unique_id=unique_id),
+    )
 
     assert entry.state is ConfigEntryState.LOADED
+    assert entry.unique_id == "12345"
     (pydmp_panel,) = mock_pydmp.panels
     (status_server,) = mock_pydmp.servers
     assert pydmp_panel.init_kwargs == {"port": 2001}
     pydmp_panel.connect.assert_awaited_once_with("192.168.1.100", "12345", "testkey")
-    pydmp_panel.start_keepalive.assert_awaited_once()
+    pydmp_panel.start_keepalive.assert_awaited_once_with(
+        on_disconnect=entry.runtime_data.listener.handle_disconnect
+    )
     assert (status_server.host, status_server.port) == ("0.0.0.0", 40001)
     status_server.start.assert_awaited_once()
 
@@ -35,6 +46,7 @@ async def test_async_setup_entry_success(
     assert data.pydmp_panel is pydmp_panel
     assert data.status_server is status_server
     assert isinstance(data.listener, DMPListener)
+    assert data.listener.connected is True
     assert isinstance(data.panel, DMPPanel)
     assert data.listener.getPanels() == {"12345": data.panel}
     assert data.config == dict(entry.data)
@@ -46,6 +58,63 @@ async def test_async_setup_entry_success(
     state = hass.states.get("alarm_control_panel.test_panel_arming_control")
     assert state is not None
     assert state.state == AlarmControlPanelState.ARMED_HOME
+
+
+@pytest.mark.parametrize(
+    ("fail", "error", "state", "translation_key"),
+    [
+        (
+            "connect",
+            DMPAuthenticationError("rejected"),
+            ConfigEntryState.SETUP_ERROR,
+            "invalid_auth",
+        ),
+        (
+            "connect",
+            DMPConnectionError("refused"),
+            ConfigEntryState.SETUP_RETRY,
+            "cannot_connect",
+        ),
+        (
+            "connect",
+            OSError("unreachable"),
+            ConfigEntryState.SETUP_RETRY,
+            "cannot_connect",
+        ),
+        ("connect", TimeoutError(), ConfigEntryState.SETUP_RETRY, "cannot_connect"),
+        (
+            "start",
+            OSError("address in use"),
+            ConfigEntryState.SETUP_RETRY,
+            "listen_port_unavailable",
+        ),
+    ],
+    ids=["invalid_auth", "cannot_connect", "os_error", "timeout", "listen_port_in_use"],
+)
+async def test_async_setup_entry_failure(
+    hass: HomeAssistant,
+    mock_config_entry,
+    mock_pydmp,
+    fail,
+    error,
+    state,
+    translation_key,
+):
+    """A rejected key starts reauth; an unreachable panel or busy listener port
+    retries later. Either way the panel connection is released."""
+    setattr(mock_pydmp, f"{fail}_side_effect", error)
+    mock_config_entry.add_to_hass(hass)
+
+    assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert mock_config_entry.state is state
+    assert mock_config_entry.error_reason_translation_key == translation_key
+    mock_pydmp.panels[0].disconnect.assert_awaited_once()
+    flows = hass.config_entries.flow.async_progress_by_handler(DOMAIN)
+    assert [f["context"]["source"] for f in flows] == (
+        [SOURCE_REAUTH] if translation_key == "invalid_auth" else []
+    )
 
 
 async def test_async_unload_entry_success(
