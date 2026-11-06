@@ -7,16 +7,6 @@ import pytest
 from custom_components.dmp import ZONE_STATE_TO_STATUS, DMPPanel
 
 
-def test_zone_state_to_status_mapping():
-    """Test ZONE_STATE_TO_STATUS maps pyDMP states to HA status strings."""
-    assert ZONE_STATE_TO_STATUS["N"] == "Ready"
-    assert ZONE_STATE_TO_STATUS["O"] == "Open"
-    assert ZONE_STATE_TO_STATUS["S"] == "Trouble"
-    assert ZONE_STATE_TO_STATUS["X"] == "Bypass"
-    assert ZONE_STATE_TO_STATUS["L"] == "Low Battery"
-    assert ZONE_STATE_TO_STATUS["M"] == "Trouble"
-
-
 @pytest.fixture
 def mock_panel():
     """Create a mock panel with initialized alarm zones."""
@@ -56,19 +46,14 @@ def test_alarm_zone_default_false(mock_panel):
 @pytest.mark.parametrize(
     "zone_state,expected_status",
     [
-        ("N", "Ready"),
-        ("O", "Open"),
-        ("S", "Trouble"),
-        ("X", "Bypass"),
-        ("L", "Low Battery"),
-        ("M", "Trouble"),
+        ("N", "ready"),
+        ("O", "open"),
+        ("S", "trouble"),
+        ("X", "bypass"),
+        ("L", "low_battery"),
+        ("M", "trouble"),
     ],
 )
 def test_zone_state_to_status_all_states(zone_state, expected_status):
-    """Test all pyDMP zone states map to correct status strings."""
+    """Every pyDMP zone state maps to a status sensor enum option."""
     assert ZONE_STATE_TO_STATUS[zone_state] == expected_status
-
-
-def test_zone_state_to_status_unknown_defaults_ready():
-    """Test unknown zone state defaults to Ready."""
-    assert ZONE_STATE_TO_STATUS.get("Z", "Ready") == "Ready"

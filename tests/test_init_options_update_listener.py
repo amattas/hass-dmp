@@ -16,6 +16,9 @@ from custom_components.dmp.const import (
     DOMAIN,
 )
 
+from .common import entry_devices
+from .conftest import make_entry_data, setup_entry
+
 pytestmark = pytest.mark.asyncio
 
 
@@ -303,3 +306,44 @@ async def test_options_update_filters_by_zone_number(
         assert "binary_sensor.zone_001" in removed_entity_ids
         assert "binary_sensor.zone_010" in removed_entity_ids
         assert len(removed_entity_ids) == 2
+
+
+async def test_options_update_removes_devices_of_removed_zones(
+    hass: HomeAssistant, mock_pydmp
+):
+    """Dropping a zone removes its device; kept devices survive the reload as-is."""
+    zones = [
+        {
+            CONF_ZONE_NAME: "Front Door",
+            CONF_ZONE_NUMBER: "001",
+            CONF_ZONE_CLASS: "wired_door",
+        },
+        {
+            CONF_ZONE_NAME: "Hall",
+            CONF_ZONE_NUMBER: "002",
+            CONF_ZONE_CLASS: "wired_motion",
+        },
+    ]
+    entry = await setup_entry(
+        hass,
+        MockConfigEntry(
+            domain=DOMAIN,
+            data=make_entry_data(**{CONF_ZONES: zones}),
+            unique_id="12345",
+        ),
+    )
+    before = entry_devices(hass, entry)
+    assert before.keys() == {
+        "dmp-12345-panel",
+        "dmp-12345-zone-001",
+        "dmp-12345-zone-002",
+    }
+
+    hass.config_entries.async_update_entry(entry, options={CONF_ZONES: zones[:1]})
+    await hass.async_block_till_done()
+
+    after = entry_devices(hass, entry)
+    assert after.keys() == {"dmp-12345-panel", "dmp-12345-zone-001"}
+    # Same device entries, so user customisations (area, name) are not lost.
+    assert {k: d.id for k, d in after.items()} == {k: before[k].id for k in after}
+    assert entry.data[CONF_ZONES] == zones[:1]

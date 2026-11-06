@@ -15,21 +15,44 @@ HomeKit.
 
 ## Zone monitoring
 
-Each panel zone gets multiple entities.
+Each configured zone becomes a device (linked to the panel device) with
+several entities. Entity names are prefixed with the zone name.
 
 Shown based on device type:
 
-- Window open/close (binary sensor)
-- Door open/close (binary sensor)
-- Alarm (binary sensor)
-- Trouble (binary sensor)
-- Low battery (binary sensor)
+| Entity | Name | Shown for |
+|---|---|---|
+| Open/close (binary sensor) | *Zone name* | Door, window and motion zones, and zones with no device type |
+| Battery (binary sensor, diagnostic) | *Zone name* Battery | Battery-powered zones |
+| Alarm (binary sensor) | *Zone name* Alarm | Door, window, motion and glass break zones |
 
 Shown for every zone:
 
-- Status (sensor — rollup of the binary sensors for faults)
-- Bypass (switch — enable/disable bypass per zone)
+| Entity | Name | Notes |
+|---|---|---|
+| Trouble (binary sensor, diagnostic) | *Zone name* Trouble | Disabled by default |
+| Status (sensor, diagnostic) | *Zone name* Status | Disabled by default. One of `ready`, `open`, `trouble`, `bypass`, `low_battery`, `alarm` (shown translated in the UI) |
+| Bypass (switch, configuration) | *Zone name* Bypass | Turn on to bypass the zone, off to restore it |
 
-The alarm panel device also exposes a **Refresh Status** button that manually
-queries the panel for current zone status and armed state, and the integration provides a
-consolidated status sensor with a high-level overview of every zone.
+Enable the disabled entities from the zone's device page if you need them.
+
+!!! warning "Status sensor values changed"
+    The Status sensor is now an enum sensor whose state is a lowercase key
+    (`ready`, `low_battery`, ...). Automations or templates that compared it
+    with the old values (`Ready`, `Low Battery`, ...) must be updated.
+
+The panel device exposes the **Arming control** alarm panel and a
+**Refresh status** button that manually queries the panel for current zone
+status and armed state; the button's attributes hold a consolidated overview
+of every area and zone from the last query.
+
+## How data is updated
+
+- **Real-time events:** the panel pushes Serial 3 events (zone open/close,
+  alarms, troubles, bypasses, arming and disarming) to the integration's
+  listener port as they happen, so entities update without polling.
+- **Full status:** the complete zone and armed state is queried from the
+  panel at startup and whenever you press **Refresh status** (and after a
+  disarm, since the panel does not report the zones it un-bypasses).
+- **Keep-alive:** a keep-alive is sent to the panel every 10 seconds to hold
+  the connection open.

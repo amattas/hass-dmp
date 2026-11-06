@@ -34,7 +34,7 @@ Virtual Keypad or SecureCom are not supported.
   ([issue #52](https://github.com/amattas/hass-dmp/issues/52)).
 - **Real-time zone updates need panel programming.** Without PC Log Real-Time
   Status and per-zone Zone Real-Time Status enabled, zone sensors only update
-  at startup and on **Refresh Status**.
+  at startup and on **Refresh status**.
 - **One remote session per panel.** DMP panels allow a single remote
   programming connection. While Home Assistant is connected, Dealer Admin and
   Remote Link cannot connect, and vice versa.

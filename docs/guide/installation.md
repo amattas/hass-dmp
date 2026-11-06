@@ -90,7 +90,7 @@ point at Home Assistant — both covered in
 [Panel configuration](panel-configuration.md).
 
 Zone status and the armed state of each area are queried when the integration
-starts and whenever you press the **Refresh Status** button; after that the
+starts and whenever you press the **Refresh status** button; after that the
 panel pushes changes in real time.
 
 ## Removal

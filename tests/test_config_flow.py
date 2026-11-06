@@ -10,7 +10,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.dmp.config_flow import DMPCustomConfigFlow, OptionsFlowHandler
+from custom_components.dmp.config_flow import (
+    SENSOR_TYPES,
+    DMPCustomConfigFlow,
+    OptionsFlowHandler,
+)
 from custom_components.dmp.const import (
     CONF_ADD_ANOTHER,
     CONF_AWAY_AREA,
@@ -19,6 +23,7 @@ from custom_components.dmp.const import (
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DEV_TYPE_WIRED_SIREN,
     DOMAIN,
 )
 
@@ -524,3 +529,10 @@ async def test_async_get_options_flow(hass: HomeAssistant, mock_config_entry):
     flow = DMPCustomConfigFlow()
     options_flow = flow.async_get_options_flow(mock_config_entry)
     assert isinstance(options_flow, OptionsFlowHandler)
+
+
+async def test_zone_type_options_map_to_distinct_device_types():
+    """Each zone device type label selects its own device type (Siren (Wired) bug)."""
+    options = {o["label"]: o["value"] for o in SENSOR_TYPES.config["options"]}
+    assert len(set(options.values())) == len(options)
+    assert options["Siren (Wired)"] == DEV_TYPE_WIRED_SIREN

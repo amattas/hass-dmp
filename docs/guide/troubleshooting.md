@@ -44,7 +44,7 @@ panel must be programmed to send them:
 - The listener binds every interface on the Home Assistant host, so a
   multi-homed host works; make sure a firewall is not blocking the listener
   port.
-- Press **Refresh Status** on the panel device to pull the current state on
+- Press **Refresh status** on the panel device to pull the current state on
   demand; if that updates the sensors, the push path is what is broken.
 
 ## "Unknown account number sending data" in the log

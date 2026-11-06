@@ -58,5 +58,46 @@
       "missing_zone_number": "Enter a zone number.",
       "missing_zone_name": "Enter a zone name."
     }
+  },
+  "entity": {
+    "alarm_control_panel": {
+      "arming": {
+        "name": "Arming control"
+      }
+    },
+    "binary_sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "trouble": {
+        "name": "Trouble"
+      },
+      "alarm": {
+        "name": "Alarm"
+      }
+    },
+    "button": {
+      "refresh_status": {
+        "name": "Refresh status"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "ready": "Ready",
+          "open": "Open",
+          "trouble": "Trouble",
+          "bypass": "Bypass",
+          "low_battery": "Low battery",
+          "alarm": "Alarm"
+        }
+      }
+    },
+    "switch": {
+      "bypass": {
+        "name": "Bypass"
+      }
+    }
   }
 }

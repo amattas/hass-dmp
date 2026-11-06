@@ -38,6 +38,7 @@ from .const import (
     DEV_TYPE_WIRED_DOOR,
     DEV_TYPE_WIRED_GLASSBREAK,
     DEV_TYPE_WIRED_MOTION,
+    DEV_TYPE_WIRED_SIREN,
     DEV_TYPE_WIRED_SMOKE,
     DEV_TYPE_WIRED_WINDOW,
     DOMAIN,
@@ -66,7 +67,7 @@ SENSOR_TYPES = selector(
                 },
                 {"label": "Motion Detector (Wired)", "value": DEV_TYPE_WIRED_MOTION},
                 {"label": "Siren (Battery Powered)", "value": DEV_TYPE_BATTERY_SIREN},
-                {"label": "Siren (Wired)", "value": DEV_TYPE_WIRED_MOTION},
+                {"label": "Siren (Wired)", "value": DEV_TYPE_WIRED_SIREN},
                 {
                     "label": "Smoke Detector (Battery Powered)",
                     "value": DEV_TYPE_BATTERY_SMOKE,

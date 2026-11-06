@@ -12,6 +12,7 @@ from homeassistant.components.alarm_control_panel.const import AlarmControlPanel
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pydmp import Area, DMPStatusServer, S3Message, Zone, parse_s3_message
 from pydmp import DMPPanel as PyDMPPanel
@@ -27,6 +28,7 @@ from .const import (
     CONF_PANEL_REMOTE_PORT,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,14 +51,14 @@ ZONE_STATUS_MAP = {
     "M": "Missing",
 }
 
-# Maps pyDMP single-char zone state to sensor status string (for DMPZoneStatus entity)
+# Maps pyDMP single-char zone state to the DMPZoneStatus enum option
 ZONE_STATE_TO_STATUS = {
-    "N": "Ready",
-    "O": "Open",
-    "S": "Trouble",
-    "X": "Bypass",
-    "L": "Low Battery",
-    "M": "Trouble",
+    "N": "ready",
+    "O": "open",
+    "S": "trouble",
+    "X": "bypass",
+    "L": "low_battery",
+    "M": "trouble",
 }
 
 # Maps pyDMP single-char area state to HA status string
@@ -170,6 +172,23 @@ async def options_update_listener(hass: HomeAssistant, entry: DMPConfigEntry) ->
         _LOGGER.debug(f"Zone entities to be deleted: {deleted_entries}")
         for de in deleted_entries:
             entity_registry.async_remove(de)
+
+        # Remove the devices of zones that are no longer configured
+        account = config[CONF_PANEL_ACCOUNT_NUMBER]
+        zone_prefix = f"dmp-{account}-zone-"
+        active_devices = {f"{zone_prefix}{zone}" for zone in active_zones}
+        device_registry = dr.async_get(hass)
+        for device in dr.async_entries_for_config_entry(
+            device_registry, entry.entry_id
+        ):
+            if any(
+                domain == DOMAIN
+                and ident.startswith(zone_prefix)
+                and ident not in active_devices
+                for domain, ident in device.identifiers
+            ):
+                _LOGGER.debug("Removing device of deleted zone: %s", device.name)
+                device_registry.async_remove_device(device.id)
 
         # Get and replace zones config
         _LOGGER.debug(f"Current config zones: {config[CONF_ZONES]}")

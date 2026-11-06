@@ -1,0 +1,75 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "open_close": {
+        "default": "mdi:door-closed",
+        "state": {
+          "on": "mdi:door-open",
+          "off": "mdi:door-closed"
+        }
+      },
+      "door": {
+        "default": "mdi:door-closed",
+        "state": {
+          "on": "mdi:door-open",
+          "off": "mdi:door-closed"
+        }
+      },
+      "window": {
+        "default": "mdi:window-closed",
+        "state": {
+          "on": "mdi:window-open",
+          "off": "mdi:window-closed"
+        }
+      },
+      "motion": {
+        "default": "mdi:motion-sensor-off",
+        "state": {
+          "on": "mdi:motion-sensor",
+          "off": "mdi:motion-sensor-off"
+        }
+      },
+      "trouble": {
+        "default": "mdi:check-circle",
+        "state": {
+          "on": "mdi:alert-circle",
+          "off": "mdi:check-circle"
+        }
+      },
+      "alarm": {
+        "default": "mdi:check",
+        "state": {
+          "on": "mdi:alarm-bell",
+          "off": "mdi:check"
+        }
+      }
+    },
+    "button": {
+      "refresh_status": {
+        "default": "mdi:refresh"
+      }
+    },
+    "sensor": {
+      "status": {
+        "default": "mdi:check",
+        "state": {
+          "ready": "mdi:check",
+          "open": "mdi:door-open",
+          "trouble": "mdi:alert",
+          "bypass": "mdi:alert",
+          "low_battery": "mdi:battery-alert",
+          "alarm": "mdi:alarm-bell"
+        }
+      }
+    },
+    "switch": {
+      "bypass": {
+        "default": "mdi:shield",
+        "state": {
+          "on": "mdi:shield-off",
+          "off": "mdi:shield"
+        }
+      }
+    }
+  }
+}
