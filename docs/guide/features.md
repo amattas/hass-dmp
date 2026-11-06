@@ -31,5 +31,5 @@ Shown for every zone:
 - Bypass (switch — enable/disable bypass per zone)
 
 The alarm panel device also exposes a **Refresh Status** button that manually
-queries the panel for current zone status, and the integration provides a
+queries the panel for current zone status and armed state, and the integration provides a
 consolidated status sensor with a high-level overview of every zone.

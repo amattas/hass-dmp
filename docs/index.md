@@ -12,12 +12,18 @@ Serial 3 push protocol (powered by [pydmp](https://amattas.github.io/pydmp/)).
 
 ## Guides
 
-- [Installation](guide/installation.md) — install the custom component and set
-  it up via the config flow.
+- [Installation](guide/installation.md) — install through HACS (or manually),
+  set it up via the config flow, and remove it again.
 - [Panel configuration](guide/panel-configuration.md) — where each config-flow
   value lives in panel programming.
-- [Features](guide/features.md) — the arming model, zone entities, and status
-  sensors.
+- [Features](guide/features.md) — the arming model, zone entities, status
+  sensors, and how data is updated.
+- [Use cases and automations](guide/automations.md) — what you can do with
+  the integration, with ready-to-paste automation examples.
+- [Supported devices and limitations](guide/limitations.md) — which panels
+  work and what the integration does not do yet.
+- [Troubleshooting](guide/troubleshooting.md) — common problems, diagnostics,
+  and debug logging.
 
 ## Requirements
 

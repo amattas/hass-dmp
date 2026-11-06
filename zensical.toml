@@ -21,6 +21,9 @@ nav = [
     { "Installation" = "guide/installation.md" },
     { "Panel configuration" = "guide/panel-configuration.md" },
     { "Features" = "guide/features.md" },
+    { "Use cases and automations" = "guide/automations.md" },
+    { "Supported devices and limitations" = "guide/limitations.md" },
+    { "Troubleshooting" = "guide/troubleshooting.md" },
   ] },
 ]
 

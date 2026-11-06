@@ -1,19 +1,37 @@
 # Installation
 
-The integration implements a Home Assistant configuration flow, so setup is a
-copy plus a few clicks.
+The integration installs through [HACS](https://hacs.xyz/) and is set up from
+the Home Assistant UI with a configuration flow.
 
 ## Before you start
 
-The config flow asks for the panel's account number and remote key, and the
-panel needs a few programming options set (PC Log Reports, per-zone real-time
-status) for live updates. See [Panel configuration](panel-configuration.md)
-for exactly where each value lives in panel programming.
+You need:
 
-## Install
+- A DMP XR-series panel reachable from Home Assistant over TCP/IP.
+- The panel's **account number** and **remote key**, and a few panel
+  programming options set (Remote Options, PC Log Reports, per-zone real-time
+  status) for live updates. See [Panel configuration](panel-configuration.md)
+  for exactly where each value lives in panel programming.
+- [HACS](https://hacs.xyz/docs/use/download/download/) installed in Home
+  Assistant (for the recommended install path).
 
-1. Check out the repository and copy `custom_components/dmp` into your Home
-   Assistant configuration directory:
+## Install with HACS (recommended)
+
+1. In Home Assistant open **HACS**, then the **⋮** menu (top right) →
+   **Custom repositories**.
+2. Add `https://github.com/amattas/hass-dmp` with category **Integration**.
+3. Search HACS for **DMP** and choose **Download**.
+4. Restart Home Assistant when HACS prompts you.
+5. Go to **Settings → Devices & Services → Add integration**, search for
+   **DMP**, and follow the config flow below.
+
+HACS will offer updates to the integration whenever a new release is published.
+
+## Install manually
+
+1. Download the latest release from the
+   [releases page](https://github.com/amattas/hass-dmp/releases) and copy
+   `custom_components/dmp` into your Home Assistant configuration directory:
 
    ```bash
    cp -r <REPO>/custom_components/dmp <HASS CONFIG>/custom_components/dmp
@@ -71,6 +89,21 @@ enabled in the zone information menu for each zone, and PC Log Reports must
 point at Home Assistant — both covered in
 [Panel configuration](panel-configuration.md).
 
-Zone status is queried when the integration starts (restart Home Assistant
-after adding new zones). The armed state is not queried at startup — it is
-assumed disarmed.
+Zone status and the armed state of each area are queried when the integration
+starts and whenever you press the **Refresh Status** button; after that the
+panel pushes changes in real time.
+
+## Removal
+
+1. Go to **Settings → Devices & Services → DMP**, open the **⋮** menu on the
+   panel entry and choose **Delete**. This disconnects from the panel and
+   removes the panel and zone devices and all their entities.
+2. If you installed with HACS: open **HACS**, find **DMP**, and choose
+   **Remove**. If you installed manually, delete
+   `<HASS CONFIG>/custom_components/dmp`.
+3. Restart Home Assistant.
+
+Removing the integration does not change anything on the panel itself. If you
+no longer want the panel to send events to Home Assistant, clear the PC Log
+Reports network settings described in
+[Panel configuration](panel-configuration.md).

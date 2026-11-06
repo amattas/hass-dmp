@@ -35,10 +35,21 @@ The alarm panel itself has a *Refresh Status* button which will manually query t
 
 It's important to note that in order for these sensor to be updated you must have "Zone Real-Time Status" enabled in the zone information menu for each zone you want real-time status for. Your dealer should be able to easily enable this for you. 
 
-Additionally the integration provides a consolidated status sensor that provides a high level overview of each zone. Zone status will be queried when the integration starts (may need to restart after adding new zones to query status). The current armed state is not queried - that is assumed to be disarmed on startup. 
+Additionally the integration provides a consolidated status sensor that provides a high level overview of each zone. Zone status will be queried when the integration starts (may need to restart after adding new zones to query status). The armed state and zone status are queried from the panel at startup and whenever the *Refresh Status* button is pressed. 
 
-## Setup Instructions
-This integration implements a Home Assistant configuration flow to simplify setup. To install, simply checkout this repo and copy `<REPO>/custom_components/dmp` to `<HASS INSTALL>/config/custom_components/dmp` and restart Home Assistant. Once installed the integration can be added from the control panel by searching for DMP.
+## Installation
+
+### HACS (recommended)
+1. In HACS open **⋮ → Custom repositories** and add `https://github.com/amattas/hass-dmp` with category **Integration**.
+2. Search HACS for **DMP** and choose **Download**, then restart Home Assistant when prompted.
+3. Go to **Settings → Devices & Services → Add integration**, search for **DMP**, and follow the configuration flow.
+
+HACS offers updates automatically whenever a new release is published.
+
+### Manual
+Download the latest [release](https://github.com/amattas/hass-dmp/releases), copy `custom_components/dmp` to `<HASS CONFIG>/custom_components/dmp`, restart Home Assistant, and add the integration from **Settings → Devices & Services**.
+
+Full setup, panel programming, troubleshooting and removal instructions are in the [documentation](https://amattas.github.io/hass-dmp/).
 
 ## Planned Updates
 * Track status of each area individually, support more than areas 01, 02 and 03
