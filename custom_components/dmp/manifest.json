@@ -1,13 +1,20 @@
 {
   "domain": "dmp",
   "name": "Digital Monitoring Products Alarm and Access",
-  "codeowners": ["@amattas"],
+  "codeowners": [
+    "@amattas"
+  ],
   "config_flow": true,
-  "dependencies": ["alarm_control_panel", "network"],
+  "dependencies": [
+    "alarm_control_panel"
+  ],
   "documentation": "https://amattas.github.io/hass-dmp/",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/amattas/hass-dmp/issues",
-  "requirements": ["pydmp==1.0.1"],
-  "version": "1.0.1"
+  "quality_scale": "silver",
+  "requirements": [
+    "pydmp==1.2.0"
+  ],
+  "version": "1.1.0"
 }

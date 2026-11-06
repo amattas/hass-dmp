@@ -18,7 +18,7 @@ dev = [
     "bandit",
     "homeassistant",
     "mypy==2.4.1",
-    "pydmp==1.1.0",
+    "pydmp==1.2.0",
     "pytest",
     "pytest-cov",
     "pytest-homeassistant-custom-component",
@@ -46,8 +46,3 @@ strict = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-# pydmp is fully annotated but ships no py.typed marker.
-module = ["pydmp", "pydmp.*"]
-follow_untyped_imports = true

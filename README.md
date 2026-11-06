@@ -18,24 +18,21 @@ This integration implements a simplified arming/disarming model from the panel's
 * Arm Night - arms the home area with the **instant** flag. This disables delay doors for exit and entry - alarm will trigger immediately if any zone is faulted. Shows as armed home from a status POV (haven't found a way to differentiate)
 
 ### Zone Monitoring
-This integration provides multiple entities for each zone provided by the panel. 
+Each configured zone becomes a device with these entities:
 
-___Entities shown based on device type:___
-* Window Open/Close (binary sensor)
-* Door Open/Close (binary sensor)
-* Alarm (binary sensor)
-* Trouble (binary sensor)
-* Low Battery (binary sensor)
+___Shown based on device type:___
+* Open/close (binary sensor, named after the zone) for door, window and motion zones
+* Alarm (binary sensor) for door, window, motion and glass-break zones
+* Battery (binary sensor) for battery-powered zones
 
-___Entities shown regardless of device type:___
-* Status (sensor - rollup of binary sensors for faults)
-* Bypass (switch - allow for enable/disable of bypass for each zone)
+___Shown for every zone:___
+* Trouble (binary sensor, diagnostic, disabled by default)
+* Status (enum sensor, diagnostic, disabled by default): `ready`, `open`, `trouble`, `bypass`, `low_battery` or `alarm`
+* Bypass (switch)
 
-The alarm panel itself has a *Refresh Status* button which will manually query the panel for current zone status. 
+The panel device has the arming control and a *Refresh status* button that queries the panel for the current armed state and zone status.
 
-It's important to note that in order for these sensor to be updated you must have "Zone Real-Time Status" enabled in the zone information menu for each zone you want real-time status for. Your dealer should be able to easily enable this for you. 
-
-Additionally the integration provides a consolidated status sensor that provides a high level overview of each zone. Zone status will be queried when the integration starts (may need to restart after adding new zones to query status). The armed state and zone status are queried from the panel at startup and whenever the *Refresh Status* button is pressed. 
+Zone sensors update in real time from events the panel pushes, which requires "Zone Real-Time Status" to be enabled in the zone information menu for each zone (your dealer can enable this). The armed state and zone status are also queried at startup and whenever *Refresh status* is pressed.
 
 ## Installation
 
@@ -52,12 +49,9 @@ Download the latest [release](https://github.com/amattas/hass-dmp/releases), cop
 Full setup, panel programming, troubleshooting and removal instructions are in the [documentation](https://amattas.github.io/hass-dmp/).
 
 ## Planned Updates
-* Track status of each area individually, support more than areas 01, 02 and 03
-* Validate configuration inputs
-* Simplification of platform code
-* Separation of panel specific listener code
-* Unit testing
-* Dynamic discovery of zones/areas
+* Track status of each area individually and make the Arm Away areas configurable (#34)
+* Discover the panel and enumerate its zones and areas automatically (#52)
+* Separate fire alarm handling (#62)
 
 ## Credit
 Thank you to [baddienatalie](https://community.home-assistant.io/u/baddienatalie/summary) in the Home Assistant community. They made the first [pass at this integration](https://git.natnat.xyz/hass-dmp-integration/dmp), which was forked and used as the base for this integration. This was my first Home Assistant integration and I have learned a lot along the way. There was a lot of trial and error as I worked through the documentation, and as suchthere is a lot to cleanup and optimize now. 
