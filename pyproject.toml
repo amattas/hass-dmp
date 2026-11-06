@@ -18,7 +18,7 @@ dev = [
     "bandit",
     "homeassistant",
     "mypy==2.4.1",
-    "pydmp==1.2.0",
+    "pydmp==1.2.0b1",
     "pytest",
     "pytest-cov",
     "pytest-homeassistant-custom-component",

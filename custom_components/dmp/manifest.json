@@ -14,7 +14,7 @@
   "issue_tracker": "https://github.com/amattas/hass-dmp/issues",
   "quality_scale": "silver",
   "requirements": [
-    "pydmp==1.2.0"
+    "pydmp==1.2.0b1"
   ],
   "version": "1.1.0"
 }

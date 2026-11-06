@@ -7,7 +7,7 @@ mattas-net/standards.
 
 - **pydmp changes are in scope.** Platinum `strict-typing` needs pydmp to ship
   a `py.typed` marker, and the reauth flow needs `DMPAuthenticationError` raised
-  from `connect()`. Both land in pydmp 1.2.0; hass-dmp pins `pydmp==1.2.0`.
+  from `connect()`. Both land in pydmp 1.2.0-beta1 (PyPI 1.2.0b1); hass-dmp pins `pydmp==1.2.0b1` until the final 1.2.0.
 - **One `DMPStatusServer` per config entry.** Each entry owns its own status
   server on its own listen port, held in `ConfigEntry.runtime_data`. The config
   flow rejects a listen port already used by another entry. A shared server
