@@ -129,9 +129,18 @@ class DMPCustomConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.data = user_input
-            self.data[CONF_ZONES] = []
-            return await self.async_step_areas()
+            await self.async_set_unique_id(user_input[CONF_PANEL_ACCOUNT_NUMBER])
+            self._abort_if_unique_id_configured()
+            listen_port = user_input.get(CONF_PANEL_LISTEN_PORT)
+            if any(
+                entry.data.get(CONF_PANEL_LISTEN_PORT) == listen_port
+                for entry in self._async_current_entries()
+            ):
+                errors[CONF_PANEL_LISTEN_PORT] = "listen_port_in_use"
+            else:
+                self.data = user_input
+                self.data[CONF_ZONES] = []
+                return await self.async_step_areas()
         return self.async_show_form(
             step_id="user",
             data_schema=PANEL_SCHEMA,  # type: ignore[arg-type]

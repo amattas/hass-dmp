@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, TypedDict
 
@@ -12,8 +13,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from pydmp import Area, DMPStatusServer, S3Message, Zone, parse_s3_message
 from pydmp import DMPPanel as PyDMPPanel
-from pydmp import DMPStatusServer, S3Message, Zone, parse_s3_message
 from pydmp.const.events import DMPEventType
 
 from .const import (
@@ -26,10 +27,6 @@ from .const import (
     CONF_PANEL_REMOTE_PORT,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
-    DOMAIN,
-    LISTENER,
-    PYDMP_PANEL,
-    STATUS_SERVER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,9 +61,13 @@ ZONE_STATE_TO_STATUS = {
 
 # Maps pyDMP single-char area state to HA status string
 AREA_STATUS_MAP = {
-    "A": "Armed",
+    "A": "Armed Away",
+    "S": "Armed Stay",
     "D": "Disarmed",
 }
+
+# pyDMP area states that mean the area is armed (away or stay)
+ARMED_AREA_STATES = frozenset({"A", "S"})
 
 UpdateCallback = Callable[[], Awaitable[None]]
 
@@ -78,12 +79,23 @@ class AreaStatus(TypedDict):
     areaState: AlarmControlPanelState
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+@dataclass(slots=True)
+class DMPRuntimeData:
+    """Objects owned by one DMP config entry."""
+
+    pydmp_panel: PyDMPPanel
+    status_server: DMPStatusServer
+    listener: DMPListener
+    panel: DMPPanel
+    config: dict[str, Any]
+
+
+type DMPConfigEntry = ConfigEntry[DMPRuntimeData]
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool:
     """Set up platform from a ConfigEntry."""
-    hass.data.setdefault(DOMAIN, {})
     config = dict(entry.data)
-    # Create Options Callback
-    entry.add_update_listener(options_update_listener)
     _LOGGER.debug("Loaded config %s", config)
 
     # Create pyDMP panel and connect
@@ -95,7 +107,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await pydmp_panel.connect(ip, account, remote_key)
     await pydmp_panel.start_keepalive()
 
-    # Create status server for realtime events
+    # Create status server for realtime events (one per entry, own listen port)
     listen_port: int = config[CONF_PANEL_LISTEN_PORT]
     status_server = DMPStatusServer("0.0.0.0", listen_port)
 
@@ -111,36 +123,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Start status server
     await status_server.start()
 
-    # Store everything in hass.data
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][PYDMP_PANEL] = pydmp_panel
-    hass.data[DOMAIN][STATUS_SERVER] = status_server
-    hass.data[DOMAIN][entry.entry_id] = config
+    entry.runtime_data = DMPRuntimeData(
+        pydmp_panel=pydmp_panel,
+        status_server=status_server,
+        listener=listener,
+        panel=panel,
+        config=config,
+    )
+    entry.async_on_unload(entry.add_update_listener(options_update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     hass.async_create_task(listener.updateStatus())
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: DMPConfigEntry) -> bool:
     _LOGGER.debug("Unloading entry.")
-    status_server = hass.data[DOMAIN][STATUS_SERVER]
-    pydmp_panel = hass.data[DOMAIN][PYDMP_PANEL]
-
-    # Stop status server
-    await status_server.stop()
-
-    # Stop keepalive and disconnect
-    await pydmp_panel.stop_keepalive()
-    await pydmp_panel.disconnect()
-
     unload_ok: bool = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+        data = entry.runtime_data
+        await data.status_server.stop()
+        await data.pydmp_panel.stop_keepalive()
+        await data.pydmp_panel.disconnect()
     return unload_ok
 
 
-async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def options_update_listener(hass: HomeAssistant, entry: DMPConfigEntry) -> None:
     _LOGGER.debug("Options flow completed.")
     entity_registry = er.async_get(hass)
     config = dict(entry.data)
@@ -212,6 +220,9 @@ class DMPPanel:
 
     def get_alarm(self, zone_number: str) -> bool:
         return self._alarm_zones.get(zone_number, False)
+
+    def has_active_alarm(self) -> bool:
+        return any(self._alarm_zones.values())
 
     def ensure_zone(self, zone_num: str | int) -> Zone | None:
         try:
@@ -420,30 +431,47 @@ class DMPListener:
             return
         zoneStatus: dict[str, dict[str, str]] = {}
         areaStatus: dict[str, dict[str, str]] = {}
-        for _panel in self._panels.values():
+        for panel in self._panels.values():
             await self._pydmp_panel.update_status()
-            # Read zone states from pyDMP
-            zoneStatus = {}
-            for zone_num, zone_obj in self._pydmp_panel._zones.items():
-                zone_num_str = f"{zone_num:03d}"
-                status_str = ZONE_STATUS_MAP.get(zone_obj.state, zone_obj.state)
-                zoneStatus[zone_num_str] = {
-                    "name": zone_obj.name,
-                    "status": status_str,
-                }
+            zones = await self._pydmp_panel.get_zones()
+            areas = await self._pydmp_panel.get_areas()
 
-            # Read area states from pyDMP
-            areaStatus = {}
-            for area_num, area_obj in self._pydmp_panel._areas.items():
-                area_num_str = f"{area_num:02d}"
-                area_status_str = AREA_STATUS_MAP.get(area_obj.state, area_obj.state)
-                areaStatus[area_num_str] = {
-                    "name": area_obj.name,
-                    "status": area_status_str,
+            zoneStatus = {
+                f"{zone.number:03d}": {
+                    "name": zone.name,
+                    "status": ZONE_STATUS_MAP.get(zone.state, zone.state),
                 }
+                for zone in zones
+            }
+            areaStatus = {
+                f"{area.number:02d}": {
+                    "name": area.name,
+                    "status": AREA_STATUS_MAP.get(area.state, area.state),
+                }
+                for area in areas
+            }
+            panel.updateArea(self._area_status_from(panel, areas))
 
         self.setStatusAttributes(areaStatus, zoneStatus)
         await self.updateHASS()
+
+    def _area_status_from(self, panel: DMPPanel, areas: list[Area]) -> AreaStatus:
+        """Derive the alarm panel state from the panel's queried area states."""
+        by_number = {area.number: area for area in areas}
+        home = by_number.get(int(self._home_area))
+        away = by_number.get(int(self._away_area))
+        source = home
+        if panel.has_active_alarm():
+            state = AlarmControlPanelState.TRIGGERED
+        elif away is not None and away.state in ARMED_AREA_STATES:
+            state = AlarmControlPanelState.ARMED_AWAY
+            source = away
+        elif home is not None and home.state in ARMED_AREA_STATES:
+            state = AlarmControlPanelState.ARMED_HOME
+        else:
+            state = AlarmControlPanelState.DISARMED
+        name = source.name if source is not None else ""
+        return AreaStatus(areaName=name, areaState=state)
 
     def setStatusAttributes(
         self,

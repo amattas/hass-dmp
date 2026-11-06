@@ -8,6 +8,7 @@ import voluptuous_serialize
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.dmp.config_flow import DMPCustomConfigFlow, OptionsFlowHandler
 from custom_components.dmp.const import (
@@ -18,6 +19,7 @@ from custom_components.dmp.const import (
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
+    DOMAIN,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -54,25 +56,54 @@ async def test_form_schemas_serialize(hass: HomeAssistant):
     _assert_schema_serializes(result["data_schema"])
 
 
-async def test_form_user_to_areas(hass: HomeAssistant):
-    """Test user input progresses to areas step."""
-    flow = DMPCustomConfigFlow()
-    flow.hass = hass
+USER_INPUT = {
+    "panel_name": "Test Panel",
+    "ip": "192.168.1.100",
+    "listen_port": 40002,
+    "remote_port": 40001,
+    "account_number": "12345",
+}
 
-    user_input = {
-        "panel_name": "Test Panel",
-        "ip": "192.168.1.100",
-        "listen_port": 40002,
-        "remote_port": 40001,
-        "account_number": "12345",
-    }
 
-    result = await flow.async_step_user(user_input)
+@pytest.mark.parametrize(
+    ("existing", "expected"),
+    [
+        (None, {"type": FlowResultType.FORM, "step_id": "areas", "errors": {}}),
+        (
+            {"account_number": "12345", "listen_port": 40099},
+            {"type": FlowResultType.ABORT, "reason": "already_configured"},
+        ),
+        (
+            {"account_number": "99999", "listen_port": 40002},
+            {
+                "type": FlowResultType.FORM,
+                "step_id": "user",
+                "errors": {"listen_port": "listen_port_in_use"},
+            },
+        ),
+    ],
+    ids=["new_panel", "duplicate_account", "listen_port_in_use"],
+)
+async def test_form_user_submit(hass: HomeAssistant, existing, expected):
+    """Submitting the user step advances, aborts on a duplicate account, or
+    rejects a listen port another entry already uses."""
+    if existing is not None:
+        MockConfigEntry(
+            domain=DOMAIN, data=existing, unique_id=existing["account_number"]
+        ).add_to_hass(hass)
 
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "areas"
-    assert flow.data == user_input
-    assert flow.data[CONF_ZONES] == []
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], dict(USER_INPUT)
+    )
+
+    assert {key: result.get(key) for key in expected} == expected
+    if expected["type"] is FlowResultType.FORM and expected["step_id"] == "areas":
+        flow = hass.config_entries.flow._progress[result["flow_id"]]
+        assert flow.unique_id == "12345"
+        assert flow.data == {**USER_INPUT, CONF_ZONES: []}
 
 
 async def test_form_areas_to_zones(hass: HomeAssistant):

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Configuation Constants
 DOMAIN = "dmp"
-LISTENER = "dmp_listener"
 
 CONF_PANEL = "panel"
 CONF_PANEL_NAME = "panel_name"
@@ -51,7 +50,3 @@ BATTERY_LEVEL = "BatteryLevel"
 
 # Other Constants
 PANEL_ALL_AREAS = "010203"
-
-# pyDMP object keys for hass.data
-PYDMP_PANEL = "pydmp_panel"
-STATUS_SERVER = "status_server"

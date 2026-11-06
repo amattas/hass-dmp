@@ -13,7 +13,7 @@ from custom_components.dmp.const import (
     DOMAIN,
 )
 
-pytestmark = pytest.mark.usefixtures("init_integration")
+pytestmark = pytest.mark.usefixtures("entry_with_listener")
 
 
 @pytest.fixture

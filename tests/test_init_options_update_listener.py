@@ -14,7 +14,6 @@ from custom_components.dmp.const import (
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
 
 pytestmark = pytest.mark.asyncio
@@ -85,11 +84,6 @@ def mock_entity_registry(mock_entity_entries):
 
 async def test_options_update_no_changes(hass: HomeAssistant, mock_config_entry):
     """Test options update with no changes."""
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
-
     entry_with_no_options = MockConfigEntry(
         domain=DOMAIN,
         data=mock_config_entry.data,
@@ -99,18 +93,13 @@ async def test_options_update_no_changes(hass: HomeAssistant, mock_config_entry)
 
     await options_update_listener(hass, entry_with_no_options)
 
-    assert hass.data[DOMAIN][mock_config_entry.entry_id] == mock_config_entry.data
+    assert entry_with_no_options.data == mock_config_entry.data
 
 
 async def test_options_update_zone_removed(
     hass: HomeAssistant, mock_config_entry, mock_entity_registry, mock_entity_entries
 ):
     """Test removing a zone removes its entities."""
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
-
     entry_with_options = MockConfigEntry(
         domain=DOMAIN,
         data=mock_config_entry.data,
@@ -155,11 +144,6 @@ async def test_options_update_zone_added(
     hass: HomeAssistant, mock_config_entry, mock_entity_registry
 ):
     """Test adding a zone updates config."""
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
-
     zones_with_new = mock_config_entry.data[CONF_ZONES].copy()
     zones_with_new.append(
         {
@@ -204,11 +188,6 @@ async def test_options_update_zone_modified(
     hass: HomeAssistant, mock_config_entry, mock_entity_registry
 ):
     """Test modifying a zone name updates config."""
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
-
     zones_modified = mock_config_entry.data[CONF_ZONES].copy()
     zones_modified[0][CONF_ZONE_NAME] = "Main Entrance"
 
@@ -249,11 +228,6 @@ async def test_options_update_handles_missing_platform(
     bad_entity = Mock()
     bad_entity.entity_id = "binary_sensor.zone_999"
     bad_entity.unique_id = "dmp-12345-zone-999"
-
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
 
     entry_with_options = MockConfigEntry(
         domain=DOMAIN,
@@ -296,11 +270,6 @@ async def test_options_update_filters_by_zone_number(
     entity2.unique_id = "dmp-12345-zone-010"
     entity2.platform = "binary_sensor"
     entities.append(entity2)
-
-    hass.data[DOMAIN] = {
-        mock_config_entry.entry_id: mock_config_entry.data.copy(),
-        LISTENER: Mock(),
-    }
 
     remaining_zones = [
         z for z in mock_config_entry.data[CONF_ZONES] if z[CONF_ZONE_NUMBER] != "001"

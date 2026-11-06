@@ -17,8 +17,9 @@ from custom_components.dmp.const import (
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
+
+from .common import attach_runtime_data
 
 
 def _make_panel_mock():
@@ -155,9 +156,7 @@ async def test_platform_async_setup_entry(
     panel.getAccountNumber.return_value = acct
     listener.getPanels.return_value = {acct: panel}
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][entry.entry_id] = platform_config
+    attach_runtime_data(entry, listener, platform_config)
 
     entities = []
 

@@ -9,7 +9,6 @@ from custom_components.dmp import const
     "const_name,expected",
     [
         ("DOMAIN", "dmp"),
-        ("LISTENER", "dmp_listener"),
     ],
 )
 def test_component_constants(const_name, expected):
@@ -83,8 +82,6 @@ def test_attribute_constants(const_name, expected):
     "const_name,expected",
     [
         ("PANEL_ALL_AREAS", "010203"),
-        ("PYDMP_PANEL", "pydmp_panel"),
-        ("STATUS_SERVER", "status_server"),
     ],
 )
 def test_other_constants(const_name, expected):

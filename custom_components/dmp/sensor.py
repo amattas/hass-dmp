@@ -6,13 +6,12 @@ import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import ZONE_STATE_TO_STATUS, DMPListener
+from . import ZONE_STATE_TO_STATUS, DMPConfigEntry, DMPListener
 from .const import (
     CONF_PANEL_ACCOUNT_NUMBER,
     CONF_ZONE_CLASS,
@@ -20,7 +19,6 @@ from .const import (
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,13 +26,12 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: DMPConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup sensors from a config entry created in the integrations UI."""
     _LOGGER.debug("Setting up sensors.")
-    hass.data.setdefault(DOMAIN, {})
-    config = hass.data[DOMAIN][config_entry.entry_id]
+    config = config_entry.runtime_data.config
     _LOGGER.debug(f"Sensor config: {config}")
     # Add all zones to trouble zones
     statusZones = [
@@ -47,15 +44,15 @@ class DMPZoneStatus(SensorEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        config_entry: DMPConfigEntry,
         entity_config: dict[str, Any],
     ) -> None:
         self._hass = hass
         self._config_entry = config_entry
-        config = hass.data[DOMAIN][config_entry.entry_id]
+        config = config_entry.runtime_data.config
         _LOGGER.debug(f"Config is: {entity_config}")
         self._accountNum: str | None = config.get(CONF_PANEL_ACCOUNT_NUMBER)
-        self._listener: DMPListener = self._hass.data[DOMAIN][LISTENER]
+        self._listener: DMPListener = config_entry.runtime_data.listener
         self._name = f"{entity_config.get(CONF_ZONE_NAME)} Status"
         self._device_name: str | None = entity_config.get(CONF_ZONE_NAME)
         self._number: str = entity_config.get(CONF_ZONE_NUMBER, "")

@@ -14,8 +14,9 @@ from custom_components.dmp.const import (
     CONF_HOME_AREA,
     CONF_PANEL_ACCOUNT_NUMBER,
     DOMAIN,
-    LISTENER,
 )
+
+from .common import attach_runtime_data
 
 
 @pytest.fixture
@@ -58,9 +59,7 @@ async def test_async_setup_entry_creates_area_entity(
 ):
     """Test that async_setup_entry adds a DMPArea entity."""
     listener, _panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+    attach_runtime_data(mock_config_entry, listener)
     entities = []
 
     def async_add(ents, update_before_add=True):
@@ -77,17 +76,13 @@ def test_dmparea_initialization(
 ):
     """Verify DMPArea initializes with expected values."""
     listener, panel = mock_listener_panel
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+    attach_runtime_data(mock_config_entry, listener)
     area = DMPArea(listener, mock_config_entry.data)
     assert area._name == "Test Panel Arming Control"
     assert area._home_zone == "01"
     assert area._away_zone == "02"
     assert area._account_number == "12345"
-    panel.updateArea.assert_called_once_with(
-        {"areaName": area.name, "areaState": AlarmControlPanelState.DISARMED}
-    )
+    panel.updateArea.assert_not_called()
 
 
 @pytest.mark.asyncio

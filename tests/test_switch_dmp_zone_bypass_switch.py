@@ -15,7 +15,7 @@ from custom_components.dmp.const import (
 )
 from custom_components.dmp.switch import DMPZoneBypassSwitch
 
-pytestmark = pytest.mark.usefixtures("init_integration")
+pytestmark = pytest.mark.usefixtures("entry_with_listener")
 
 
 @pytest.fixture
@@ -147,7 +147,7 @@ def test_initial_ensure_zone_called(
 def test_device_info_and_poll(
     hass: HomeAssistant, mock_config_entry, mock_listener_panel
 ):
-    """Test device_info identifiers and default should_poll property."""
+    """Test device_info identifiers and that the push-updated switch does not poll."""
     _listener, _panel = mock_listener_panel
     zone_config = {
         CONF_ZONE_NAME: "Front Door",
@@ -155,7 +155,7 @@ def test_device_info_and_poll(
         CONF_ZONE_CLASS: "wired_door",
     }
     switch = DMPZoneBypassSwitch(hass, mock_config_entry, zone_config)
-    assert switch.should_poll is True
+    assert switch.should_poll is False
     device_info = switch.device_info
     expected_id = (DOMAIN, "dmp-12345-zone-001")
     assert expected_id in device_info["identifiers"]

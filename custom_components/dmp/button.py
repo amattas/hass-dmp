@@ -3,37 +3,37 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DMPListener
-from .const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_NAME, DOMAIN, LISTENER
+from . import DMPConfigEntry, DMPListener
+from .const import CONF_PANEL_ACCOUNT_NUMBER, CONF_PANEL_NAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: DMPConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     _LOGGER.info("Setting up alarm refresh button")
-    hass.data.setdefault(DOMAIN, {})
     refreshButtons: list[DMPRefreshStatusButton] = []
     refreshButtons.append(DMPRefreshStatusButton(hass, config_entry))
     async_add_entities(refreshButtons, update_before_add=False)
 
 
 class DMPRefreshStatusButton(ButtonEntity):
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    _attr_should_poll = False
+
+    def __init__(self, hass: HomeAssistant, config_entry: DMPConfigEntry) -> None:
         self._hass = hass
         self._config_entry = config_entry
-        config = hass.data[DOMAIN][config_entry.entry_id]
+        config = config_entry.runtime_data.config
         self._panel_name: str | None = config.get(CONF_PANEL_NAME)
         self._accountNum: str | None = config.get(CONF_PANEL_ACCOUNT_NUMBER)
-        self._listener: DMPListener = self._hass.data[DOMAIN][LISTENER]
+        self._listener: DMPListener = config_entry.runtime_data.listener
         self._name = "Refresh Status"
 
     async def async_added_to_hass(self) -> None:

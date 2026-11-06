@@ -33,7 +33,11 @@
     },
     "error": {
       "invalid_area_number": "Area number must contain only digits.",
-      "invalid_zone_number": "Zone number must contain only digits."
+      "invalid_zone_number": "Zone number must contain only digits.",
+      "listen_port_in_use": "Another DMP panel already uses this listener port. Choose a different port."
+    },
+    "abort": {
+      "already_configured": "This panel account is already configured."
     }
   },
   "options": {

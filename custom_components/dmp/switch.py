@@ -7,19 +7,17 @@ from homeassistant.components.switch import (  # type: ignore[attr-defined]  # H
     SwitchDeviceClass,
     SwitchEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DMPListener
+from . import DMPConfigEntry, DMPListener
 from .const import (
     CONF_PANEL_ACCOUNT_NUMBER,
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,12 +25,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: DMPConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     _LOGGER.debug("Setting up bypass switches")
-    hass.data.setdefault(DOMAIN, {})
-    config = hass.data[DOMAIN][config_entry.entry_id]
+    config = config_entry.runtime_data.config
     # broken out from binary_sensor
     bypassZones: list[DMPZoneBypassSwitch] = []
     for zone in config[CONF_ZONES]:
@@ -44,17 +41,19 @@ async def async_setup_entry(
 
 
 class DMPZoneBypassSwitch(SwitchEntity):
+    _attr_should_poll = False
+
     def __init__(
         self,
         hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        config_entry: DMPConfigEntry,
         entity_config: dict[str, Any],
     ) -> None:
         self._hass = hass
         self._config_entry = config_entry
-        config = hass.data[DOMAIN][config_entry.entry_id]
+        config = config_entry.runtime_data.config
         self._accountNum: str | None = config.get(CONF_PANEL_ACCOUNT_NUMBER)
-        self._listener: DMPListener = self._hass.data[DOMAIN][LISTENER]
+        self._listener: DMPListener = config_entry.runtime_data.listener
         self._device_name: str | None = entity_config.get(CONF_ZONE_NAME)
         self._name = f"{entity_config.get(CONF_ZONE_NAME)} Bypass"
         self._number: str = entity_config.get(CONF_ZONE_NUMBER, "")

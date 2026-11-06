@@ -19,10 +19,11 @@ from custom_components.dmp.const import (
     CONF_ZONE_NAME,
     CONF_ZONE_NUMBER,
     DOMAIN,
-    LISTENER,
 )
 
-pytestmark = pytest.mark.usefixtures("init_integration")
+pytestmark = pytest.mark.usefixtures("entry_with_listener")
+
+from .common import attach_runtime_data
 
 
 @pytest.fixture
@@ -94,7 +95,7 @@ def mock_zone_config():
 
 
 @pytest.fixture
-def setup_sensor(hass, init_integration, mock_config_entry, mock_listener):
+def setup_sensor(hass, entry_with_listener, mock_config_entry, mock_listener):
     """Set up sensor with mocked dependencies."""
     panel = mock_listener.getPanels()["12345"]
     return hass, panel
@@ -150,7 +151,7 @@ def test_icon_mapping(
 
 
 @pytest.fixture
-def setup_battery_sensor(hass, init_integration, mock_config_entry, mock_listener):
+def setup_battery_sensor(hass, entry_with_listener, mock_config_entry, mock_listener):
     """Set up battery sensor with mocked dependencies."""
     panel = mock_listener.getPanels()["12345"]
     panel.getContactTime = Mock(return_value="t0")
@@ -191,11 +192,11 @@ def test_battery_icon(setup_battery_sensor, mock_config_entry, state, icon):
 @pytest.fixture
 def setup_trouble_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Set up a trouble binary sensor with mocked dependencies."""
-    hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.getContactTime = Mock(return_value="t1")
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    attach_runtime_data(
+        mock_config_entry, mock_listener, {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    )
     return hass, panel
 
 
@@ -233,11 +234,11 @@ def test_trouble_icon(setup_trouble_sensor, mock_config_entry, state, icon):
 @pytest.fixture
 def setup_bypass_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Set up a bypass binary sensor with mocked dependencies."""
-    hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.getContactTime = Mock(return_value="t3")
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    attach_runtime_data(
+        mock_config_entry, mock_listener, {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    )
     return hass, panel
 
 
@@ -275,11 +276,11 @@ def test_bypass_icon(setup_bypass_sensor, mock_config_entry, state, icon):
 @pytest.fixture
 def setup_alarm_sensor(hass: HomeAssistant, mock_config_entry, mock_listener):
     """Set up an alarm binary sensor with mocked dependencies."""
-    hass.data.setdefault(DOMAIN, {})
     panel = mock_listener.getPanels()["12345"]
     panel.getContactTime = Mock(return_value="t2")
-    hass.data[DOMAIN][LISTENER] = mock_listener
-    hass.data[DOMAIN][mock_config_entry.entry_id] = {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    attach_runtime_data(
+        mock_config_entry, mock_listener, {CONF_PANEL_ACCOUNT_NUMBER: "12345"}
+    )
     return hass, panel
 
 

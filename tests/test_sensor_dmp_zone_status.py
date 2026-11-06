@@ -13,11 +13,12 @@ from custom_components.dmp.const import (
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
 from custom_components.dmp.sensor import DMPZoneStatus
 
-pytestmark = pytest.mark.usefixtures("init_integration")
+pytestmark = pytest.mark.usefixtures("entry_with_listener")
+
+from .common import attach_runtime_data
 
 
 @pytest.fixture
@@ -140,7 +141,7 @@ class TestDMPZoneStatus:
         hass,
         mock_config_entry,
         mock_listener_panel,
-        init_integration,
+        entry_with_listener,
         zone_class,
         state,
         expected_icon,
@@ -173,7 +174,7 @@ class TestDMPZoneStatus:
         hass,
         mock_config_entry,
         mock_listener_panel,
-        init_integration,
+        entry_with_listener,
         zone_class,
         expected_device_class,
     ):
@@ -192,9 +193,7 @@ class TestDMPZoneStatus:
     ):
         """Test that process_zone_callback updates state from pyDMP zone and writes state."""
         listener, _panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        attach_runtime_data(mock_config_entry, listener)
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         sensor.async_write_ha_state = Mock()
@@ -210,9 +209,7 @@ class TestDMPZoneStatus:
     ):
         """Test that alarm state takes priority in status callback."""
         listener, panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        attach_runtime_data(mock_config_entry, listener)
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         sensor.async_write_ha_state = Mock()
@@ -227,9 +224,7 @@ class TestDMPZoneStatus:
     ):
         """Test device removal when sensor is removed from hass."""
         listener, _panel = mock_listener_panel
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][LISTENER] = listener
-        hass.data[DOMAIN][mock_config_entry.entry_id] = mock_config_entry.data
+        attach_runtime_data(mock_config_entry, listener)
         zone_config = mock_config_entry.data[CONF_ZONES][0]
         sensor = DMPZoneStatus(hass, mock_config_entry, zone_config)
         mock_device_registry = Mock()

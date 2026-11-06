@@ -13,8 +13,9 @@ from custom_components.dmp.const import (
     CONF_ZONE_NUMBER,
     CONF_ZONES,
     DOMAIN,
-    LISTENER,
 )
+
+from .common import attach_runtime_data
 
 
 @pytest.mark.asyncio
@@ -74,16 +75,13 @@ async def test_async_setup_entry_zones(
     panel.ensure_zone = Mock(return_value=mock_zone)
     listener.getPanels.return_value = {"12345": panel}
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_PANEL_ACCOUNT_NUMBER: "12345", CONF_ZONES: zones},
         entry_id="test_entry",
     )
 
-    hass.data[DOMAIN][config_entry.entry_id] = config_entry.data
+    attach_runtime_data(config_entry, listener)
 
     entities = []
 
@@ -114,9 +112,6 @@ async def test_async_setup_entry_update_before_add_false(hass: HomeAssistant):
     panel.ensure_zone = Mock(return_value=mock_zone)
     listener.getPanels.return_value = {"12345": panel}
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][LISTENER] = listener
-
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -132,7 +127,7 @@ async def test_async_setup_entry_update_before_add_false(hass: HomeAssistant):
         entry_id="test_entry",
     )
 
-    hass.data[DOMAIN][config_entry.entry_id] = config_entry.data
+    attach_runtime_data(config_entry, listener)
 
     update_before_add_values = []
 

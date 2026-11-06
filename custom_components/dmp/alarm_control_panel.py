@@ -10,21 +10,19 @@ from homeassistant.components.alarm_control_panel.const import (
     AlarmControlPanelEntityFeature,
     AlarmControlPanelState,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pydmp import DMPPanel as PyDMPPanel
 
-from . import AreaStatus, DMPListener
+from . import DMPConfigEntry, DMPListener
 from .const import (
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
     CONF_PANEL_ACCOUNT_NUMBER,
     CONF_PANEL_NAME,
     DOMAIN,
-    LISTENER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,15 +30,14 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: DMPConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     _LOGGER.info("Setting up alarm control panels.")
     """Setup sensors from a config entry created in the integrations UI."""
-    hass.data.setdefault(DOMAIN, {})
-    config = hass.data[DOMAIN][entry.entry_id]
+    config = entry.runtime_data.config
     _LOGGER.debug(f"Alarm control panel config: {config}")
-    listener = hass.data[DOMAIN][LISTENER]
+    listener = entry.runtime_data.listener
     area = DMPArea(listener, config)
     areas: list[DMPArea] = []
     areas.append(area)
@@ -57,10 +54,6 @@ class DMPArea(AlarmControlPanelEntity):
         self._panel = listener.getPanels()[str(self._account_number)]
         self._home_zone: str = config.get(CONF_HOME_AREA) or self._number[1:]
         self._away_zone: str = config.get(CONF_AWAY_AREA) or self._number[1:]
-        areaObj = AreaStatus(
-            areaName=self._name, areaState=AlarmControlPanelState.DISARMED
-        )
-        self._panel.updateArea(areaObj)
 
     @property
     def _pydmp_panel(self) -> PyDMPPanel:

@@ -6,12 +6,15 @@ import pytest
 from homeassistant.components.alarm_control_panel import AlarmControlPanelState
 from pydmp import S3Message
 
-from custom_components.dmp import DMPListener
+from custom_components.dmp import DMPListener, DMPPanel
 from custom_components.dmp.const import (
     CONF_AWAY_AREA,
     CONF_HOME_AREA,
+    CONF_PANEL_ACCOUNT_NUMBER,
     CONF_PANEL_LISTEN_PORT,
 )
+
+from .common import FakeArea, FakeZone
 
 
 @pytest.fixture
@@ -427,39 +430,64 @@ def test_listener_panel_management():
 
 @pytest.mark.asyncio
 async def test_listener_updateStatus():
-    """Test updateStatus reads from pyDMP zones and areas."""
+    """updateStatus refreshes pyDMP, then reads zones and areas via the public API."""
     mock_pydmp = Mock()
     mock_pydmp.update_status = AsyncMock()
-
-    mock_zone_001 = Mock()
-    mock_zone_001.state = "S"  # Short
-    mock_zone_001.name = "Front Door"
-    mock_zone_001.number = 1
-
-    mock_zone_002 = Mock()
-    mock_zone_002.state = "N"  # Normal
-    mock_zone_002.name = "Window"
-    mock_zone_002.number = 2
-
-    mock_pydmp._zones = {1: mock_zone_001, 2: mock_zone_002}
-    mock_pydmp._areas = {}
+    mock_pydmp.get_zones = AsyncMock(
+        return_value=[FakeZone(1, "Front Door", "S"), FakeZone(2, "Window", "N")]
+    )
+    mock_pydmp.get_areas = AsyncMock(return_value=[FakeArea(1, "Perimeter", "A")])
 
     listener = DMPListener(
         Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"}, pydmp_panel=mock_pydmp
     )
-
-    panel = Mock()
-    panel.getAccountNumber.return_value = "12345"
-
-    listener._panels = {"12345": panel}
-    listener.setStatusAttributes = Mock()
+    listener.addPanel(DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345"}))
     listener.updateHASS = AsyncMock()
 
     await listener.updateStatus()
 
     mock_pydmp.update_status.assert_awaited_once()
-    listener.setStatusAttributes.assert_called_once()
-    listener.updateHASS.assert_called_once()
+    attrs = listener.getStatusAttributes()
+    assert attrs["Zone: 001 - Front Door"] == "Short"
+    assert attrs["Zone: 002 - Window"] == "Normal"
+    assert attrs["Area: 01 - Perimeter"] == "Armed Away"
+    listener.updateHASS.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    ("area_states", "alarm_zone", "expected_state", "expected_name"),
+    [
+        ({1: "A", 2: "D"}, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
+        ({1: "A", 2: "A"}, None, AlarmControlPanelState.ARMED_AWAY, "Interior"),
+        ({1: "D", 2: "D"}, None, AlarmControlPanelState.DISARMED, "Perimeter"),
+        ({1: "S", 2: "D"}, None, AlarmControlPanelState.ARMED_HOME, "Perimeter"),
+        ({1: "A", 2: "A"}, "005", AlarmControlPanelState.TRIGGERED, "Perimeter"),
+    ],
+    ids=["home_armed", "away_armed", "disarmed", "home_stay", "alarm_active"],
+)
+@pytest.mark.asyncio
+async def test_listener_updateStatus_sets_area_state(
+    area_states, alarm_zone, expected_state, expected_name
+):
+    """updateStatus derives the alarm panel state from the queried area states."""
+    names = {1: "Perimeter", 2: "Interior"}
+    mock_pydmp = Mock()
+    mock_pydmp.update_status = AsyncMock()
+    mock_pydmp.get_zones = AsyncMock(return_value=[])
+    mock_pydmp.get_areas = AsyncMock(
+        return_value=[FakeArea(n, names[n], st) for n, st in area_states.items()]
+    )
+    listener = DMPListener(
+        Mock(), {CONF_HOME_AREA: "01", CONF_AWAY_AREA: "02"}, pydmp_panel=mock_pydmp
+    )
+    panel = DMPPanel(Mock(), {CONF_PANEL_ACCOUNT_NUMBER: "12345"})
+    if alarm_zone is not None:
+        panel.set_alarm(alarm_zone)
+    listener.addPanel(panel)
+
+    await listener.updateStatus()
+
+    assert panel.getArea() == {"areaName": expected_name, "areaState": expected_state}
 
 
 @pytest.mark.asyncio
